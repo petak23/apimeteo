@@ -15,28 +15,26 @@ use Nette\Utils\Strings;
 
 /**
  * Autenticator
- * Last change 14.07.2022
- * 
- * @github     Forked from petrbrouzda/RatatoskrIoT
+ * Last change 20.11.2023
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2021 - 2022 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2021 - 2023 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.2
+ * @version    1.0.0
  */
-class PVAuthenticator implements Security\Authenticator
+class Authenticator implements Security\Authenticator
 {
   private $passwords;
   private $request;
 
-  /** @var Model\PV_User_main */
+  /** @var Model\User_main */
   private $pv_user;
 
   const NAME = 'audit';
 
   public function __construct(
-    Model\PV_User_main $pv_user,
+    Model\User_main $pv_user,
     Security\Passwords $passwords,
     Nette\Http\Request $request
   ) {

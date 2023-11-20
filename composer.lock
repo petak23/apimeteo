@@ -4,8 +4,40 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9277edcb004871cb097b962df19cf778",
+    "content-hash": "226eb3cf1b56405281208de32556c4a4",
     "packages": [
+        {
+            "name": "dg/adminer-custom",
+            "version": "v1.29.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dg/adminer-custom.git",
+                "reference": "b46e3987f9dd76e58b59af44fc9e801d2f01294c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dg/adminer-custom/zipball/b46e3987f9dd76e58b59af44fc9e801d2f01294c",
+                "reference": "b46e3987f9dd76e58b59af44fc9e801d2f01294c",
+                "shasum": ""
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "description": "Customization for Adminer, the best database management tool written in PHP.",
+            "keywords": [
+                "database",
+                "elasticsearch",
+                "mongodb",
+                "mssql",
+                "mysql",
+                "oracle",
+                "postgresql",
+                "sqlite"
+            ],
+            "support": {
+                "source": "https://github.com/dg/adminer-custom/tree/v1.29.0"
+            },
+            "time": "2023-03-11T14:11:28+00:00"
+        },
         {
             "name": "latte/latte",
             "version": "v3.0.12",
@@ -1533,5 +1565,5 @@
         "php": ">= 8.0"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.1.0"
 }

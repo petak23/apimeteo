@@ -1,12 +1,12 @@
 <?php
 
-namespace App\ApiModule\Presenters;
+namespace App\Presenters;
 
-use App\ApiModule\Model;
+use App\Model;
 
 /**
  * Prezenter pre pristup k api jednotiek.
- * Posledna zmena(last change): 13.09.2023
+ * Posledna zmena(last change): 20.11.2023
  *
  * Modul: API
  *

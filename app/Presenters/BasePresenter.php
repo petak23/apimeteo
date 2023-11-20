@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\ApiModule\Presenters;
+namespace App\Presenters;
 
-use App\ApiModule\Model;
+use App\Model;
+use App\Services;
 use Nette\Application\UI\Presenter;
 
 /**
  * Zakladny presenter pre vsetky presentery v module API
  * 
- * Posledna zmena(last change): 29.09.2023
+ * Posledna zmena(last change): 20.11.2023
  *
  * Modul: API
  *
@@ -18,7 +19,7 @@ use Nette\Application\UI\Presenter;
  * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.4
+ * @version 1.0.0
  */
 abstract class BasePresenter extends Presenter
 {
@@ -28,16 +29,10 @@ abstract class BasePresenter extends Presenter
 	public $user_main;
 	/** @var Model\User_permission @inject */
 	public $user_permission;
-	/* * @var DbTable\Hlavne_menu @inject */
-	//public $hlavne_menu;
-	/* * @var DbTable\Lang @inject*/
-	//public $lang;
-	/* * @var DbTable\User_roles @inject */
-	//public $user_roles;
-	/* * @var DbTable\Udaje @inject */
-	//public $udaje;
-	/* * @var DbTable\Verzie @inject */
-	//public $verzie;
+
+	// -- Services
+	/** @var Services\ApiConfig @inject */
+	public $config;
 
 	/** @persistent */
 	public $language = 'sk';
@@ -45,8 +40,6 @@ abstract class BasePresenter extends Presenter
 	/** @var int Uroven registracie uzivatela  */
 	public $id_reg;
 
-	/** @var array nastavenie z config-u */
-	public $nastavenie;
 	/** @var array - pole s chybami pri uploade */
 	public $upload_error = [
 		0 => "Bez chyby. Súbor úspešne nahraný.",
@@ -57,12 +50,6 @@ abstract class BasePresenter extends Presenter
 		5 => "Upload error 5.",
 		6 => "Chýbajúci dočasný priečinok!",
 	];
-
-	public function __construct(array $parameters)
-	{
-		// Nastavenie z config-u
-		$this->nastavenie = $parameters;
-	}
 
 	/** Vychodzie nastavenia */
 	protected function startup(): void
@@ -81,7 +68,7 @@ abstract class BasePresenter extends Presenter
 
 	public function beforeRender(): void
 	{
-		$this->template->appName = $this->nastavenie['title'];
-		$this->template->links = $this->nastavenie['links'];
+		$this->template->appName = $this->config->getConfig('title');
+		$this->template->links = $this->config->getConfig('links');
 	}
 }

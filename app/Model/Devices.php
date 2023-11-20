@@ -57,22 +57,23 @@ class Devices
 
 		$result = $this->devices->where(['user_id' => $userId])->order('id ASC');
 
-		foreach ($result as $row) {
-			$dev = new VDevice($row, $return_as_array);
-			if ($dev->attrs['last_bad_login'] != NULL) {
-				if ($dev->attrs['last_login'] != NULL) {
-					$lastLoginTs = (DateTime::from($dev->attrs['last_login']))->getTimestamp();
-					$lastErrLoginTs = (DateTime::from($dev->attrs['last_bad_login']))->getTimestamp();
-					if ($lastErrLoginTs >  $lastLoginTs) {
+		if ($result->count() > 0)
+			foreach ($result as $row) {
+				$dev = new VDevice($row, $return_as_array);
+				if ($dev->attrs['last_bad_login'] != NULL) {
+					if ($dev->attrs['last_login'] != NULL) {
+						$lastLoginTs = (DateTime::from($dev->attrs['last_login']))->getTimestamp();
+						$lastErrLoginTs = (DateTime::from($dev->attrs['last_bad_login']))->getTimestamp();
+						if ($lastErrLoginTs >  $lastLoginTs) {
+							$dev->problem_mark = true;
+						}
+					} else {
 						$dev->problem_mark = true;
 					}
-				} else {
-					$dev->problem_mark = true;
 				}
+				// Pridám zariadenie a k nemu načítam senzory
+				$rc->addWithSensors($dev, $this->pv_sensors->getDeviceSensors($row->id, $row->monitoring), $return_as_array);
 			}
-			// Pridám zariadenie a k nemu načítam senzory
-			$rc->addWithSensors($dev, $this->pv_sensors->getDeviceSensors($row->id, $row->monitoring), $return_as_array);
-		}
 		return $return_as_array ? $rc->returnAsArray() : $rc;
 	}
 
@@ -209,38 +210,5 @@ class VDevices
 			$out[$k]['sensors'] = $v->sensors;
 		}
 		return $out;
-	}
-}
-
-/** 
- * Objekt jedného zariadenia 
- * */
-class VDevice
-{
-	use Nette\SmartObject;
-
-	/** @var Nette\Database\Table\ActiveRow Kompletné data o zariadení */
-	public $attrs;
-
-	/** @var bool Príznak problému */
-	public $problem_mark = false;
-
-	/** @var array Pole senzorov zariadenia */
-	public $sensors = [];
-
-	public function __construct(Nette\Database\Table\ActiveRow $attrs, bool $return_as_array = false)
-	{
-		$this->attrs = $return_as_array ? $attrs->toArray() : $attrs;
-	}
-
-	public function addSensor(Nette\Database\Table\ActiveRow $sensorAttrs, bool $return_as_array = false): void
-	{
-		if ($return_as_array) {
-			$out = array_merge(
-				['value_unit' => $sensorAttrs->value_types->unit],
-				$sensorAttrs->toArray()
-			);
-		}
-		$this->sensors[$sensorAttrs->id] = $return_as_array ? $out : $sensorAttrs;
 	}
 }

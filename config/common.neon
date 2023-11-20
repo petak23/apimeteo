@@ -1,4 +1,5 @@
 parameters:
+	admin_email: 'petak23@echo-msz.eu'
 	# len pre informáciu pri grafoch
 	dataRetentionDays: 90
 	title: 'apiMeteo-petak23'
@@ -26,10 +27,13 @@ application:
 latte:
 	strictTypes: yes
 
-
 session:
-	expiration: 14 days
+	autoStart: true
+	expiration: 30 days
+	debugger: true
 
+tracy:
+	email: %admin_email%
 
 di:
 	export:
