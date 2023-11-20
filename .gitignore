@@ -1,5 +1,5 @@
 config/local.neon
-config/databese.neon
+config/database.neon
 log/*.txt
 temp/
 vendor/
