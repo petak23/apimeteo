@@ -1,0 +1,7 @@
+config/local.neon
+config/databese.neon
+log/*.txt
+temp/
+vendor/
+deployment.*
+www/favicon

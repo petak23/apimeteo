@@ -1,0 +1,45 @@
+parameters:
+	# len pre informáciu pri grafoch
+	dataRetentionDays: 90
+	title: 'apiMeteo-petak23'
+	# len pre informáciu pri grafoch
+	minYear: 2023
+	links:
+		- {
+			name: 'Github-petak23'
+			link: 'https://github.com/petak23/apimeteo'
+		}
+		- {
+			name: 'Domov'
+			link: 'http://apimeteo.echo-msz.eu/'
+		}
+		- {
+			name: 'Adminer'
+			link: 'http://iot.echo-msz.eu/www/adminer/' 
+		}
+		
+application:
+	errorPresenter: Error
+	mapping:
+		*: App\*Module\Presenters\*Presenter
+
+database:
+	dsn: 'mysql:host=md106.wedos.net;dbname=d264787_iot'
+	user:  w264787_iot
+	password: WDCCvV6f
+
+latte:
+	strictTypes: yes
+
+
+session:
+	expiration: 14 days
+
+
+di:
+	export:
+		parameters: no
+		tags: no
+
+includes:
+	- services.neon

@@ -1,0 +1,29 @@
+services:
+	- App\Router\RouterFactory::createRouter
+
+	- App\Presenters\DevicesPresenter(%parameters%)
+	- App\Presenters\HomepagePresenter(%parameters%)
+	- App\Presenters\UnitsPresenter(%parameters%)
+	- App\Presenters\UsersPresenter(%parameters%)
+
+# Models
+	- App\Model\Devices
+	- App\Model\Measures
+	- App\Model\Sensors
+	- App\Model\Sessions
+	- App\Model\Units
+	- App\Model\User_main
+	- App\Model\User_permission
+	- App\Model\User_resource
+	- App\Model\User_roles
+
+	- App\Model\AuthorizatorFactory::create(@Nette\Database\Explorer)
+
+	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear%)
+
+
+search:
+	-	in: %appDir%
+		classes:
+			- *Factory
+			- *Facade

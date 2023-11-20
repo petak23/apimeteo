@@ -1,0 +1,38 @@
+{block content}
+<div class="pb-3 pt-3 px-2">
+	<h1 n:block=title>Základná stránka pre API</h1>
+</div>
+
+<div class="row px-2 bg-light">
+	<div class="col-12">
+		<h2>Nastavenia</h2>
+		<ul>
+			<li><strong>api/homepage/myappsettings</strong> - Výpis niektorých vybraných nastavení.</li>
+		</ul>
+	</div>
+
+	<div class="col-12">
+		<h2>Jednotky</h2>
+		<ul>
+			<li><strong>api/units</strong> - Výpis zoznamu jednotiek</li>
+		</ul>
+	</div>
+	<div class="col-12">
+		<h2>Užívatelia</h2>
+		<ul>
+			<li><strong>api/users</strong> - Výpis všetkých užívateľov</li>
+			<li><strong>api/user</strong> - Výpis aktuálne prihláseného užívateľa</li>
+			<li><strong>api/user/[id]</strong> - Výpis užívateľa s id</li>
+		</ul>
+	</div>
+		<div class="col-12">
+		<h2>Zariadenia</h2>
+		<ul>
+			<li><strong>api/devices</strong> - Výpis všetkých zariadení patriacich užívateľvi aj so senzormi</li>
+			<li><strong>api/device/[id]</strong> - Výpis konkrétneho zariadenia s id</li>
+			<li><strong>api/devices/sensors/[id]</strong> - Výpis zoznamu senzorov pre dané zariadenie s id</li>
+			<li><strong>api/devices/measures/[id]</strong> - Výpis zoznamu meraní pre daný senzor s id</li>
+			<li><strong>api/sensor/last/[id]</strong> - Výpis posledného merania pre daný senzor s id</li>
+		</ul>
+	</div>
+</div>
