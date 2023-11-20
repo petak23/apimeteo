@@ -8,12 +8,11 @@ Pokud chcete replikovat data do jiného systému: https://pebrou.wordpress.com/2
 
 ---
 
-# Knihovny a kód třetích stran
+## Deployment
 
-Aplikace obsahuje následující kód třetích stran ve formě zdrojových kódů distribuovaných přímo s aplikací (resp. stahovaných přes Composer).
+- `php ../ftp-deployment/deployment deployment.ini`
 
-### Nette Framework
+## github personal token:
 
-- zdroj: https://nette.org/cs/
-- licence: New BSD License
-- použito bez úprav
+- pregeneruj token na: (https://github.com/settings/tokens)
+- použi príkaz: `git remote set-url origin https://petak23:!!!TOKEN!!!@github.com/petak23/bwfoto.git`
