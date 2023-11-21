@@ -132,6 +132,12 @@ class Authenticator implements Security\Authenticator
 
     //$role = $userData->user_roles->role;
     $role = Strings::split($userData->role, '~,\s*~');
-    return new Security\SimpleIdentity($userData->id, $role, ['email' => $userData->email, 'prefix' => $userData->prefix/*, 'id_user_roles' => $userData->id_user_roles*/]);
+    $user_ident_data =  [
+      'email' => $userData->email,
+      'prefix' => $userData->prefix,
+      'comm_id' => $this->passwords->hash($userData->email . date()), // TODO - ulož do DB pre budúce použitie (je to id pre komunikáciu)
+    //'id_user_roles' => $userData->id_user_roles*/
+    ];
+    return new Security\SimpleIdentity($userData->id, $role, $user_ident_data);
   }
 }
