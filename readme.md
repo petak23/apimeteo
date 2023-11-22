@@ -15,4 +15,4 @@ Pokud chcete replikovat data do jiného systému: https://pebrou.wordpress.com/2
 ## github personal token:
 
 - pregeneruj token na: (https://github.com/settings/tokens)
-- použi príkaz: `git remote set-url origin https://petak23:!!!TOKEN!!!@github.com/petak23/bwfoto.git`
+- použi príkaz: `git remote set-url origin https://petak23:!!!TOKEN!!!@github.com/petak23/apimeteo.git`
