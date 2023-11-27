@@ -32,12 +32,19 @@ class SignPresenter extends Presenter
 	/** @var Model\User_main @inject */
 	public $user_main;
 
+	private $pok_log;
+
+	function __construct(array $pok_log)
+	{
+		$this->pok_log = $pok_log;
+	}
+
 	/** Akcia pre prihlásenie */
 	public function actionIn(): void
 	{
 		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
-		$email = isset($_post['email']) ? $_post['email'] : "petak23@echo-msz.eu";
-		$password = isset($_post['password']) ?	$_post['password'] : "Katka2810";
+		$email = isset($_post['email']) ? $_post['email'] : $this->pok_log["email"];
+		$password = isset($_post['password']) ?	$_post['password'] : $this->pok_log["password"];
 
 		try {
 			$this->user->login($email, $password);

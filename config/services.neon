@@ -2,7 +2,7 @@ services:
 	- App\Router\RouterFactory::createRouter
 
 #	- App\Presenters\DevicesPresenter(%parameters%)
-	- App\Presenters\HomePresenter #(%parameters%)
+	- App\Presenters\SignPresenter(%pok_log%)
 #	- App\Presenters\UnitsPresenter(%parameters%)
 #	- App\Presenters\UsersPresenter(%parameters%)
 

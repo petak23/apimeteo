@@ -18,6 +18,9 @@ parameters:
 			name: 'Adminer'
 			link: 'http://iot.echo-msz.eu/www/adminer/' 
 		}
+	pok_log:
+		email: "petak23@echo-msz.eu"
+		password: ""
 		
 application:
 	errorPresenter: Error
