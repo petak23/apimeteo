@@ -6,12 +6,14 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Nette\Application\UI\Presenter;
 
 /**
  * Zakladny presenter pre vsetky presentery v module API
  * 
- * Posledna zmena(last change): 20.11.2023
+ * Posledna zmena(last change): 25.11.2023
  *
  * Modul: API
  *
@@ -19,7 +21,7 @@ use Nette\Application\UI\Presenter;
  * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.0
+ * @version 1.0.1
  */
 abstract class BasePresenter extends Presenter
 {
@@ -58,8 +60,9 @@ abstract class BasePresenter extends Presenter
 		// Sprava uzivatela
 		$user = $this->getUser(); //Nacitanie uzivatela
 		// Kontrola prihlasenia a nacitania urovne registracie
-		$this->id_reg = ($user->isLoggedIn()) ? $this->user_main->getUser($user->getId())->id_user_roles : 0;
+		$this->id_reg = ($user->isLoggedIn()) ? $this->user_main->find($user->getId())->id_user_roles : 0;
 
+		//dumpe($this->name, $this->action);
 		// Kontrola ACL
 		if (!($user->isAllowed($this->name, $this->action))) {
 			$this->error("Not allowed");
@@ -70,5 +73,22 @@ abstract class BasePresenter extends Presenter
 	{
 		$this->template->appName = $this->config->getConfig('title');
 		$this->template->links = $this->config->getConfig('links');
+	}
+
+	public function verifyToken($token)
+	{
+		// Load public key from file
+		$publicKey = file_get_contents(__DIR__ . '/../../ssl/public_key.pem');
+
+		try {
+			// Attempt to decode the token using the public key
+			$decoded = JWT::decode($token, new Key($publicKey, 'RS256'));
+
+			// Token is valid, handle accordingly
+			// Access user claims using $decoded->user_id, $decoded->username, etc.
+		} catch (\Exception $e) {
+			// Token is invalid, handle accordingly
+			// Log or respond with an error
+		}
 	}
 }

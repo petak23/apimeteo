@@ -15,6 +15,11 @@ final class RouterFactory
 	public static function createRouter(): RouteList
 	{
 		$router = new RouteList;
+
+		//$router->addRoute('v<version>/<package>[/<apiAction>][/<params>]', 'Api:Api:default');
+
+		$router->addRoute('login', 'Sign:in');
+		$router->addRoute('logout', 'Sign:out');
 		$router->addRoute('device/<id>[/<action>]', 'Devices:device');
 		$router->addRoute('sensor/last/<id>', 'Devices:measureslast');
 		$router->addRoute('devices[/<action>[/<id>]]', 'Devices:default');

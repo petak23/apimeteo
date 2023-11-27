@@ -2,7 +2,7 @@ services:
 	- App\Router\RouterFactory::createRouter
 
 #	- App\Presenters\DevicesPresenter(%parameters%)
-#	- App\Presenters\HomePresenter(%parameters%)
+	- App\Presenters\HomePresenter #(%parameters%)
 #	- App\Presenters\UnitsPresenter(%parameters%)
 #	- App\Presenters\UsersPresenter(%parameters%)
 
@@ -19,8 +19,17 @@ services:
 	- App\Model\AuthorizatorFactory::create(@Nette\Database\Explorer)
 	authenticator: App\Services\Authenticator
 
-	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear%)
+	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear%, %passphrase%)
 
+
+	- Tomaj\NetteApi\Link\ApiLink
+	- Tomaj\NetteApi\Misc\IpDetector
+	apiDecider:
+		factory: Tomaj\NetteApi\ApiDecider
+		setup:
+			- addApi(\Tomaj\NetteApi\EndpointIdentifier('GET', 1, 'units'), \App\v1\Handlers\UnitsHandler(), \Tomaj\NetteApi\Authorization\NoAuthorization())
+			- addApi(\Tomaj\NetteApi\EndpointIdentifier('GET', 1, 'devices'), \App\v1\Handlers\DevicesHandler(), \Tomaj\NetteApi\Authorization\NoAuthorization())
+			#- addApi(\Tomaj\NetteApi\EndpointIdentifier('POST', 1, 'users', 'send-email'), \App\MyApi\v1\Handlers\SendEmailHandler(), \Tomaj\NetteApi\Authorization\BearerTokenAuthorization())
 
 search:
 	-	in: %appDir%/Model

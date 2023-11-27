@@ -6,3 +6,4 @@ vendor/
 deployment.*
 www/favicon
 .history/
+ssl/

@@ -13,11 +13,14 @@ class ApiConfig
 
 	private $configs = [];
 
+	private $passphrase = null;
+
 	public function __construct(
 		$links,
 		$appName,
 		$dataRetentionDays,
-		$minYear
+		$minYear,
+		$passphrase
 	) {
 		$this->configs = [
 			"links" => $links,
@@ -25,6 +28,7 @@ class ApiConfig
 			"dataRetentionDays" => $dataRetentionDays,
 			"minYear" => $minYear,
 		];
+		$this->passphrase = $passphrase;
 	}
 
 	public function getConfigs(): array
@@ -35,5 +39,10 @@ class ApiConfig
 	public function getConfig(String $name): String|int|array|null
 	{
 		return isset($this->configs[$name]) ? $this->configs[$name] : null;
+	}
+
+	public function getPassPhase(): ?String
+	{
+		return $this->passphrase;
 	}
 }

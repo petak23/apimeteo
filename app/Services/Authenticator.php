@@ -128,15 +128,13 @@ class Authenticator implements Security\Authenticator
 
     $this->loginOkAction($userData, $this->request->getRemoteAddress(), $ua);
 
-    Logger::log(self::NAME, Logger::INFO, "[{$ip}] Login: prihlaseny {$email} v roli '{$userData->role/*user_roles->name*/}', '{$ua}'");
+    Logger::log(self::NAME, Logger::INFO, "[{$ip}] Login: prihlaseny {$email} v roli '{$userData->user_roles->name}', '{$ua}'");
 
-    //$role = $userData->user_roles->role;
-    $role = Strings::split($userData->role, '~,\s*~');
+    $role = $userData->user_roles->role;
     $user_ident_data =  [
       'email' => $userData->email,
-      'prefix' => $userData->prefix,
-      'comm_id' => $this->passwords->hash($userData->email . date()), // TODO - ulož do DB pre budúce použitie (je to id pre komunikáciu)
-    //'id_user_roles' => $userData->id_user_roles*/
+      //'prefix' => $userData->prefix,
+      'id_user_roles' => $userData->id_user_roles
     ];
     return new Security\SimpleIdentity($userData->id, $role, $user_ident_data);
   }

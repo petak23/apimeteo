@@ -2,12 +2,15 @@
 
 namespace App\Presenters;
 
+use App\Model;
+use App\Services;
 use Nette;
 use Firebase\JWT\JWT; // https://github.com/firebase/php-jwt
+use Nette\Application\UI\Presenter;
 
 /**
- * Prezenter pre pristup k api užívateľov.
- * Posledna zmena(last change): 25.11.2023
+ * Prezenter pre pristup k api prihlasovania a odhlasovania užívateľov.
+ * Posledna zmena(last change): 26.11.2023
  *
  * Modul: API
  *
@@ -15,38 +18,29 @@ use Firebase\JWT\JWT; // https://github.com/firebase/php-jwt
  * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.2
+ * @version 1.0.0
  * @help 1.) https://forum.nette.org/cs/28370-data-z-post-request-body-reactjs-appka-se-po-ceste-do-php-ztrati
  */
-class UsersPresenter extends BasePresenter
+class SignPresenter extends Presenter
 {
 
-	public function actionDefault(): void
-	{
-		$this->sendJson($this->user_main->getUsers(true));
-	}
+	// -- Services
+	/** @var Services\ApiConfig @inject */
+	public $config;
 
-	/**
-	 * Vráti konkrétneho užívateľa. Ak je id = 0 vráti aktuálne prihláseného užívateľa
-	 */
-	public function actionUser(int $id = 0): void
-	{
-		$this->sendJson(
-			$this->user_main->getUser(
-				($id == 0) ? $this->user->getId() : $id,
-				$this->user,
-				$this->template->baseUrl,
-				true
-			)
-		);
-	}
+	// -- DB
+	/** @var Model\User_main @inject */
+	public $user_main;
 
-	public function actionLogIn(): void
+	/** Akcia pre prihlásenie */
+	public function actionIn(): void
 	{
 		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
+		$email = isset($_post['email']) ? $_post['email'] : "";
+		$password = isset($_post['password']) ?	$_post['password'] : "";
 
 		try {
-			$this->user->login($_post['email'], $_post['password']);
+			$this->user->login($email, $password);
 
 			$privateKey = openssl_pkey_get_private(
 				file_get_contents(__DIR__ . '/../../ssl/private_key.pem'),
@@ -69,22 +63,23 @@ class UsersPresenter extends BasePresenter
 			// Generate JWT token with private key
 			$jwt = JWT::encode($payload, $privateKey, 'RS256');
 
-			// Return the token as JSON response
+			$httpResponse = $this->getHttpResponse();
+			$httpResponse->addHeader('Access-Control-Allow-Origin', '*');
+			$httpResponse->addHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT');
+			$httpResponse->addHeader('Access-Control-Allow-Headers', 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization');
+			//$httpResponse->addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
+			//$response->addHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 			$this->sendJson([
 				'token' => $jwt,
 				'user_data' => $user_data,
 			]);
-
-			$this->sendJson(
-				$this->user_main->getUser(
-					$this->user->getId(),
-					$this->user,
-					$this->template->baseUrl,
-					true
-				)
-			);
 		} catch (Nette\Security\AuthenticationException $e) {
 			$this->sendJson(['error' => 'Uživateľské meno alebo heslo je nesprávne!!!']);
 		}
+	}
+
+	public function actionOut(): void
+	{
+		$this->user->logout(true);
 	}
 }

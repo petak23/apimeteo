@@ -23,6 +23,7 @@ application:
 	errorPresenter: Error
 	mapping:
 		*: App\*Module\Presenters\*Presenter
+		Api: Tomaj\NetteApi\Presenters\*Presenter
 
 latte:
 	strictTypes: yes

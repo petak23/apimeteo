@@ -19,7 +19,9 @@
 		"nette/utils": "^4.0",
 		"latte/latte": "^3.0",
 		"tracy/tracy": "^2.9",
-		"dg/adminer-custom": "^1.29"
+		"dg/adminer-custom": "^1.29",
+		"tomaj/nette-api": "^2.11",
+		"firebase/php-jwt": "^6.9"
 	},
 	"require-dev": {
 		"nette/tester": "^2.4",
