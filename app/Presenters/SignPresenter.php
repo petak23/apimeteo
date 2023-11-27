@@ -36,8 +36,8 @@ class SignPresenter extends Presenter
 	public function actionIn(): void
 	{
 		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
-		$email = isset($_post['email']) ? $_post['email'] : "";
-		$password = isset($_post['password']) ?	$_post['password'] : "";
+		$email = isset($_post['email']) ? $_post['email'] : "petak23@echo-msz.eu";
+		$password = isset($_post['password']) ?	$_post['password'] : "Katka2810";
 
 		try {
 			$this->user->login($email, $password);
@@ -66,9 +66,9 @@ class SignPresenter extends Presenter
 			$httpResponse = $this->getHttpResponse();
 			$httpResponse->addHeader('Access-Control-Allow-Origin', '*');
 			$httpResponse->addHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT');
-			$httpResponse->addHeader('Access-Control-Allow-Headers', 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization');
+			//$httpResponse->addHeader('Access-Control-Allow-Headers', 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization');
 			//$httpResponse->addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
-			//$response->addHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+			$httpResponse->addHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 			$this->sendJson([
 				'token' => $jwt,
 				'user_data' => $user_data,

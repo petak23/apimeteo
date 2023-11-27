@@ -25,6 +25,12 @@ application:
 		*: App\*Module\Presenters\*Presenter
 		Api: Tomaj\NetteApi\Presenters\*Presenter
 
+#http:
+#	headers:
+#		Access-Control-Allow-Origin: "http://localhost/~petak23/apimeteo/" #"*"
+#		Access-Control-Allow-Methods: "GET, POST, OPTIONS, DELETE, PUT"
+#		Access-Control-Allow-Headers: "Content-Type, Authorization"
+
 latte:
 	strictTypes: yes
 
