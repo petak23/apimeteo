@@ -71,11 +71,12 @@ class SignPresenter extends Presenter
 			$jwt = JWT::encode($payload, $privateKey, 'RS256');
 
 			$httpResponse = $this->getHttpResponse();
-			$httpResponse->addHeader('Access-Control-Allow-Origin', '*');
+			$httpResponse->addHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
 			$httpResponse->addHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE, PUT');
 			//$httpResponse->addHeader('Access-Control-Allow-Headers', 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization');
 			//$httpResponse->addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
 			$httpResponse->addHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
 			$this->sendJson([
 				'token' => $jwt,
 				'user_data' => $user_data,
