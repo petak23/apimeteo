@@ -19,9 +19,11 @@ final class RouterFactory
 		$router->addRoute('sensor/last/<id>', 'Devices:measureslast');
 		$router->addRoute('devices[/<action>[/<id>]]', 'Devices:default');
 		$router->addRoute('units[/<action>[/<id>]]', 'Units:default');
+		$router->addRoute('login', 'Users:logIn');
+		$router->addRoute('logout', 'Users:logOut');
 		$router->addRoute('user[/<id>[/<action>]]', 'Users:user');
 		$router->addRoute('users[/<action>[/<id>]]', 'Users:default');
-		$router->addRoute('<presenter>/<action>[/<id>]', 'Home:default');
+		$router->addRoute('<presenter>/<action>[/<id>]', 'Homepage:default');
 		return $router;
 	}
 }

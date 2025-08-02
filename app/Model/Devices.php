@@ -6,19 +6,20 @@ namespace App\Model;
 
 use App\Services\Logger;
 use Nette;
+use Nette\Database;
 use Nette\Database\Table\ActiveRow;
 use Nette\Utils\DateTime;
 
 /**
  * Model, ktory sa stara o tabulku devices
  * 
- * Posledna zmena 09.11.2023
+ * Posledna zmena 02.08.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.6
+ * @version    1.0.7
  */
 class Devices
 {
@@ -93,7 +94,7 @@ class Devices
 	): VDevice|array {
 
 		if (($_t = $this->devices->get($deviceId)) == null) {
-			return ['error' => "Device not found", 'error_n' => 1, 'device_id' => $deviceId];
+			return ['status' => 404, 'error' => "Device not found", 'error_n' => 1, 'device_id' => $deviceId];
 		}
 
 		$d = new VDevice($this->devices->get($deviceId));
@@ -112,7 +113,7 @@ class Devices
 			$_d['sensors'] = $d->sensors;
 			$_d['first_login'] = $d->attrs->first_login->format('d.m.Y H:i:s');
 			$_d['last_login'] = $d->attrs->last_login->format('d.m.Y H:i:s');
-			$d = $_d;
+			$d = ['status' => 200, 'data'=> $_d];
 		}
 		return $d;
 	}

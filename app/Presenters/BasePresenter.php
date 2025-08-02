@@ -7,19 +7,20 @@ namespace App\Presenters;
 use App\Model;
 use App\Services;
 use Nette\Application\UI\Presenter;
+use Nette;
 
 /**
  * Zakladny presenter pre vsetky presentery v module API
  * 
- * Posledna zmena(last change): 20.11.2023
+ * Posledna zmena(last change): 29.07.2025
  *
  * Modul: API
  *
  * @author Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.0
+ * @version 1.0.1
  */
 abstract class BasePresenter extends Presenter
 {
@@ -55,6 +56,21 @@ abstract class BasePresenter extends Presenter
 	protected function startup(): void
 	{
 		parent::startup();
+
+		$httpRequest = $this->getHttpRequest();
+		$httpResponse = $this->getHttpResponse();
+
+		// CORS hlavičky (rovnaké ako v index.php)
+		$httpResponse->setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+		$httpResponse->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+		$httpResponse->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+		$httpResponse->setHeader('Access-Control-Allow-Credentials', 'true');
+
+		if ($httpRequest->getMethod() === 'OPTIONS') {
+			$httpResponse->setCode(Nette\Http\IResponse::S204_NO_CONTENT); // 204 = no content
+			$this->terminate(); // okamžité ukončenie requestu
+		}
+
 		// Sprava uzivatela
 		$user = $this->getUser(); //Nacitanie uzivatela
 		// Kontrola prihlasenia a nacitania urovne registracie

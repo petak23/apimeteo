@@ -15,13 +15,13 @@ use Nette\Utils\Strings;
 
 /**
  * Autenticator
- * Last change 20.11.2023
+ * Last change 02.08.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2021 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2021 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.0
+ * @version    1.0.1
  */
 class Authenticator implements Security\Authenticator
 {
@@ -135,7 +135,7 @@ class Authenticator implements Security\Authenticator
     $user_ident_data =  [
       'email' => $userData->email,
       'prefix' => $userData->prefix,
-      'comm_id' => $this->passwords->hash($userData->email . date()), // TODO - ulož do DB pre budúce použitie (je to id pre komunikáciu)
+      'comm_id' => $this->passwords->hash($userData->email . date('Y-M-D H:m:s')), // TODO - ulož do DB pre budúce použitie (je to id pre komunikáciu)
     //'id_user_roles' => $userData->id_user_roles*/
     ];
     return new Security\SimpleIdentity($userData->id, $role, $user_ident_data);

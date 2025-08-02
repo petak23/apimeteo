@@ -19,7 +19,8 @@ services:
 	- App\Model\AuthorizatorFactory::create(@Nette\Database\Explorer)
 	authenticator: App\Services\Authenticator
 
-	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear%)
+	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear% )
+	- App\Services\Config( %masterPassword% )
 
 
 search:
