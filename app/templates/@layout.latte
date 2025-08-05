@@ -3,14 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-
+	<link rel="stylesheet" crossorigin href="css/bootstrap.min.css">
+	<link rel="icon"  type="image/png" href="favicon.ico">
 	<title>{ifset title}{include title|stripHtml} | {/ifset}Nette Web</title>
 </head>
 
 <body>
-	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+	<div n:foreach="$flashes as $flash"  n:class="flash, $flash->type">{$flash->message}</div>
 
-	{include content}
+	<div class="container-fluid">
+		{include content}
+	</div>
 
 	{block scripts}
 	{*<script src="https://unpkg.com/nette-forms@3/src/assets/netteForms.js"></script>*}

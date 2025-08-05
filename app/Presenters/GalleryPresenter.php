@@ -6,13 +6,8 @@ namespace App\Presenters;
 
 use App\Model;
 use Nette;
-/*use Tracy\Debugger;
-use Nette\Utils\DateTime;
-use Nette\Utils\Json;*/
 use Nette\Utils\Strings;
-/*use Nette\Utils\FileSystem;*/
 use Nette\Application\Responses\FileResponse;
-
 
 /**
  * Last change 27.07.2023

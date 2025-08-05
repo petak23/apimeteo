@@ -22,19 +22,27 @@
 		<ul>
 			<li><strong>login</strong> - Prihlásenie užívateľa</li>
 			<li><strong>logout</strong> - Odhlásenie užívateľa</li>	
-			<li><strong>users</strong> - Výpis všetkých užívateľov</li>
-			<li><strong>user</strong> - Výpis aktuálne prihláseného užívateľa</li>
-			<li><strong>user/[id]</strong> - Výpis užívateľa s id</li>
+			<li><strong>users</strong> - Výpis všetkých užívateľov (len pre prihláseného admina...)</li>
+			<li><strong>user</strong> - Výpis aktuálne prihláseného užívateľa (len pre aktuálne prihláseného užívateľa ...)</li>
+			<li><strong>user/[id]</strong> - Výpis užívateľa s id (len pre prihláseného admina...)</li>
 		</ul>
 	</div>
-		<div class="col-12">
+	<div class="col-12">
 		<h2>Zariadenia</h2>
 		<ul>
-			<li><strong>devices</strong> - Výpis všetkých zariadení patriacich užívateľvi aj so senzormi</li>
-			<li><strong>device/[id]</strong> - Výpis konkrétneho zariadenia s id</li>
-			<li><strong>devices/sensors/[id]</strong> - Výpis zoznamu senzorov pre dané zariadenie s id</li>
-			<li><strong>devices/measures/[id]</strong> - Výpis zoznamu meraní pre daný senzor s id</li>
-			<li><strong>sensor/last/[id]</strong> - Výpis posledného merania pre daný senzor s id</li>
+			<li><strong>devices</strong> - Výpis všetkých zariadení patriacich užívateľovi aj so senzormi.</li>
+			<li><strong>device/[id]</strong> - Výpis konkrétneho zariadenia s id.</li>
+			<li><strong>device/[id]/edit</strong> - Uloženie dát o zariadení s id, alebo jeho vytvorenie ak je id == 0.</li>
+			<li><strong>devices/sensors/[id]</strong> - Výpis zoznamu senzorov pre dané zariadenie s id.</li>
+			<li><strong>devices/measures/[id]</strong> - Výpis zoznamu meraní pre daný senzor s id.</li>
+			<li><strong>sensor/last/[id]</strong> - Výpis posledného merania pre daný senzor s id.</li>
+		</ul>
+	</div>
+	<div class="col-12">
+		<h2>Comunikácia <small>(CommPresenter)</small></h2>
+		<ul>
+			<li><strong>comm</strong> - Testovacia akcia.</li>
+			<li><strong>comm/data</strong> - Akcia pre príjem dát zo zariadenia.</li>
 		</ul>
 	</div>
 </div>

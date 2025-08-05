@@ -6,23 +6,17 @@ services:
 #	- App\Presenters\UnitsPresenter(%parameters%)
 #	- App\Presenters\UsersPresenter(%parameters%)
 
-# Models
-#	- App\Model\Devices
-#	- App\Model\Measures
-#	- App\Model\Sensors
-#	- App\Model\Sessions
-#	- App\Model\Units
-#	- App\Model\User_main
-#	- App\Model\User_permission
-#	- App\Model\User_resource
-#	- App\Model\User_roles
+
 	- App\Model\AuthorizatorFactory::create(@Nette\Database\Explorer)
 	authenticator: App\Services\Authenticator
 
 	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear% )
 	- App\Services\Config( %masterPassword% )
+	- App\Services\MsgProcessor
+	- App\Services\RaDataSource
+	- App\Services\InventoryDataSource
 
-
+# Models
 search:
 	-	in: %appDir%/Model
 

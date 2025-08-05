@@ -4,12 +4,11 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
-use Nette\Http\Url;
 use Nette\Utils\Strings;
 
 /**
  * Prezenter pre pristup k api užívateľov.
- * Posledna zmena(last change): 31.07.2025
+ * Posledna zmena(last change): 03.08.2025
  *
  * Modul: API
  *
@@ -17,13 +16,13 @@ use Nette\Utils\Strings;
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.4
+ * @version 1.0.5
  */
 class DevicesPresenter extends BasePresenter
 {
 
 	// -- DB
-	/** @var Model\Devices @inject */
+	/** @var Model\PV_Devices @inject */
 	public $devices;
 	/** @var Model\Measures @inject */
 	public $measures;
@@ -88,35 +87,37 @@ class DevicesPresenter extends BasePresenter
 	public function actionEdit(int $id) : void {
 		
 		$_post = json_decode(file_get_contents("php://input"), true);
-		//dumpe($_post);
-		$values = $_post;
-		$values['name'] = $this->user->getIdentity()->prefix.":".$_post['name'];
-		$values['user_id'] = $this->user->id;
-		$values['passphrase'] = $this->config->encrypt( $_post['passphrase'], $_post['name'] );
-
-		if( $id ) {
-			// editace
-			$device = $this->devices->getDevice( $id );
-			//dumpe($device);
-			if (!$device) {
-				$out = ["status" => 404, "message" => "Zariadenie sa nenašlo"];
-			} else if( $this->user->id != $device->attrs->user_id ) {
-				// TODO Add Logger
-				//Logger::log( 'audit', Logger::ERROR , 
-				//	sprintf("Užívateľ #%s (%s) zkúsil editovať zariadenie patriace užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $device->user_id));
-				$this->user->logout(true);
-				//$form->addError($this->texts->translate('device_form_not_aut'), "danger");
-				$out = ["status" => 500, "message" => "K tomuto zariadeniu nemáte oprtávnený prístup!"];
-			} else {
-				
-				$device->update( $values );
-				$out = ["status" => 200, "message" => "Údaje zariadenia aktualizované."];
-			}
+		
+		if ($_post == null) {
+			$out = ["status" => 404, "message" => "Nekorektné alebo chýbajúce data z formuláru"];
 		} else {
-			// zalozeni
-			$this->pv_devices->createDevice( $values );
-			$out = ["status" => 200, "message" => "Zariadenie bolo vytvorené."];
+			$values = $_post;
+			$values['name'] = $this->user->getIdentity()->prefix.":".$_post['name'];
+			$values['user_id'] = $this->user->id;
+			$values['passphrase'] = $this->config->encrypt( $_post['passphrase'], $_post['name'] );
+
+			if( $id ) {
+				// editace
+				$device = $this->devices->getDevice( $id );
+				//dumpe($device);
+				if (!$device) {
+					$out = ["status" => 404, "message" => "Zariadenie sa nenašlo"];
+				} else if( $this->user->id != $device->attrs->user_id ) {
+					Services\Logger::log( 'audit', Services\Logger::ERROR , 
+						sprintf("Užívateľ #%s (%s) zkúsil editovať zariadenie patriace užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $device->user_id));
+					$this->user->logout(true);
+					$out = ["status" => 500, "message" => "K tomuto zariadeniu nemáte oprtávnený prístup!"];
+				} else {
+					
+					$device->update( $values );
+					$out = ["status" => 200, "message" => "Údaje zariadenia aktualizované."];
+				}
+			} else { // zalozeni
+				$this->pv_devices->createDevice( $values );
+				$out = ["status" => 200, "message" => "Zariadenie bolo vytvorené."];
+			}
 		}
+		
 		$this->sendJson($out);
 	}
 }
