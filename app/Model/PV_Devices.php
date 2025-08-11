@@ -94,17 +94,44 @@ class PV_Devices
 	public function getDevice(
 		int $deviceId,
 		bool $with_sensors = false,
-		bool $return_as_array = false
-	): VDevice|array {
-
-		if (($_t = $this->devices->get($deviceId)) == null) {
+		bool $return_as_array = false ): VDevice|array 
+	{
+		if (($_device = $this->devices->get($deviceId)) == null) {
 			return ['status' => 404, 'error' => "Device not found", 'error_n' => 1, 'device_id' => $deviceId];
 		}
 
-		$d = new VDevice($this->devices->get($deviceId));
+		return $this->_deviceInfo($_device, $with_sensors, $return_as_array);
+	}
+
+	/** Nájdenie zariadenia podľa poľa $by = ['pole'=>'hodnota'] */
+  public function getDeviceBy(
+		array $by,
+		bool $with_sensors = false,
+		bool $return_as_array = false): VDevice|array
+  {
+		if (($_device = $this->devices->where($by)->limit(1)->fetch()) == null) {
+			return ['status' => 404, 'error' => "Device not found by...", 'error_n' => 2, 'by' => $by];
+		}
+
+    return $this->_deviceInfo($_device, $with_sensors, $return_as_array);
+  }
+
+	/**
+	 * Vráti inpo o zariadení v definovanom formáte
+	 * @param \Nette\Database\Table\ActiveRow $device
+	 * @param bool $with_sensors
+	 * @param bool $return_as_array
+	 * @return array{data: array, status: int|Model\VDevice}
+	 */
+	private function _deviceInfo(
+		Nette\Database\Table\ActiveRow $device,
+		bool $with_sensors = false,
+		bool $return_as_array = false
+	)	: VDevice|array {
+		$d = new VDevice($device);
 		if ($with_sensors) {
 			// Pridám zariadenie a k nemu načítam senzory
-			$sensors = $this->pv_sensors->getDeviceSensors($deviceId, $d->attrs->monitoring);
+			$sensors = $this->pv_sensors->getDeviceSensors($device->id, $d->attrs->monitoring);
 			if ($sensors != null && $sensors->count()) {
 				foreach ($sensors as $s) {
 					$d->addSensor($s, $return_as_array);
@@ -121,12 +148,6 @@ class PV_Devices
 		}
 		return $d;
 	}
-
-	/** Nájdenie zariadenia podľa id */
-  public function getDeviceBy(array $by): ?Nette\Database\Table\ActiveRow
-  {
-    return $this->devices->where($by)->limit(1)->fetch();
-  }
 
 	/** Zapíš dobu prevádzky alebo dobu bezporuchovosti vo formáte čísla sekúnd */
 	public function setUptime(int $deviceId, int $uptime): void

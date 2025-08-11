@@ -114,7 +114,7 @@ class RaDataSource
 
 		$id = $this->database->getInsertId();
 
-		$values = array();
+		$values = [];
 		$values['last_login'] = $now;
 		$values['app_name'] = $appName;
 		$values['rssi'] = $rssi;
@@ -125,6 +125,42 @@ class RaDataSource
 		$this->database->query('UPDATE devices SET', $values, 'WHERE id = ?', $deviceId);
 
 		return $id;
+	}
+
+	public function createSession_pv(
+		$deviceId,
+		$saveFirstLogin,
+		$hash,
+		$key,
+		$remoteIp,
+		$appName,
+		$uptime,
+		$rssi
+	) {
+		$this->pv_sessions->findBy(['device_id' => $deviceId])->delete();
+
+		$now = new DateTime;
+
+		$row = $this->pv_sessions->add([
+			'hash' => $hash,
+			'device_id' => $deviceId,
+			'started' => $now,
+			'session_key' => $key,
+			'remote_ip' => $remoteIp
+		]);
+
+		$values = [
+			'last_login' 	=> $now,
+			'app_name' 		=> $appName,
+			'rssi' 				=> $rssi,
+			'uptime' 			=> $uptime
+		];
+		if ($saveFirstLogin) {
+			$values['first_login'] = $now;
+		}
+		$this->pv_devices->get($deviceId)->update($values);
+		
+		return $row->id;
 	}
 
 	/**

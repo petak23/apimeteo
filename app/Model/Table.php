@@ -199,7 +199,7 @@ abstract class Table
 	 * @return ActiveRow|int|bool */
 	public function save($id, $data)
 	{
-		return (isset($id) && $id) ? $this->oprav($id, $data) : $this->pridaj($data);
+		return (isset($id) && $id) ? $this->oprav($id, $data) : $this->add($data);
 	}
 
 	/** @deprecated use function save but change order of params data, id to id, data */
