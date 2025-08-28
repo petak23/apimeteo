@@ -18,12 +18,14 @@ class ApiConfig
 		$appName,
 		$dataRetentionDays,
 		$minYear
+		$masterPassword
 	) {
 		$this->configs = [
 			"links" => $links,
 			"appName" => $appName,
 			"dataRetentionDays" => $dataRetentionDays,
 			"minYear" => $minYear,
+			"masterPassword" => $masterPassword,
 		];
 	}
 

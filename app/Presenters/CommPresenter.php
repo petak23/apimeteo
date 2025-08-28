@@ -7,12 +7,13 @@ use App\Services;
 use App\Services\Logger;
 use Nette\Http;
 use Nette\Utils;
+use Nette\Utils\Random;
 use Nette\Utils\Strings;
 use Tracy\Debugger;
 
 /**
  * Presenter pre komunikáciu api s perifériami.
- * Posledná zmena(last change): 04.08.2025
+ * Posledná zmena(last change): 28.08.2025
  *
  * Modul: API
  *
@@ -60,16 +61,22 @@ class CommPresenter extends BasePresenter
 			}
 
 			$device = $this->pv_devices->getDeviceBy(['name' => $json_msg["device_name"]]);
+			if (is_array($device) && isset($device["status"]) && $device["status"] == 404) {
+				throw new \Exception("Device {$json_msg['device_name']} not found!");
+			}
 
-			// TODO vloženie hash hesla z údajov
-			$control_hash = hash('sha256', $json_msg["last_measure"] .";". $json_msg["data_length"] .";". $json_msg["data_string"] ."taJne687*+WX_-heslo");
+			$control_hash = hash('sha256', $json_msg["device_name"] . $this->config->getConfig('masterPassword') . $json_msg["login_time"] . $json_msg["appname"]);
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message!");
 			}
 
-			
+			// zalozit session
+			$sessionHash = Random::generate(8, '0-9A-Za-z');
+			$sessionId = $this->pv_sessions->createLoginSession( $device->attrs->id, $sessionHash, $control_hash,	$remoteIp );
 
-			
+			$logger->write( Logger::INFO, "login-OK D:{$device->attrs->id} S:{$sessionId}" );
+			$this->sendJson(['status' => 200, 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
+
 		} catch (\Exception $e) {
 			$logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
 			
