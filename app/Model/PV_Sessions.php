@@ -46,9 +46,34 @@ class PV_Sessions extends Table
     return $this->find($sessionId);
   }
 
+	/**
+	 * Check session validity. 
+	 * Throws NoSessionException when session is not valid. 
+	 */
+	public function checkSessionPV(int $sessionId, string $sessionHash): ActiveRow|null
+	{
+		$session = $this->find($sessionId);
+		if ($session == null) {
+			throw new NoSessionException("Session {$sessionId} not found.");
+		}
+
+		if (strcmp($session->hash, $sessionHash) != 0) {
+			throw new NoSessionException("Bad hash");
+		}
+
+		$now = new DateTime;
+		// Životnosť session 1 deň
+		if ($now->diff($session->started)->days > 0) {
+			throw new NoSessionException("session expired");
+		}
+
+		return $session;
+	}
+
   /**
 	 * Check session validity. 
 	 * Throws NoSessionException when session is not valid. 
+	 * @deprecated Use checkSessionPV() instead
 	 */
 	public function checkSession(int $sessionId, string $sessionHash): SessionDevice
 	{
