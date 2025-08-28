@@ -9,7 +9,7 @@ use Nette\Utils\DateTime;
 /**
  * Model, ktory sa stara o tabulku sessions
  * 
- * Posledna zmena 11.04.2025
+ * Posledna zmena 28.08.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2021 - 2025 Ing. Peter VOJTECH ml.
@@ -22,6 +22,19 @@ class PV_Sessions extends Table
 
   /** @var string */
   protected $tableName = 'sessions';
+
+	public function createLoginSession(int $deviceId, String $hash, String $key, String $remoteIp): int
+	{
+		$row = $this->add([
+			'hash' => $hash,
+			'device_id' => $deviceId,
+			'started' => new DateTime,
+			'session_key' => $key,
+			'remote_ip' => $remoteIp
+		]);
+
+		return $row->id;
+	}
 
   public function deleteSession(int $id): void
   {

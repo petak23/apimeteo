@@ -6,8 +6,10 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
-use Nette\Application\UI\Presenter;
 use Nette;
+use Nette\Application\UI\Presenter;
+use Nette\Http\IResponse;
+
 
 /**
  * Zakladny presenter pre vsetky presentery v module API
@@ -67,7 +69,7 @@ abstract class BasePresenter extends Presenter
 		$httpResponse->setHeader('Access-Control-Allow-Credentials', 'true');
 
 		if ($httpRequest->getMethod() === 'OPTIONS') {
-			$httpResponse->setCode(Nette\Http\IResponse::S204_NO_CONTENT); // 204 = no content
+			$httpResponse->setCode(IResponse::S204_NO_CONTENT); // 204 = no content
 			$this->terminate(); // okamžité ukončenie requestu
 		}
 
@@ -78,7 +80,8 @@ abstract class BasePresenter extends Presenter
 
 		// Kontrola ACL
 		if (!($user->isAllowed($this->name, $this->action))) {
-			$this->error("Not allowed");
+			$this->sendJson(['status'=>405, 'message' => "Method not allowed!!!"]);
+			//$this->error("Not allowed");
 		}
 	}
 
