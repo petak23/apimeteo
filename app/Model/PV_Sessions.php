@@ -7,9 +7,9 @@ use Nette\Database\Table\ActiveRow;
 use Nette\Utils\DateTime;
 
 /**
- * Model, ktory sa stara o tabulku sessions
+ * Model, ktorý sa stará o tabuľku sessions
  * 
- * Posledna zmena 28.08.2025
+ * Posledná zmena 28.08.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2021 - 2025 Ing. Peter VOJTECH ml.
