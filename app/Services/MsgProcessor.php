@@ -170,8 +170,8 @@ class MsgProcessor
 	/**
 	 * Spracuje jeden request; ten ale môže obsahovať viacej správ.
 	 * @var array $msgTotal = [<dátum a čas odoslania>, <dĺžka dát>, <data>]
-	 * Formát dát:
-	 * 	<označenie senzora>:<hodnota>;<označenie senzora>:<hodnota>... - ak je viac posielaných hodnôt, tak sú oddelené ";"
+	 * Formát dát ako pole:
+	 * 	[<označenie senzora>, <formátovaná hodnota>, <raw hodnota>, <warning> ...]
 	 */
 	public function process_pv(Model\SessionDevice $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
 	{
@@ -179,19 +179,20 @@ class MsgProcessor
 		$logger->write(Logger::DEBUG, "uptime:{$msgTotal[0]}");
 		$this->pv_devices->setUptime( $sessionDevice->deviceId, $msgTotal[0]); // Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
 		
-		$dataFromSensors = explode(";", $msgTotal[2]); //Rozložím data na pole stringov ["<označenie senzora>:<hodnota>", "<označenie senzora>:<hodnota>", ...]
-		
-		foreach ($dataFromSensors as $key => $ds) {						// Spracujem data z jednotlivých senzorov
-			list($sensor_name, $value) = explode(":", $ds); 		// Rozložíme "<označenie senzora>:<hodnota>"
-			$channel = $this->pv_senors->findOneBy(['name' => $sensor_name]); // Nájdenie príslušného senzora
+		//$dataFromSensors = explode(";", $msgTotal[2]); //Rozložím data na pole stringov ["<označenie senzora>:<hodnota>", "<označenie senzora>:<hodnota>", ...]
+
+		foreach ($msgTotal[2] as $key => $ds) {						// Spracujem data z jednotlivých senzorov
+			//list($sensor_name, $value) = explode(":", $ds); 		// Rozložíme "<označenie senzora>:<hodnota>"
+			$channel = $this->pv_senors->findOneBy(['name' => $ds['id']]); // Nájdenie príslušného senzora
 
 			if ($channel == null) {
+				// TODO pridanie senzora ...
 				//D $logger->write( Logger::INFO,  "channel definition" );
 				//$this->processChannelDefinition($sessionDevice, $msg, $remoteIp, $i, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
 				//D $logger->write( Logger::INFO,  "data" );
-				$this->processDataPV($sessionDevice, $value, $remoteIp, $key, $channel->id, $msgTotal[0], $logger);
+				$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $key, $channel->id, $msgTotal[0], $logger);
 			}
 		}
 	}
