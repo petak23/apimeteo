@@ -75,7 +75,7 @@ class CommPresenter extends BasePresenter
 			$sessionId = $this->pv_sessions->createLoginSession( $device->attrs->id, $sessionHash, $control_hash,	$remoteIp );
 
 			$logger->write( Logger::INFO, "login-OK D:{$device->attrs->id} S:{$sessionId}" );
-			$this->sendJson(['status' => 200, 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
+			$this->sendJson(['status' => 200, 'device_id' => $device->attrs->id, 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
 
 		} catch (\Exception $e) {
 			$logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
@@ -201,43 +201,16 @@ class CommPresenter extends BasePresenter
 			} catch (Utils\JsonException $e) {
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
 			}
-
-
-			/*$msg_parts = explode( ";", $postMessage, 5 );	// Rozdeľ vstupnú správu podľa ";" na 5 častí a skontroluj
-			if( count($msg_parts) < 5 ) {
-				throw new \Exception("Bad request (2). Message is too short! Number of parts: " . count($msg_parts) . ". Required 5!!!");                
-			}*/
-			/*
-			$msg_parts[0] - session
-			$msg_parts[1] - SHA256 z payloadu
-			$msg_parts[2] - dátum a čas odoslania 
-			$msg_parts[3] - dĺžka dát
-			$msg_parts[4] - data
-			*/
+			
 			//$session = Strings::trim($msg_parts[0]); 
-			/*if( Strings::length( $session ) == 0  ) {
+			if( !isset($json_msg["session_id"]) || !isset($json_msg["session_hash"]) || Strings::length( $json_msg["session_hash"] ) == 0  ) {
 				throw new \Exception("Empty session ID.");
 			} 
-			
-			$sessionData = explode( ":", $session, 2 );
-			if( count($sessionData) != 2 ) { // Musí to byť presne 2 <session_id> a <session_hash>
-				throw new \Exception("Bad request (3). Not valid session data. Must be: <session_id>:<session_hash>");                
-			}
-			$logger->write( Logger::INFO, "S:{$sessionData[0]}"); 
-			$sessionDevice = $this->pv_sessions->checkSession( $sessionData[0], $sessionData[1] ); // Over session id voči session hash
-			$logger->setContext("D;D:{$sessionDevice->deviceId}");
-			*/
-			//array_shift($msg_parts); // Vypustí prvý prvok poľa teda <session>
-			/*
-			$msg_parts[0] - SHA256 z payloadu
-			$msg_parts[1] - dátum a čas odoslania 
-			$msg_parts[2] - dĺžka dát
-			$msg_parts[3] - data
-			*/
-			$device = $this->pv_devices->getDeviceBy(['name' => $json_msg["device_name"]]);
 
-			// TODO vloženie hash hesla z údajov
-			$control_hash = hash('sha256', $json_msg["last_measure"] .";". $json_msg["data_length"] .";". $json_msg["data_string"] ."taJne687*+WX_-heslo");
+			$sessionDevice = $this->pv_sessions->checkSessionPV( $json_msg["session_id"], $json_msg["session_hash"] ); // Over session id voči session hash
+			$logger->setContext("D;D:{$sessionDevice->deviceId}");
+			
+			$control_hash = hash('sha256', $json_msg["last_measure"] .";". $json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword'));
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message!");
 			}
@@ -246,14 +219,13 @@ class CommPresenter extends BasePresenter
 				throw new \Exception("Incorrect data length!");
 			}
 			
-			//array_shift($msg_parts); // Vypustí prvý prvok poľa teda <SHA256 z payloadu>
 			/*
 			Aktuálny formát:
-			$msg_parts[0] - dátum a čas odoslania 
-			$msg_parts[1] - dĺžka dát
-			$msg_parts[2] - data
+			[0] - dátum a čas odoslania = $json_msg["last_measure"]
+			[1] - dĺžka dát = $json_msg["data_length"]
+			[2] - data = $json_msg["sensors"]
 			*/
-			$this->msgProcessor->process_pv( $sessionDevice, $msg_parts, $remoteIp, $logger );  
+			$this->msgProcessor->process_pv( $sessionDevice, [ $json_msg["last_measure"], $json_msg["data_length"], $json_msg["sensors"] ], $remoteIp, $logger );  
 
 			$logger->write( Logger::INFO, "OK");
 

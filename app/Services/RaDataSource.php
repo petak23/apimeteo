@@ -240,40 +240,11 @@ class RaDataSource
 	}
 
 	/**
-	 * Vloženie záznamu zo senzoru do 'measures'
+	 * Uloženie BLOB záznamu
+	 * 
+	 * Vracia ID záznamu
 	 */
-	public function saveData(Model\SessionDevice $sessionDevice, Table\ActiveRow $sensor, string $messageTime, float $numVal, string $remoteIp, float $value_out, int $impCount, string $dataSession)
-	{
-		//$msgTime = new DateTime;
-		//$msgTime->setTimestamp(time() - $timeDiff);
-
-		$this->pv_measures->save(0, [
-			'sensor_id' => $sensor->id,
-			'data_time' => $messageTime,
-			'server_time' => new DateTime,
-			's_value' => $numVal,
-			'session_id' => $sessionDevice->sessionId,
-			'remote_ip' => $remoteIp,
-			'out_value' => $value_out
-		]);
-
-		$values = [];
-		$values['last_data_time'] = $messageTime;
-		if ($sensor['device_class'] != 3) {
-			$values['last_out_value'] = $value_out;
-		}
-		if ($dataSession != '') {
-			$values['imp_count'] = $impCount;
-			$values['data_session'] = $dataSession;
-		}
-		//$this->pv_sensors->find($sensor->id)
-		//->where('(last_data_time IS NULL) OR (last_data_time < ?)', $messageTime)
-		//->update($values);
-		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);
-	}
-
-
-	public function saveBlob($sessionDevice, $time, $description, $extension, $filesize, $remoteIp)
+	public function saveBlob($sessionDevice, $time, $description, $extension, $filesize, $remoteIp): int
 	{
 		$msgTime = new DateTime;
 		$msgTime->setTimestamp($time);

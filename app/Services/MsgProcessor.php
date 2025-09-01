@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Model;
 use Nette;
+use Nette\Database\Table;
 use App\Services\Logger;
 
 class MsgProcessor
@@ -17,6 +18,10 @@ class MsgProcessor
 	public $pv_senors;
 	/** @var Model\PV_Devices @inject */
 	public $pv_devices;
+	/** @var Model\Measures @inject */
+	public $pv_measures;
+	/** @var Model\PV_Sensors @inject */
+	public $pv_sensors;
 
 	/** @var \App\Services\RaDataSource */
 	public $datasource;
@@ -117,7 +122,26 @@ class MsgProcessor
 			$value_out *= $sensor->preprocess_factor;
 		}
 
-		$this->datasource->saveData($sessionDevice, $sensor, $timeDiff, $sVal, $remoteIp, $value_out, $impCount, $dataSession);
+		$this->pv_measures->save(0, [
+			'sensor_id' => $sensor->id,
+			'data_time' => $messageTime,
+			'server_time' => new DateTime,
+			's_value' => $sVal,
+			'session_id' => $sessionDevice->sessionId,
+			'remote_ip' => $remoteIp,
+			'out_value' => $value_out
+		]);
+
+		$values = [];
+		$values['last_data_time'] = $messageTime;
+		if ($sensor['device_class'] != 3) {
+			$values['last_out_value'] = $value_out;
+		}
+		if ($dataSession != '') {
+			$values['imp_count'] = $impCount;
+			$values['data_session'] = $dataSession;
+		}
+		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);
 	}
 
 
@@ -170,28 +194,29 @@ class MsgProcessor
 	/**
 	 * Spracuje jeden request; ten ale môže obsahovať viacej správ.
 	 * @var array $msgTotal = [<dátum a čas odoslania>, <dĺžka dát>, <data>]
-	 * Formát dát:
-	 * 	<označenie senzora>:<hodnota>;<označenie senzora>:<hodnota>... - ak je viac posielaných hodnôt, tak sú oddelené ";"
+	 * Formát dát ako pole:
+	 * 	[<označenie senzora>, <formátovaná hodnota>, <raw hodnota>, <warning> ...]
 	 */
-	public function process_pv(Model\SessionDevice $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
+	public function process_pv(Table\ActiveRow $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
 	{
 
 		$logger->write(Logger::DEBUG, "uptime:{$msgTotal[0]}");
 		$this->pv_devices->setUptime( $sessionDevice->deviceId, $msgTotal[0]); // Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
 		
-		$dataFromSensors = explode(";", $msgTotal[2]); //Rozložím data na pole stringov ["<označenie senzora>:<hodnota>", "<označenie senzora>:<hodnota>", ...]
-		
-		foreach ($dataFromSensors as $key => $ds) {						// Spracujem data z jednotlivých senzorov
-			list($sensor_name, $value) = explode(":", $ds); 		// Rozložíme "<označenie senzora>:<hodnota>"
-			$channel = $this->pv_senors->findOneBy(['name' => $sensor_name]); // Nájdenie príslušného senzora
+		//$dataFromSensors = explode(";", $msgTotal[2]); //Rozložím data na pole stringov ["<označenie senzora>:<hodnota>", "<označenie senzora>:<hodnota>", ...]
+
+		foreach ($msgTotal[2] as $key => $ds) {						// Spracujem data z jednotlivých senzorov
+			//list($sensor_name, $value) = explode(":", $ds); 		// Rozložíme "<označenie senzora>:<hodnota>"
+			$channel = $this->pv_senors->findOneBy(['name' => $ds['id']]); // Nájdenie príslušného senzora
 
 			if ($channel == null) {
+				// TODO pridanie senzora ...
 				//D $logger->write( Logger::INFO,  "channel definition" );
 				//$this->processChannelDefinition($sessionDevice, $msg, $remoteIp, $i, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
 				//D $logger->write( Logger::INFO,  "data" );
-				$this->processDataPV($sessionDevice, $value, $remoteIp, $key, $channel->id, $msgTotal[0], $logger);
+				$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $key, $channel->id, $msgTotal[0], $logger);
 			}
 		}
 	}
@@ -199,7 +224,7 @@ class MsgProcessor
 	/**
 	 * Spracovanie jednej dátovej správy zo zariadenia
 	 */
-	public function processDataPV(Model\SessionDevice $sessionDevice, string $value, string $remoteIp, int $i, int $channel, string $messageTime, Logger $logger)
+	public function processDataPV(Table\ActiveRow $sessionDevice, string $value, string $remoteIp, int $i, int $channel, string $messageTime, Logger $logger)
 	{
 		$sensor = $this->pv_senors->getSensorByChannel($sessionDevice->deviceId, $channel);
 		if ($sensor == NULL) {
@@ -251,6 +276,25 @@ class MsgProcessor
 			$value_out *= $sensor->preprocess_factor;
 		}
 		
-		$this->datasource->saveData($sessionDevice, $sensor, $messageTime, $sVal, $remoteIp, $value_out, $impCount, $dataSession);
+		$this->pv_measures->save(0, [
+			'sensor_id' => $sensor->id,
+			'data_time' => $messageTime,
+			'server_time' => new DateTime,
+			's_value' => $sVal,
+			'session_id' => $sessionDevice->sessionId,
+			'remote_ip' => $remoteIp,
+			'out_value' => $value_out
+		]);
+
+		$values = [];
+		$values['last_data_time'] = $messageTime;
+		if ($sensor['device_class'] != 3) {
+			$values['last_out_value'] = $value_out;
+		}
+		if ($dataSession != '') {
+			$values['imp_count'] = $impCount;
+			$values['data_session'] = $dataSession;
+		}
+		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);
 	}
 }
