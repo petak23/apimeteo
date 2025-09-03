@@ -76,7 +76,7 @@ class RaDataSource
 
 		$id = $this->database->getInsertId();
 
-		$values = array();
+		$values = [];
 		$values['last_login'] = $now;
 		$values['app_name'] = $appName;
 		if ($saveFirstLogin) {
@@ -136,7 +136,7 @@ class RaDataSource
 		$appName,
 		$uptime,
 		$rssi
-	) {
+	): int {
 		$this->pv_sessions->findBy(['device_id' => $deviceId])->delete();
 
 		$now = new DateTime;
@@ -260,12 +260,12 @@ class RaDataSource
 			'filesize' => $filesize
 		]);
 
-		return $this->database->getInsertId();
+		return (int)$this->database->getInsertId();
 	}
 
 	public function updateBlob($rowId, $fileName)
 	{
-		$values = array();
+		$values = [];
 		$values['filename'] = $fileName;
 		$values['status'] = 1;
 		$this->database->query('UPDATE blobs SET', $values, 'WHERE id = ?', $rowId);

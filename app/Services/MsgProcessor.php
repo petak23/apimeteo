@@ -73,7 +73,7 @@ class MsgProcessor
 	 */
 	public function processData(Model\SessionDevice $sessionDevice, $msg, ?string $remoteIp, int $i, int $channel, $timeDiff, Logger $logger)
 	{
-		$sensor = $this->pv_senors->getSensorByChannel($sessionDevice->deviceId, $channel);
+		/*$sensor = $this->pv_senors->getSensorByChannel($sessionDevice->deviceId, $channel);
 		if ($sensor == NULL) {
 			throw new \Exception("Ch {$channel} not found for dev {$sessionDevice->deviceId}.");
 		}
@@ -141,7 +141,7 @@ class MsgProcessor
 			$values['imp_count'] = $impCount;
 			$values['data_session'] = $dataSession;
 		}
-		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);
+		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);*/
 	}
 
 
@@ -211,8 +211,8 @@ class MsgProcessor
 
 			if ($channel == null) {
 				// TODO pridanie senzora ...
-				//D $logger->write( Logger::INFO,  "channel definition" );
-				//$this->processChannelDefinition($sessionDevice, $msg, $remoteIp, $i, $logger);
+				$logger->write( Logger::INFO,  "new channel definition" );
+				$this->processChannelDefinition($sessionDevice, $msgTotal, $remoteIp, $i, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
 				//D $logger->write( Logger::INFO,  "data" );
@@ -297,4 +297,42 @@ class MsgProcessor
 		}
 		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);
 	}
+
+
+	/*
+	b0 - deviceClass
+	b1 - valueType
+	b2 b3 b4 msgRate
+	b5 - deviceName len - !!! správne má byť sensorName len
+	b6... - device name - NO \0 at end - !!! správne má byť sensor name
+	*/
+	/**
+	 * Spracovanie definície kanálu
+	 */
+	public function processChannelDefinitionPV(Table\ActiveRow $sessionDevice, array $msgTotal, $remoteIp, $i, Logger $logger)
+	{
+		$devClass = ord($msg[$i++]);
+		$valueType = ord($msg[$i++]);
+		$msgRate = (ord($msg[$i]) << 16) | (ord($msg[$i + 1]) << 8) | ord($msg[$i + 2]);
+		$i += 3;
+		$channel = ord($msg[$i++]);
+		$nameLen = ord($msg[$i++]);
+		$name = substr($msg, $i, $nameLen);
+
+		$factor = NULL;
+
+		$c = strpos($name, "|");
+		if ($c === FALSE) {
+			// nerobíme nič
+		} else {
+			$factor = substr($name, $c + 1);
+			$name = substr($name, 0, $c);
+		}
+
+		$logger->write(Logger::INFO,  "ChDef ch:{$channel} class:{$devClass} valType:{$valueType} rate:{$msgRate} factor:{$factor} '{$name}'");
+
+		$this->datasource->processChannelDefinition($sessionDevice, $channel, $devClass, $valueType, $msgRate, $name, $factor);
+	}
+//******************** --------------------------------- PV - end --------------------------------- ****************/
+
 }
