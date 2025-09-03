@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Model;
+use App\Services\Logger;
 use Nette;
 use Nette\Database\Table;
-use App\Services\Logger;
+use DateTime;
 
 class MsgProcessor
 {
@@ -212,7 +213,7 @@ class MsgProcessor
 			if ($channel == null) {
 				// TODO pridanie senzora ...
 				$logger->write( Logger::INFO,  "new channel definition" );
-				$this->processChannelDefinition($sessionDevice, $msgTotal, $remoteIp, $i, $logger);
+				$this->processChannelDefinitionPV($sessionDevice, $msgTotal, $remoteIp, $key, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
 				//D $logger->write( Logger::INFO,  "data" );
@@ -332,6 +333,41 @@ class MsgProcessor
 		$logger->write(Logger::INFO,  "ChDef ch:{$channel} class:{$devClass} valType:{$valueType} rate:{$msgRate} factor:{$factor} '{$name}'");
 
 		$this->datasource->processChannelDefinition($sessionDevice, $channel, $devClass, $valueType, $msgRate, $name, $factor);
+
+		/**********/
+		$sensor = $this->pv_senors->findOneBy(['device_id' => $sessionDevice->deviceId, 'name' => $name]);
+
+		if ($sensor == NULL) { // neexistuje, založenie
+			$process = ($factor === NULL) ? 0 : 1;
+			
+			$this->pv_senors->insert([
+				'device_id' => $sessionDevice->deviceId,
+				'channel_id' => $channel,
+				'name' => $name,
+				'id_device_classes' => $devClass,
+				'id_value_types' => $valueType,
+				'msg_rate' => $msgRate,
+				'preprocess_data' => $process,
+				'preprocess_factor' => $factor
+			]);
+		} else {
+			// existuje
+			if ($sensor->channel_id != $channel) {
+				// existuje, ale ma zlý channel_id -> nastaviť
+				$this->pv_senors->update( $sensor->id, ['channel_id' => $channel] );
+			}
+		}
+
+		// a nastaviť NULL na channel_id na ostatných záznamoch rovnakého zariadenia s rovnakým channel_id
+		$this->pv_senors->where([
+			'device_id' => $sessionDevice->deviceId,
+			'channel_id' => $channel,
+			'name <>' => $name
+			])->update(['channel_id' => null]);
+		
+
+		/**********/
+
 	}
 //******************** --------------------------------- PV - end --------------------------------- ****************/
 

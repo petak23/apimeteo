@@ -25,8 +25,8 @@ class Bootstrap
 			->register();
 
 		$configurator->addConfig($appDir . '/config/common.neon');
-		if (file_exists(__DIR__ . '/config/local.neon')) {
-			$configurator->addConfig(__DIR__ . '/config/local.neon');
+		if (file_exists(__DIR__ . '/../config/local.neon')) {
+			$configurator->addConfig(__DIR__ . '/../config/local.neon');
 		}
 
 		return $configurator;
