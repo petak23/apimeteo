@@ -17,7 +17,7 @@ class ApiConfig
 		$links,
 		$appName,
 		$dataRetentionDays,
-		$minYear
+		$minYear,
 		$masterPassword
 	) {
 		$this->configs = [
