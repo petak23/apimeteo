@@ -212,7 +212,7 @@ class MsgProcessor
 			if ($channel == null) {
 				// TODO pridanie senzora ...
 				$logger->write( Logger::INFO,  "new channel definition" );
-				$this->processChannelDefinition($sessionDevice, $msgTotal, $remoteIp, $i, $logger);
+				$this->processChannelDefinitionPV($sessionDevice, $msgTotal, $remoteIp, $key, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
 				//D $logger->write( Logger::INFO,  "data" );
@@ -309,13 +309,13 @@ class MsgProcessor
 	/**
 	 * Spracovanie definície kanálu
 	 */
-	public function processChannelDefinitionPV(Table\ActiveRow $sessionDevice, array $msgTotal, $remoteIp, $i, Logger $logger)
+	public function processChannelDefinitionPV(Table\ActiveRow $sessionDevice, array $msgTotal, $remoteIp, $channel_id, Logger $logger)
 	{
-		$devClass = ord($msg[$i++]);
-		$valueType = ord($msg[$i++]);
-		$msgRate = (ord($msg[$i]) << 16) | (ord($msg[$i + 1]) << 8) | ord($msg[$i + 2]);
+		//$devClass = ord($msg[$i++]);	// id_device_classes
+		//$valueType = ord($msg[$i++]); // id_value_types
+		$msgRate = (ord($msg[$i]) << 16) | (ord($msg[$i + 1]) << 8) | ord($msg[$i + 2]); // msg_rate - očakávané oneskorenie medzi správami
 		$i += 3;
-		$channel = ord($msg[$i++]);
+		//$channel = ord($msg[$i++]);
 		$nameLen = ord($msg[$i++]);
 		$name = substr($msg, $i, $nameLen);
 
@@ -329,9 +329,9 @@ class MsgProcessor
 			$name = substr($name, 0, $c);
 		}
 
-		$logger->write(Logger::INFO,  "ChDef ch:{$channel} class:{$devClass} valType:{$valueType} rate:{$msgRate} factor:{$factor} '{$name}'");
+		$logger->write(Logger::INFO,  "ChDef ch:{$channel_id} class:{$msgTotal['id_device_classes']} valType:{$msgTotal['id_value_types']} rate:{$msgRate} factor:{$factor} '{$name}'");
 
-		$this->datasource->processChannelDefinition($sessionDevice, $channel, $devClass, $valueType, $msgRate, $name, $factor);
+		$this->datasource->processChannelDefinition($sessionDevice, $channel_id, $msgTotal['id_device_classes'], $msgTotal['id_value_types'], $msgRate, $name, $factor);
 	}
 //******************** --------------------------------- PV - end --------------------------------- ****************/
 
