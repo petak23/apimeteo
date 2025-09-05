@@ -203,17 +203,13 @@ class MsgProcessor
 
 		$logger->write(Logger::DEBUG, "uptime:{$msgTotal[0]}");
 		$this->pv_devices->setUptime( $sessionDevice->deviceId, $msgTotal[0]); // Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
-		
-		//$dataFromSensors = explode(";", $msgTotal[2]); //Rozložím data na pole stringov ["<označenie senzora>:<hodnota>", "<označenie senzora>:<hodnota>", ...]
 
 		foreach ($msgTotal[2] as $key => $ds) {						// Spracujem data z jednotlivých senzorov
 			//list($sensor_name, $value) = explode(":", $ds); 		// Rozložíme "<označenie senzora>:<hodnota>"
 			$channel = $this->pv_senors->findOneBy(['name' => $ds['id']]); // Nájdenie príslušného senzora
 
 			if ($channel == null) {
-				// TODO pridanie senzora ...
 				$logger->write( Logger::INFO,  "new channel definition" );
-				$this->processChannelDefinitionPV($sessionDevice, $msgTotal, $remoteIp, $key, $logger);
 				$this->processChannelDefinitionPV($sessionDevice, $msgTotal, $remoteIp, $key, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
@@ -300,76 +296,39 @@ class MsgProcessor
 		$this->pv_sensors->findBy(['id' => $sensor->id, '(last_data_time IS NULL) OR (last_data_time < ?)' => $messageTime])->update($values);
 	}
 
-
-	/*
-	b0 - deviceClass
-	b1 - valueType
-	b2 b3 b4 msgRate
-	b5 - deviceName len - !!! správne má byť sensorName len
-	b6... - device name - NO \0 at end - !!! správne má byť sensor name
-	*/
 	/**
 	 * Spracovanie definície kanálu
 	 */
 	public function processChannelDefinitionPV(Table\ActiveRow $sessionDevice, array $msgTotal, $remoteIp, $channel_id, Logger $logger)
 	{
-		//$devClass = ord($msg[$i++]);	// id_device_classes
-		//$valueType = ord($msg[$i++]); // id_value_types
-		$msgRate = (ord($msg[$i]) << 16) | (ord($msg[$i + 1]) << 8) | ord($msg[$i + 2]); // msg_rate - očakávané oneskorenie medzi správami
-		$i += 3;
-		//$channel = ord($msg[$i++]);
-		$nameLen = ord($msg[$i++]);
-		$name = substr($msg, $i, $nameLen);
+		
+		$sensor = $this->pv_senors->findOneBy(['device_id' => $sessionDevice->deviceId, 'name' => $msgTotal['device_name']]);
 
-		$factor = NULL;
-
-		$c = strpos($name, "|");
-		if ($c === FALSE) {
-			// nerobíme nič
-		} else {
-			$factor = substr($name, $c + 1);
-			$name = substr($name, 0, $c);
-		}
-
-		$logger->write(Logger::INFO,  "ChDef ch:{$channel_id} class:{$msgTotal['id_device_classes']} valType:{$msgTotal['id_value_types']} rate:{$msgRate} factor:{$factor} '{$name}'");
-
-		$this->datasource->processChannelDefinition($sessionDevice, $channel_id, $msgTotal['id_device_classes'], $msgTotal['id_value_types'], $msgRate, $name, $factor);
-		//$this->datasource->processChannelDefinition($sessionDevice, $channel, $devClass, $valueType, $msgRate, $name, $factor);
-
-		/**********/
-		$sensor = $this->pv_senors->findOneBy(['device_id' => $sessionDevice->deviceId, 'name' => $name]);
-
-		if ($sensor == NULL) { // neexistuje, založenie
-			$process = ($factor === NULL) ? 0 : 1;
-			
+		if ($sensor == NULL) { // neexistuje, založenie	
 			$this->pv_senors->insert([
 				'device_id' => $sessionDevice->deviceId,
-				'channel_id' => $channel,
-				'name' => $name,
-				'id_device_classes' => $devClass,
-				'id_value_types' => $valueType,
-				'msg_rate' => $msgRate,
-				'preprocess_data' => $process,
-				'preprocess_factor' => $factor
+				'channel_id' => $channel_id,
+				'name' => $msgTotal['device_name'],
+				'id_device_classes' => $msgTotal['id_device_classes'],
+				'id_value_types' => $msgTotal['id_value_types'],
+				'msg_rate' => $msgTotal['msg_rate'],
+				'preprocess_data' => ($msgTotal['preprocess_factor'] === NULL) ? 0 : 1,
+				'preprocess_factor' => $msgTotal['preprocess_factor'],
 			]);
 		} else {
 			// existuje
-			if ($sensor->channel_id != $channel) {
+			if ($sensor->channel_id != $channel_id) {
 				// existuje, ale ma zlý channel_id -> nastaviť
-				$this->pv_senors->update( $sensor->id, ['channel_id' => $channel] );
+				$this->pv_senors->update( $sensor->id, ['channel_id' => $channel_id] );
 			}
 		}
 
 		// a nastaviť NULL na channel_id na ostatných záznamoch rovnakého zariadenia s rovnakým channel_id
 		$this->pv_senors->where([
 			'device_id' => $sessionDevice->deviceId,
-			'channel_id' => $channel,
-			'name <>' => $name
+			'channel_id' => $channel_id,
+			'name <>' => $msgTotal['device_name']
 			])->update(['channel_id' => null]);
-		
-
-		/**********/
-
 	}
 //******************** --------------------------------- PV - end --------------------------------- ****************/
 
