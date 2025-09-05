@@ -214,7 +214,6 @@ class MsgProcessor
 				// TODO pridanie senzora ...
 				$logger->write( Logger::INFO,  "new channel definition" );
 				$this->processChannelDefinitionPV($sessionDevice, $msgTotal, $remoteIp, $key, $logger);
-				$this->processChannelDefinitionPV($sessionDevice, $msgTotal, $remoteIp, $key, $logger);
 				throw new \Exception("Channel not found...", 1);
 			} else {
 				//D $logger->write( Logger::INFO,  "data" );
@@ -333,7 +332,6 @@ class MsgProcessor
 
 		$logger->write(Logger::INFO,  "ChDef ch:{$channel_id} class:{$msgTotal['id_device_classes']} valType:{$msgTotal['id_value_types']} rate:{$msgRate} factor:{$factor} '{$name}'");
 
-		$this->datasource->processChannelDefinition($sessionDevice, $channel_id, $msgTotal['id_device_classes'], $msgTotal['id_value_types'], $msgRate, $name, $factor);
 		//$this->datasource->processChannelDefinition($sessionDevice, $channel, $devClass, $valueType, $msgRate, $name, $factor);
 
 		/**********/
@@ -346,8 +344,8 @@ class MsgProcessor
 				'device_id' => $sessionDevice->deviceId,
 				'channel_id' => $channel,
 				'name' => $name,
-				'id_device_classes' => $devClass,
-				'id_value_types' => $valueType,
+				'id_device_classes' => $msgTotal['id_device_classes'],
+				'id_value_types' => $msgTotal['id_value_types'],
 				'msg_rate' => $msgRate,
 				'preprocess_data' => $process,
 				'preprocess_factor' => $factor
