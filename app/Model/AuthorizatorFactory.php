@@ -9,13 +9,13 @@ use Nette;
 /**
  * Autorizator
  * 
- * Posledna zmena(last change): 29.09.2023
+ * Posledna zmena(last change): 23.09.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.4
+ * @version    1.0.5
  */
 class AuthorizatorFactory
 {
@@ -59,7 +59,7 @@ class AuthorizatorFactory
 				$acl->allow(
 					$perm->{self::TABLE_NAME_ROLES}->{self::COLUMN_ROLE},
 					$perm->{self::TABLE_NAME_RESOURCE}->{self::COLUMN_RESOURCE_NAME},
-					Nette\Security\Permission::ALL
+					Nette\Security\Permission::All
 				);
 			}
 		}

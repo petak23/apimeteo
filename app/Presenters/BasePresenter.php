@@ -69,7 +69,7 @@ abstract class BasePresenter extends Presenter
 		$httpResponse->setHeader('Access-Control-Allow-Credentials', 'true');
 
 		if ($httpRequest->getMethod() === 'OPTIONS') {
-			$httpResponse->setCode(IResponse::S204_NO_CONTENT); // 204 = no content
+			$httpResponse->setCode(IResponse::S204_NoContent); // 204 = no content
 			$this->terminate(); // okamžité ukončenie requestu
 		}
 
@@ -80,8 +80,19 @@ abstract class BasePresenter extends Presenter
 
 		// Kontrola ACL
 		if (!($user->isAllowed($this->name, $this->action))) {
-			$this->sendJson(['status'=>405, 'message' => "Method not allowed!!!"]);
-			//$this->error("Not allowed");
+			if (!$this->getUser()->isLoggedIn()) {
+				$this->sendJson([
+						'status' => 401,
+						'reason' => 'not_logged_in',
+						'message' => 'Táto akcia je povolená len pre prihlásených. Prihláste sa, prosím!'
+				]);
+			} else {
+				$this->sendJson([
+						'status' => 403,
+						'reason' => 'no_permission',
+						'message' => 'Nemáte oprávnenie na vykonanie tejto akcie.'
+				]);
+			}
 		}
 	}
 

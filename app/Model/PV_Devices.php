@@ -60,7 +60,7 @@ class PV_Devices
 
 		$result = $this->devices->where(['user_id' => $userId])->order('id ASC');
 
-		if ($result->count() > 0)
+		if ($result->count() > 0) {
 			foreach ($result as $row) {
 				$dev = new VDevice($row, $return_as_array);
 				if ($dev->attrs['last_bad_login'] != NULL) {
@@ -77,7 +77,11 @@ class PV_Devices
 				// Pridám zariadenie a k nemu načítam senzory
 				$rc->addWithSensors($dev, $this->pv_sensors->getDeviceSensors($row->id, $row->monitoring), $return_as_array);
 			}
-		return $return_as_array ? $rc->returnAsArray() : $rc;
+			return $return_as_array ? ['status' => 200, 'message' => "", 'data' => $rc->returnAsArray()] : $rc;
+		} else {
+			// Žiadne zariadenia
+			return ['status' => 200, 'message' => "Pre užívateľa s id: " . $userId. " neboli nájdené žiadne zariadenia.", 'data' => null];
+		}
 	}
 
 	/** 
