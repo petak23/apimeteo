@@ -38,10 +38,10 @@ class UsersPresenter extends BasePresenter
 	{
 		$_tmp = $this->user->isLoggedIn() ? $this->user_main->getUser(
 				($id != 0 && $this->id_reg > 3) ? $id : $this->user->getId(),
-				$this->user,
+				$this->user->getId(),
 				$this->template->baseUrl,
 				true
-			) : null;
+			) : ['status' => 401, 'message' => 'Užívateľ nie je prihlásený!'];
 		$this->sendJson($_tmp);
 	}
 
@@ -60,7 +60,7 @@ class UsersPresenter extends BasePresenter
 			$this->user->login($_post['email'], $_post['password']);
 			$_tmp = $this->user_main->getUser(
 					$this->user->getId(),
-					$this->user,
+					$this->user->getId(),
 					$this->template->baseUrl,
 					true
 			);

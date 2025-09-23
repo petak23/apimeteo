@@ -73,10 +73,10 @@ class User_main extends Table
 	 * Nájdenie info o jednom užívateľovy
 	 * @param int $id primary key
 	 * @return Database\Table\ActiveRow|array */
-	public function getUser(int $id, User $user = null, String $baseUrl = "", bool $return_as_array = false): Database\Table\ActiveRow|array
+	public function getUser(int $id, int $user_id = 0, String $baseUrl = "", bool $return_as_array = false): Database\Table\ActiveRow|array
 	{
 		$out = $this->find($id);
-		if ($out == null) return ['error' => "User not found", 'error_n' => 1, 'user_id' => $id];
+		if ($out == null) return ['status'=> 404, 'message' => "Užívateľ s id: ".$id." sa nenašiel!", 'user_id' => $id];
 		if ($return_as_array) {
 			$_cols = $this->getTableColsInfo();
 			$_user = [];
@@ -96,10 +96,10 @@ class User_main extends Table
 					$_user['last_error_name'] = NULL;
 				}
 			}
-			$_user['monitoringUrl'] = ($user != null && $_user['monitoring_token'] != null)
-				? $baseUrl . "monitor/show/" . $_user['monitoring_token'] . "/" . $user->getId() . "/" : null;
+			$_user['monitoringUrl'] = ($user_id != 0 && $_user['monitoring_token'] != null)
+				? $baseUrl . "monitor/show/" . $_user['monitoring_token'] . "/" . $user_id . "/" : null;
 
-			$out = $_user;
+			$out = ['status' => 200, 'data' => $_user];
 		}
 		return $out;
 	}
