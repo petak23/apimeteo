@@ -311,7 +311,7 @@ class MsgProcessor
 				'name' => $msgTotal['device_name'],
 				'id_device_classes' => $msgTotal['id_device_classes'],
 				'id_value_types' => $msgTotal['id_value_types'],
-				'msg_rate' => $msgTotal['msg_rate'],
+				'msg_rate' => isset($msgTotal['msg_rate']) ? $msgTotal['msg_rate'] : 3600,	// Ak nie je nastavené nastav predvolenú hodnotu
 				'preprocess_data' => ($msgTotal['preprocess_factor'] === NULL) ? 0 : 1,
 				'preprocess_factor' => $msgTotal['preprocess_factor'],
 			]);
