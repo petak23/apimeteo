@@ -1,6 +1,12 @@
 {block content}
-<div class="pb-3 pt-3 px-2">
+<div class="pb-3 pt-3 px-2 d-flex justify-content-between">
 	<h1 n:block=title>Základná stránka pre API</h1>
+	<div n:if="$user->isLoggedIn()">
+		<p class="mb-0 text-success-emphasis">Prihlásený ako: <strong>{$user->identity->prefix}</strong></p>	
+	</div>
+	<div n:else>
+		<p class="mb-0 text-warning-emphasis">Neprihlásený užívateľ</p>
+	</div>
 </div>
 
 <div class="row px-2 bg-light">
@@ -14,7 +20,7 @@
 	<div class="col-12">
 		<h2>Jednotky</h2>
 		<ul>
-			<li><strong>units</strong> - Výpis zoznamu jednotiek</li>
+			<li><strong><a n:href="Units:">units</a></strong> - Výpis zoznamu jednotiek</li>
 		</ul>
 	</div>
 	<div class="col-12">
@@ -41,9 +47,17 @@
 	<div class="col-12">
 		<h2>Comunikácia <small>(CommPresenter)</small></h2>
 		<ul>
-			<li><strong>comm</strong> - Testovacia akcia.</li>
+			<li><strong><a n:href="Comm:">comm</a></strong> - Testovacia akcia.</li>
 			<li><strong>comm/data</strong> - Akcia pre príjem dát zo zariadenia.</li>
 			<li><strong>comm/datajson</strong> - Akcia pre príjem dát zo zariadenia.</li>
+		</ul>
+	</div>
+	<div class="col-12">
+		<h2>Json dáta <small>(JsonPresenter)</small></h2>
+		<ul>
+			<li><strong><a n:href="Json:">json</a></strong> - Testovacia akcia.</li>
+			<li><strong>json/data/[id]/[token]</strong> - Akcia pre výpis dát z daného zariadenia.</li>
+			<li><strong>json/meteo/[id]/[token]/?temp=[temp_sensor_name]&rain=[rain_sensor_name]</strong> - Akcia pre výpis meteo dát senzorov pre teplotu a dážď zo zariadenia.</li>
 		</ul>
 	</div>
 </div>
