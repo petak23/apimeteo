@@ -24,6 +24,7 @@ final class RouterFactory
 		$router->addRoute('logout', 'Users:logOut');
 		$router->addRoute('user[/<id>[/<action>]]', 'Users:user');
 		$router->addRoute('users[/<action>[/<id>]]', 'Users:default');
+		$router->addRoute('json[/<action>[/<id>/<token>]]', 'Json:default');
 		$router->addRoute('<presenter>/<action>[/<id>]', 'Homepage:default');
 		return $router;
 	}
