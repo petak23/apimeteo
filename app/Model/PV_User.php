@@ -15,13 +15,13 @@ use Nette\Utils\Random;
 /**
  * Model, ktory sa stara o tabulku user_main
  * 
- * Posledna zmena 09.06.2023
+ * Posledna zmena 29.09.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.7
+ * @version    1.0.8
  */
 class PV_User
 {
@@ -113,7 +113,7 @@ class PV_User
 
 	/**
 	 * Založenie užívateľa pri registrácii
-	 * @return ActiveRow
+	 * @return Table\ActiveRow
 	 * @throws Exceptions\UserDuplicateEmailException */
 	public function createEnrollUser(ArrayHash $values, string $hash, string $prefix, string $code): Table\ActiveRow
 	{

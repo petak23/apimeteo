@@ -146,8 +146,8 @@ class PV_Devices
 			$_d = $d->attrs->toArray();
 			$_d['problem_mark'] = $d->problem_mark;
 			$_d['sensors'] = $d->sensors;
-			$_d['first_login'] = $_d['first_login']->format('d.m.Y H:i:s');
-			$_d['last_login'] = $_d['last_login']->format('d.m.Y H:i:s');
+			$_d['first_login'] = $_d['first_login'] != null ? $_d['first_login']->format('d.m.Y H:i:s') : null;
+			$_d['last_login'] = $_d['last_login'] !=null ? $_d['last_login']->format('d.m.Y H:i:s') : null;
 			$d = ['status' => 200, 'data'=> $_d];
 		}
 		return $d;
