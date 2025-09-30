@@ -33,6 +33,10 @@ class Measures extends Table
 
 	public function getLastMeasure(int $id_sensor): array
 	{
-		return $m = $this->findBy(['sensor_id' => $id_sensor])->order("data_time DESC")->limit(1)->fetch()->toArray();
+		$m = $this->findBy(['sensor_id' => $id_sensor])->order("data_time DESC")->limit(1)->fetch();
+		if ($m === null) {
+			return ['status' => 404, 'message' => 'Meranie pre senzor s id: ' . $id_sensor . ' sa nenašlo.'];
+		}
+		return $m->toArray();
 	}
 }

@@ -24,6 +24,8 @@ class DevicesPresenter extends BasePresenter
 	// -- DB
 	/** @var Model\PV_Devices @inject */
 	public $devices;
+	/** @var Model\PV_Sensors @inject */
+	public $sensors;
 	/** @var Model\Measures @inject */
 	public $measures;
 
@@ -72,6 +74,12 @@ class DevicesPresenter extends BasePresenter
 	{
 		$d = $this->devices->getDevice($id, true, true);
 		$this->sendJson($d["sensors"]);
+	}
+
+	public function actionSensor(int $id): void
+	{
+		$sensor = $this->sensors->getSensor($id, true);
+		$this->sendJson($sensor);
 	}
 
 	public function actionMeasures(int $id): void

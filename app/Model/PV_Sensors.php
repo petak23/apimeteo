@@ -9,13 +9,13 @@ use Nette\Utils\DateTime;
 /**
  * Model, ktorý sa stará o tabuľku sensors
  * 
- * Posledna zmena 11.04.2025
+ * Posledna zmena 30.09.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2022 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.1
+ * @version    1.0.2
  */
 class PV_Sensors extends Table
 {
@@ -43,25 +43,27 @@ class PV_Sensors extends Table
 
 	/**
 	 * Info o senzore
+	 * @param int $sensorId
+	 * @param bool $return_as_array
+	 * @return ActiveRow|array|null
 	 */
-	public function getSensor(int $sensorId): ?ActiveRow
+	public function getSensor(int $sensorId, bool $return_as_array = false): ActiveRow|array|null
 	{
-		/*return $this->database->fetch('
-						select 
-								s.*, 
-								d.name as dev_name, d.desc as dev_desc, d.user_id,  
-								vt.unit
-						from sensors s
-
-						left outer join devices d
-						on s.device_id = d.id
-
-						left outer join value_types vt
-						on s.id_value_types = vt.id
-						
-						where s.id = ?
-				', $sensorId);*/
-		return $this->find($sensorId);
+		$sensor = $this->find($sensorId);
+		if ($sensor === null && $return_as_array) {
+			return ['status' => 404, 'message' => 'Sensor s id ' . $sensorId . ' sa nenašiel.'];
+		}
+		if ($return_as_array && $sensor) {
+			$out = $sensor->toArray();
+			//dumpe($sensor, $out);
+			$out['status'] = 200;
+			$out['dev_name'] = $sensor->device->name;
+			$out['dev_desc'] = $sensor->device->desc;
+			$out['user_id'] = $sensor->device->user_id;
+			$out['unit'] = $sensor->value_types->unit;
+			$sensor = $out;
+		}
+		return $sensor;
 	}
 
 	/**
