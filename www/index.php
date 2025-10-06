@@ -18,7 +18,7 @@ $isLocalhost = in_array($_SERVER['SERVER_NAME'], ['localhost', '127.0.0.1'], tru
 
 $allowedOrigins = $isLocalhost
     ? ['http://localhost:5173']
-    : ['https://echo-msz.eu'];
+    : ['https://vuemeteo.echo-msz.eu'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: ' . $allowedOrigins[0]);
