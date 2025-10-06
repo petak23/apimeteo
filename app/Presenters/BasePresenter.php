@@ -67,7 +67,7 @@ abstract class BasePresenter extends Presenter
 
 		$allowedOrigins = $isLocalhost
 				? ['http://localhost:5173']
-				: ['https://echo-msz.eu'];
+				: ['https://vuemeteo.echo-msz.eu'];
 
 		$origin = $httpRequest->getHeader('Origin');
 		if ($origin && in_array($origin, $allowedOrigins, true)) {
