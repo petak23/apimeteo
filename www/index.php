@@ -14,8 +14,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+$isLocalhost = in_array($_SERVER['SERVER_NAME'], ['localhost', '127.0.0.1'], true);
+
+$allowedOrigins = $isLocalhost
+    ? ['http://localhost:5173']
+    : ['https://echo-msz.eu'];
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: http://localhost:5173');
+    header('Access-Control-Allow-Origin: ' . $allowedOrigins[0]);
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
     header('Access-Control-Allow-Credentials: true');
@@ -30,10 +36,13 @@ $container = $app->createContainer();
 $application = $container->getByType(Nette\Application\Application::class);
 $httpResponse = $container->getByType(Nette\Http\Response::class);
 
-$allowedOrigin = 'http://localhost:5173';
+//$allowedOrigin = 'http://localhost:5173';
 
-$application->onResponse[] = function ($app, $response) use ($httpResponse, $allowedOrigin) {
-    $httpResponse->setHeader('Access-Control-Allow-Origin', $allowedOrigin);
+$application->onResponse[] = function ($app, $response) use ($httpResponse, $allowedOrigins) {
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if (in_array($origin, $allowedOrigins, true)) {
+        $httpResponse->setHeader('Access-Control-Allow-Origin', $origin);
+    }
     $httpResponse->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     $httpResponse->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     $httpResponse->setHeader('Access-Control-Allow-Credentials', 'true');
