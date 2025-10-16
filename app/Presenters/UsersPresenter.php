@@ -8,7 +8,7 @@ use Nette\Utils\Random;
 
 /**
  * Prezenter pre pristup k api užívateľov.
- * Posledna zmena(last change): 29.07.2025
+ * Posledna zmena(last change): 14.10.2025
  *
  * Modul: API
  *
@@ -16,13 +16,15 @@ use Nette\Utils\Random;
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.2
+ * @version 1.0.3
  * @help 1.) https://forum.nette.org/cs/28370-data-z-post-request-body-reactjs-appka-se-po-ceste-do-php-ztrati
  * @help 2.) https://www.php.net/manual/en/function.checkdnsrr.php#48157
  */
 class UsersPresenter extends BasePresenter
 {
-
+	/**
+	 * Vráti zoznam všetkých užívateľov
+	 */
 	public function actionDefault(): void
 	{
 		$this->sendJson($this->user_main->getUsers(true));
@@ -64,13 +66,12 @@ class UsersPresenter extends BasePresenter
 					$this->template->baseUrl,
 					true
 			);
-			unset($_tmp['phash']);
-			$this->sendJson(['status'=> 200, 'user' => $_tmp, 'token' => Random::generate(20)]);
+			$this->sendJson(['status' => 200, 'user' => $_tmp, 'token' => Random::generate(20)]);
 
 		} catch (Nette\Security\AuthenticationException $e) {
-			$this->sendJson(['status'=>500, 'error'=>'Uživateľské meno alebo heslo je nesprávne!!!']);
+			$this->sendJson(['status' => 500, 'error'=>'Uživateľské meno alebo heslo je nesprávne!!!']);
 		} catch (Nette\InvalidArgumentException $e) {
-			$this->sendJson(['status'=>500, 'error'=>'Zadajte email v správnom tvare!!!']);
+			$this->sendJson(['status' => 500, 'error'=>'Zadajte email v správnom tvare!!!']);
 		}
 		
 	}
@@ -79,5 +80,20 @@ class UsersPresenter extends BasePresenter
 	{
 		$this->user->logout(true);
 		$this->sendJson(['status'=>200, 'message' => "Užívateľ bol odhlásený."]);	
-	}	
+	}
+
+	public function actionSave($id): void
+	{
+		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
+		try {
+			if (!Validators::isEmail($_post['email'])) { // Kontrola, či bol zadaný email v správnom tvare
+				throw new Nette\InvalidArgumentException;
+			}
+
+			$this->user_main->save($id, $_post);
+			$this->actionUser($id);
+		} catch (Nette\InvalidArgumentException $e) {
+			$this->sendJson(['status' => 500, 'error' => 'Zadajte email v správnom tvare!!!']);
+		}
+	}
 }

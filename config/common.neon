@@ -11,12 +11,12 @@ parameters:
 			link: 'https://github.com/petak23/apimeteo'
 		}
 		- {
-			name: 'Domov'
-			link: 'http://apimeteo.echo-msz.eu/'
+			name: 'Domov-API'
+			link: 'https://apimeteo.echo-msz.eu/'
 		}
 		- {
 			name: 'Adminer'
-			link: 'http://iot.echo-msz.eu/www/adminer/' 
+			link: 'https://apimeteo.echo-msz.eu/www/adminer/' 
 		}
 		
 application:

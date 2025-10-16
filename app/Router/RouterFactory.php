@@ -23,6 +23,7 @@ final class RouterFactory
 		$router->addRoute('comm[/action[/id]]', 'Comm:default');
 		$router->addRoute('login', 'Users:logIn');
 		$router->addRoute('logout', 'Users:logOut');
+		$router->addRoute('user/save[/<id>]', 'Users:save');
 		$router->addRoute('user[/<id>[/<action>]]', 'Users:user');
 		$router->addRoute('users[/<action>[/<id>]]', 'Users:default');
 		$router->addRoute('json[/<action>[/<id>/<token>]]', 'Json:default');

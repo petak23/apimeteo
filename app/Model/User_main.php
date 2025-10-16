@@ -17,13 +17,13 @@ use Nette\Utils\Random;
 /**
  * Model, ktory sa stara o tabulku user_main
  * 
- * Posledna zmena 29.07.2025
+ * Posledna zmena 14.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.0
+ * @version    1.1.1
  */
 class User_main extends Table
 {
@@ -38,7 +38,7 @@ class User_main extends Table
 	 * @param mixed $id primary key
 	 * @param iterable (column => value)
 	 * @return Database\Table\ActiveRow|null */
-	public function save($id, $data): ?Database\Table\ActiveRow
+	public function save($id, $data, bool $return_as_array = false): ?Database\Table\ActiveRow
 	{
 		$this->find($id)->update($data);
 		return $this->find($id);
@@ -62,6 +62,7 @@ class User_main extends Table
 						$_user[$v['field']] = $o->{$v['field']};
 					}
 				}
+				unset($_user['phash']);
 				$_tmp[$o->id] = $_user;
 			}
 			$out = $_tmp;
@@ -97,8 +98,8 @@ class User_main extends Table
 				}
 			}
 			$_user['monitoringUrl'] = ($user_id != 0 && $_user['monitoring_token'] != null)
-				? $baseUrl . "monitor/show/" . $_user['monitoring_token'] . "/" . $user_id . "/" : null;
-
+				? $baseUrl . "/monitor/show/" . $_user['monitoring_token'] . "/" . $user_id . "/" : null;
+			unset($_user['phash']);
 			$out = ['status' => 200, 'data' => $_user];
 		}
 		return $out;

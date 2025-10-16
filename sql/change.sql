@@ -1,0 +1,1 @@
+UPDATE `user_permission` SET `actions` = 'users,user,default,save' WHERE `id` = '29';
