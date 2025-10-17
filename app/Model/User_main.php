@@ -9,7 +9,7 @@ use App\Exceptions;
 use Nette;
 use Nette\Database;
 use Nette\Http\Url;
-use Nette\Security\User;
+use Nette\Security;
 use Nette\Utils\ArrayHash;
 use Nette\Utils\Random;
 
@@ -17,13 +17,13 @@ use Nette\Utils\Random;
 /**
  * Model, ktory sa stara o tabulku user_main
  * 
- * Posledna zmena 14.10.2025
+ * Posledna zmena 17.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.1
+ * @version    1.1.2
  */
 class User_main extends Table
 {
@@ -32,6 +32,21 @@ class User_main extends Table
 
 	/** @var string */
 	protected $tableName = 'rausers'; //'user_main';
+
+	private $passwords;
+
+	/**
+	 * @param Nette\Database\Context $db
+	 * @throws Nette\InvalidStateException */
+	public function __construct(Nette\Database\Explorer $db, Security\Passwords $passwords)
+	{
+		$this->connection = $db;
+		if ($this->tableName === NULL) {
+			$class = get_class($this);
+			throw new Nette\InvalidStateException("Názov tabuľky musí byť definovaný v $class::\$tableName.");
+		}
+		$this->passwords = $passwords;
+	}
 
 	/** 
 	 * Opravy v tabulke zaznam s danym id
@@ -130,6 +145,22 @@ class User_main extends Table
 	public function updateUserPassword(int $id, string $phash)
 	{
 		return $this->save($id, ['phash' => $phash]);
+	}
+
+	/**
+	 * Zmena hesla užívateľa
+	 * @param int $id Id užívateľa
+	 * @param string $old_password Staré heslo
+	 * @param string $new_password Nové heslo */
+	public function changePassword(int $id, string $old_password, string $new_password): void
+	{
+		$user = $this->getUser($id);
+		if (!$user || !$this->passwords->verify($old_password, $user->phash)) {
+			throw new Nette\InvalidArgumentException('Staré heslo je nesprávne.');
+		}
+		$new_phash = $this->passwords->hash($new_password);
+
+		$this->save($id, ['phash' => $new_phash]);
 	}
 
 	/** 
