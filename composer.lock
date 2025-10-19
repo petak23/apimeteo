@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "dg/adminer",
-            "version": "v3.2.0",
+            "version": "v3.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dg/adminer.git",
-                "reference": "c0559bfd60c8ec5c7f8f0587c65c7071179fece3"
+                "reference": "2193036f6e19f1416bdbd8c8baa09e52a237278d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dg/adminer/zipball/c0559bfd60c8ec5c7f8f0587c65c7071179fece3",
-                "reference": "c0559bfd60c8ec5c7f8f0587c65c7071179fece3",
+                "url": "https://api.github.com/repos/dg/adminer/zipball/2193036f6e19f1416bdbd8c8baa09e52a237278d",
+                "reference": "2193036f6e19f1416bdbd8c8baa09e52a237278d",
                 "shasum": ""
             },
             "type": "library",
@@ -34,9 +34,9 @@
                 "sqlite"
             ],
             "support": {
-                "source": "https://github.com/dg/adminer/tree/v3.2.0"
+                "source": "https://github.com/dg/adminer/tree/v3.3.0"
             },
-            "time": "2025-05-22T09:10:55+00:00"
+            "time": "2025-09-24T17:21:32+00:00"
         },
         {
             "name": "latte/latte",
