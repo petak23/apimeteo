@@ -96,4 +96,15 @@ class UsersPresenter extends BasePresenter
 			$this->sendJson(['status' => 500, 'error' => 'Zadajte email v správnom tvare!!!']);
 		}
 	}
+
+	public function actionPasswordChange($id): void
+	{
+		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
+		try {
+			$this->user_main->changePassword($id, $_post['old_password'], $_post['new_password']);
+			$this->sendJson(['status' => 200, 'message' => 'Heslo bolo zmenené.']);
+		} catch (Nette\InvalidArgumentException $e) {
+			$this->sendJson(['status' => 500, 'error' => $e->getMessage()]);
+		}
+	}
 }
