@@ -104,18 +104,19 @@ class UsersPresenter extends BasePresenter
 	 */
 	public function actionPasswordChange($id): void
 	{
+		// Kontrola prihlásenia
 		if ($this->user->isLoggedIn() === false) {
 			$this->sendJson(['status' => 401, 'error' => 'Užívateľ nie je prihlásený!']);
 			return;
 		}
+		// Kontrola práv na zmenu hesla iného užívateľa
 		if ($this->id_reg < 4 && $this->user->getId() != $id) {
 			$this->sendJson(['status' => 403, 'error' => 'Nemáte dostatočné práva na zmenu hesla iného užívateľa!']);
 			return;
 		}
+		
 		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
-		$userData = $this->pv_user->getUser($id);
-		if (!$this->passwords->verify($_post['old_password'], $userData->phash)) {
-
+		
 		try {
 			$this->user_main->changePassword($id, $_post['old_password'], $_post['new_password']);
 			$this->sendJson(['status' => 200, 'message' => 'Heslo bolo zmenené.']);

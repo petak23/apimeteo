@@ -8,7 +8,7 @@ use App\Exceptions;
 
 use Nette;
 use Nette\Database;
-use Nette\Http\Url;
+//use Nette\Http\Url;
 use Nette\Security;
 use Nette\Utils\ArrayHash;
 use Nette\Utils\Random;
@@ -17,13 +17,13 @@ use Nette\Utils\Random;
 /**
  * Model, ktory sa stara o tabulku user_main
  * 
- * Posledna zmena 17.10.2025
+ * Posledna zmena 22.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.2
+ * @version    1.1.3
  */
 class User_main extends Table
 {
@@ -88,12 +88,12 @@ class User_main extends Table
 	/**
 	 * Nájdenie info o jednom užívateľovy
 	 * @param int $id primary key
-	 * @return Database\Table\ActiveRow|array */
-	public function getUser(int $id, int $user_id = 0, String $baseUrl = "", bool $return_as_array = false): Database\Table\ActiveRow|array
+	 * @return Database\Table\ActiveRow|array|null */
+	public function getUser(int $id, int $user_id = 0, String $baseUrl = "", bool $return_as_array = false): Database\Table\ActiveRow|array|null
 	{
 		$out = $this->find($id);
-		if ($out == null) return ['status'=> 404, 'message' => "Užívateľ s id: ".$id." sa nenašiel!", 'user_id' => $id];
 		if ($return_as_array) {
+			if ($out == null) return ['status'=> 404, 'message' => "Užívateľ s id: ".$id." sa nenašiel!", 'user_id' => $id];
 			$_cols = $this->getTableColsInfo();
 			$_user = [];
 			foreach ($_cols as $k => $v) {
@@ -155,12 +155,15 @@ class User_main extends Table
 	public function changePassword(int $id, string $old_password, string $new_password): void
 	{
 		$user = $this->getUser($id);
-		if (!$user || !$this->passwords->verify($old_password, $user->phash)) {
+		if ($user === null) {
+			throw new Nette\InvalidArgumentException('Užívateľ nebol nájdený.');
+		}
+
+		if (!$this->passwords->verify($old_password, $user->phash)) {
 			throw new Nette\InvalidArgumentException('Staré heslo je nesprávne.');
 		}
-		$new_phash = $this->passwords->hash($new_password);
 
-		$this->save($id, ['phash' => $new_phash]);
+		$this->save($id, ['phash' => $this->passwords->hash($new_password)]);
 	}
 
 	/** 
