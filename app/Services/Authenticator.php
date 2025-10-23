@@ -10,18 +10,18 @@ use App\Services\Logger;
 use Nette;
 use Nette\Security;
 use Nette\Utils\DateTime;
-use Nette\Utils\Strings;
+//use Nette\Utils\Strings;
 
 
 /**
  * Autenticator
- * Last change 02.08.2025
+ * Last change 23.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2021 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.1
+ * @version    1.0.2
  */
 class Authenticator implements Security\Authenticator
 {
@@ -46,7 +46,7 @@ class Authenticator implements Security\Authenticator
   private function badPasswordAction($id, $badPwdCount, $lockoutTime, $ip, $browser)
   {
     $this->pv_user->save($id, [
-      'state_id'/*'id_user_state'*/ => 91,
+      'id_user_state' => 91,
       'bad_pwds_count' => $badPwdCount,
       'locked_out_until' => $lockoutTime,
       'last_error_time' => new DateTime(),
@@ -58,7 +58,7 @@ class Authenticator implements Security\Authenticator
   private function loginOkAction($userData, $ip, $browser)
   {
     $this->pv_user->save($userData->id, [
-      'state_id'/*'id_user_state'*/ => 10,
+      'id_user_state' => 10,
       'bad_pwds_count' => 0,
       'cur_login_time' => new DateTime(),
       'cur_login_ip' => $ip,
@@ -93,20 +93,20 @@ class Authenticator implements Security\Authenticator
       Logger::log(self::NAME, Logger::ERROR, "[{$ip}] Login: nenajdeny uzivatel s emailem: {$email}, '{$ua}'");
       throw new Security\AuthenticationException('', 1);
     }
-    if ($userData->state_id/*->id_user_state*/ == 1) {
+    if ($userData->id_user_state == 1) {
       Logger::log(self::NAME, Logger::ERROR, "[{$ip}] Login: {$email} state=1 ");
       throw new UserNotEnrolledException('');
-    } else if ($userData->state_id/*->id_user_state*/ == 90) {
+    } else if ($userData->id_user_state == 90) {
       Logger::log(self::NAME, Logger::ERROR, "[{$ip}] Login: {$email} state=90, '{$ua}'");
       throw new Security\AuthenticationException('', 5);
-    } else if ($userData->state_id/*->id_user_state*/ == 91) {
+    } else if ($userData->id_user_state == 91) {
       $lockoutTime = (DateTime::from($userData->locked_out_until))->getTimestamp();
       if ($lockoutTime > time()) {
         $rest = $lockoutTime - time();
         Logger::log(self::NAME, Logger::ERROR, "[{$ip}] Login: {$email} state=91 for {$rest} sec; '{$ua}'");
         throw new Security\AuthenticationException((string)$rest, 6);
       }
-    } else if ($userData->state_id/*->id_user_state*/ == 10) {
+    } else if ($userData->id_user_state == 10) {
       // OK, korektny stav
     }
 
@@ -128,15 +128,15 @@ class Authenticator implements Security\Authenticator
 
     $this->loginOkAction($userData, $this->request->getRemoteAddress(), $ua);
 
-    Logger::log(self::NAME, Logger::INFO, "[{$ip}] Login: prihlaseny {$email} v roli '{$userData->role/*user_roles->name*/}', '{$ua}'");
+    Logger::log(self::NAME, Logger::INFO, "[{$ip}] Login: prihlaseny {$email} v roli '{$userData->user_roles->name}', '{$ua}'");
 
-    //$role = $userData->user_roles->role;
-    $role = Strings::split($userData->role, '~,\s*~');
+    $role = $userData->user_roles->role;
+    //$role = Strings::split($userData->role, '~,\s*~');
     $user_ident_data =  [
       'email' => $userData->email,
       'prefix' => $userData->prefix,
-      'comm_id' => $this->passwords->hash($userData->email . date('Y-M-D H:m:s')), // TODO - ulož do DB pre budúce použitie (je to id pre komunikáciu)
-    //'id_user_roles' => $userData->id_user_roles*/
+      'comm_id' => $this->passwords->hash($userData->email . date('Y-M-D H:m:s')), // na komunikacny token
+      'id_user_roles' => $userData->id_user_roles
     ];
     return new Security\SimpleIdentity($userData->id, $role, $user_ident_data);
   }

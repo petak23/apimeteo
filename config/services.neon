@@ -1,3 +1,7 @@
+# Models
+search:
+	-	in: %appDir%/Model
+
 services:
 	- App\Router\RouterFactory::createRouter
 
@@ -16,9 +20,7 @@ services:
 	- App\Services\RaDataSource
 	- App\Services\InventoryDataSource
 
-# Models
-search:
-	-	in: %appDir%/Model
+	- App\Model\User_main(%baseUrl%)
 
 #	-	in: %appDir%
 #		classes:

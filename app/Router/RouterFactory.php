@@ -28,6 +28,7 @@ final class RouterFactory
 		$router->addRoute('user[/<action>[/<id>]]', 'Users:user');
 		$router->addRoute('users[/<action>[/<id>]]', 'Users:default');
 		$router->addRoute('json[/<action>[/<id>/<token>]]', 'Json:default');
+		$router->addRoute('monitor/show/<token>/<id>/', 'Monitor:show');
 		$router->addRoute('<presenter>/<action>[/<id>]', 'Homepage:default');
 		return $router;
 	}

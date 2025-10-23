@@ -34,11 +34,12 @@ class User_main extends Table
 	protected $tableName = 'user_main';//'rausers'; 
 
 	private $passwords;
+	private $baseUrl;
 
 	/**
 	 * @param Database\Context $db
 	 * @throws Nette\InvalidStateException */
-	public function __construct(Database\Explorer $db, Security\Passwords $passwords)
+	public function __construct(string $baseUrl, Database\Explorer $db, Security\Passwords $passwords)
 	{
 		$this->connection = $db;
 		if ($this->tableName === NULL) {
@@ -46,6 +47,7 @@ class User_main extends Table
 			throw new Nette\InvalidStateException("Názov tabuľky musí byť definovaný v $class::\$tableName.");
 		}
 		$this->passwords = $passwords;
+		$this->baseUrl = $baseUrl;
 	}
 
 	/** 
@@ -56,8 +58,7 @@ class User_main extends Table
 	public function save($id, $data, bool $return_as_array = false): ?Database\Table\ActiveRow
 	{
 		$this->find($id)->update($data);
-		// TODO: oprav 3. parameter getUser aby tam bolo baseUrl
-		return $return_as_array ? $this->getUser($id, $id, "", true) : $this->find($id);
+		return $return_as_array ? $this->getUser($id, $id, $this->baseUrl, true) : $this->find($id);
 	}
 
 	/**
@@ -98,7 +99,7 @@ class User_main extends Table
 			$_cols = $this->getTableColsInfo();
 			$_user = [];
 			foreach ($_cols as $k => $v) {
-				$_user[$v['field']] = ($v['type'] == "datetime") 
+				$_user[$v['field']] = ($v['type'] == "datetime") && $out->{$v['field']} !== null
 					? $out->{$v['field']}->format('d.m.Y H:i:s') : $out->{$v['field']};
 			}
 			if ($_user['prev_login_ip'] != NULL) {
@@ -129,8 +130,7 @@ class User_main extends Table
 	public function getUserBy($by, bool $return_as_array = false): Database\Table\ActiveRow|array|null
 	{
 		$out = $this->findOneBy($by);
-		// TODO: oprav 3. parameter getUser aby tam bolo baseUrl
-		return $return_as_array ? $this->getUser($out->id, $out->id, "", true) : $out;
+		return $return_as_array ? $this->getUser($out->id, $out->id, $this->baseUrl, true) : $out;
 	}
 
 	/** 
@@ -141,8 +141,7 @@ class User_main extends Table
 	public function createUser($data, bool $return_as_array = false): Database\Table\ActiveRow|array|null
 	{
 		$out = $this->add($data);
-		// TODO: oprav 3. parameter getUser aby tam bolo baseUrl
-		return $return_as_array ? $this->getUser($out->id, $out->id, "", true) : $out;
+		return $return_as_array ? $this->getUser($out->id, $out->id, $this->baseUrl, true) : $out;
 	}
 
 	/**
