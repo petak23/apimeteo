@@ -17,13 +17,13 @@ use Nette\Utils\Random;
 /**
  * Model, ktory sa stara o tabulku user_main
  * 
- * Posledna zmena 22.10.2025
+ * Posledna zmena 23.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.3
+ * @version    1.1.4
  */
 class User_main extends Table
 {
@@ -31,14 +31,14 @@ class User_main extends Table
 	use Nette\SmartObject;
 
 	/** @var string */
-	protected $tableName = 'rausers'; //'user_main';
+	protected $tableName = 'user_main';//'rausers'; 
 
 	private $passwords;
 
 	/**
-	 * @param Nette\Database\Context $db
+	 * @param Database\Context $db
 	 * @throws Nette\InvalidStateException */
-	public function __construct(Nette\Database\Explorer $db, Security\Passwords $passwords)
+	public function __construct(Database\Explorer $db, Security\Passwords $passwords)
 	{
 		$this->connection = $db;
 		if ($this->tableName === NULL) {
@@ -56,7 +56,8 @@ class User_main extends Table
 	public function save($id, $data, bool $return_as_array = false): ?Database\Table\ActiveRow
 	{
 		$this->find($id)->update($data);
-		return $this->find($id);
+		// TODO: oprav 3. parameter getUser aby tam bolo baseUrl
+		return $return_as_array ? $this->getUser($id, $id, "", true) : $this->find($id);
 	}
 
 	/**
@@ -123,28 +124,25 @@ class User_main extends Table
 	/**
 	 * Nájdenie info o jednom užívateľovy na základe nejakého pravidla
 	 * @param string|string[] $by
-	 * @return Database\Table\ActiveRow|null */
-	public function getUserBy($by): ?Database\Table\ActiveRow
+	 * @param bool $return_as_array
+	 * @return Database\Table\ActiveRow|array|null */
+	public function getUserBy($by, bool $return_as_array = false): Database\Table\ActiveRow|array|null
 	{
-		return $this->findOneBy($by);
+		$out = $this->findOneBy($by);
+		// TODO: oprav 3. parameter getUser aby tam bolo baseUrl
+		return $return_as_array ? $this->getUser($out->id, $out->id, "", true) : $out;
 	}
 
 	/** 
 	 * Vytvorenie užívateľa
 	 * @param iterable $data
-	 * @return Database\Table\ActiveRow|int|bool */
-	public function createUser($data)
+	 * @param bool $return_as_array
+	 * @return Database\Table\ActiveRow|array|null */
+	public function createUser($data, bool $return_as_array = false): Database\Table\ActiveRow|array|null
 	{
-		return $this->add($data);
-	}
-
-	/** 
-	 * @param int $id Id uzivatela
-	 * @param string $phash Hash hesla 
-	 * @return Database\Table\ActiveRow|int|bool */
-	public function updateUserPassword(int $id, string $phash)
-	{
-		return $this->save($id, ['phash' => $phash]);
+		$out = $this->add($data);
+		// TODO: oprav 3. parameter getUser aby tam bolo baseUrl
+		return $return_as_array ? $this->getUser($out->id, $out->id, "", true) : $out;
 	}
 
 	/**
@@ -169,14 +167,14 @@ class User_main extends Table
 	/** 
 	 * Oprava email-u a monitoring_token-u užívateľa
 	 * @param iterable $data
-	 * @return Database\Table\ActiveRow|int|bool */
-	public function updateUser(int $id, $values)
+	 * @return Database\Table\ActiveRow|array|null */
+	public function updateUser(int $id, $values, bool $return_as_array = false): Database\Table\ActiveRow|array|null
 	{
 		return $this->save($id, [
 			'email' => $values['email'],
 			'monitoring_token' => $values['monitoring_token'],
 			'id_lang' => $values['id_lang']
-		]);
+		], $return_as_array);
 	}
 
 	/**

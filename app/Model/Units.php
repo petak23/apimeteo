@@ -27,7 +27,7 @@ class Units extends Table
 		try {
 			$_tmp = $this->findAll()->order('id ASC')->fetchPairs("id", "unit");
 			return ['status' => 200, 'data' => $_tmp];
-		} catch (\Nette\Database\DriverException $e) {
+		} catch (Nette\Database\DriverException $e) {
 			return [
 				'status'	=> 500,
 				'error' => 'Chyba databázy: ' . $e->getMessage(),

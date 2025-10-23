@@ -7,17 +7,17 @@ namespace App\Model;
 use Nette;
 
 /**
- * Model, ktory sa stara o tabulku user_state
+ * Model, ktorý sa stará o tabuľku views
  * 
- * Posledna zmena 09.06.2023
+ * Posledná zmena 23.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
  * @version    1.0.0
  */
-class PV_Views extends Table
+class Views extends Table
 {
 
 	/** @var string */

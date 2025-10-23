@@ -28,13 +28,13 @@ class PVAuthenticator implements Security\Authenticator
   private $passwords;
   private $request;
 
-  /** @var Model\PV_User_main */
+  /** @var Model\User_main */
   private $pv_user;
 
   const NAME = 'audit';
 
   public function __construct(
-    Model\PV_User_main $pv_user,
+    Model\User_main $pv_user,
     Security\Passwords $passwords,
     Nette\Http\Request $request
   ) {

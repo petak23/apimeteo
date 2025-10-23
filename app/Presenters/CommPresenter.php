@@ -38,6 +38,18 @@ class CommPresenter extends BasePresenter
 		$this->sendJson(['status'=>200, 'message'=>'Testovacia akcia.']);		
 	}
 
+	/**
+	 * Formát data správy:
+	 *      {
+	 *          "device_name": "<názov zariadenia>",
+	 *          "login_time": "<dátum a čas prihlásenia>",
+	 *          "appname": "<názov aplikácie>",
+	 *          "payload_hash": "<SHA256 z device_name + masterPassword + login_time + appname>"
+	 *      }
+	 * Result:
+	 *      200 - OK
+	 *      400 - other error
+	*/
 	public function actionLogin() : void {
 		Debugger::enable( Debugger::Production );
 		$logger = new Logger( 'pv-conn' );

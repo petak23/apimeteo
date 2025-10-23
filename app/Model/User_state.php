@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Model;
 
 /**
- * Model, ktory sa stara o tabulku user_state
+ * Model, ktorý sa stará o tabuľku user_state
  * 
- * Posledna zmena 01.09.2021
+ * Posledná zmena 23.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2021 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
  * @version    1.0.1
  */
-class PV_User_state extends Table {
+class User_state extends Table {
 
   /** @var string */
   protected $tableName = 'user_state';
