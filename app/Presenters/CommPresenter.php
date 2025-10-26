@@ -81,8 +81,8 @@ class CommPresenter extends BasePresenter
 			}
 
 			$control_hash = hash('sha256', $json_msg["device_name"] . $this->config->getConfig('masterPassword') . $json_msg["login_time"] . $json_msg["appname"]);
-			if( $control_hash !== $json_msg["payload_hash"]  ) {
-				throw new \Exception("Not valid sha256 of message! Expected: {$control_hash}, Given: {$json_msg['payload_hash']}");
+			if( $control_hash !== $json_msg["comm_key"]  ) {
+				throw new \Exception("Not valid sha256 of message! Expected: {$control_hash}, Given: {$json_msg['comm_key']}");
 			}
 
 			// zalozit session
