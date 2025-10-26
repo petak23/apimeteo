@@ -68,6 +68,7 @@ class CommPresenter extends BasePresenter
 
 			try {
 				$json_msg = Utils\Json::decode($postMessage);
+				$logger->write( Logger::INFO, "JSON decoded." . print_r($json_msg, true) );
 			} catch (Utils\JsonException $e) {
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
 			}
@@ -75,6 +76,8 @@ class CommPresenter extends BasePresenter
 			$device = $this->pv_devices->getDeviceBy(['name' => $json_msg["device_name"]]);
 			if (is_array($device) && isset($device["status"]) && $device["status"] == 404) {
 				throw new \Exception("Device {$json_msg['device_name']} not found!");
+			} else {
+				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id}" );
 			}
 
 			$control_hash = hash('sha256', $json_msg["device_name"] . $this->config->getConfig('masterPassword') . $json_msg["login_time"] . $json_msg["appname"]);
