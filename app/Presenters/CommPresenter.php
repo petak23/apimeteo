@@ -67,7 +67,7 @@ class CommPresenter extends BasePresenter
 			$logger->write( Logger::INFO, "[{$postMessage}]" );
 
 			try {
-				$json_msg = Utils\Json::decode($postMessage);
+				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
 				$logger->write( Logger::INFO, "JSON decoded.");
 			} catch (Utils\JsonException $e) {
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
