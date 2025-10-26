@@ -1,51 +1,55 @@
-{*layout '../@layoutEmpty.latte'*}
-
-{define content}
-
-<div class="pb-3 pt-3 px-2">
-<h1>Monitoring</h1>
+{block content}
+<div class="pb-3 pt-3 px-2 d-flex justify-content-between">
+	<h1 n:block=title>Monitoring</h1>
+	<div n:if="$user->isLoggedIn()">
+		<p class="mb-0 text-success-emphasis">Prihlásený ako: <strong>{$user->identity->prefix}</strong></p>	
+	</div>
+	<div n:else>
+		<p class="mb-0 text-warning-emphasis">Neprihlásený užívateľ</p>
+	</div>
 </div>
 
-{if (sizeof($devices->devices)==0)}
-    <div class="row px-2 ">
-        Zatím nemáte žádná zařízení.
-    </div>
-{/if}
-{dump $devices}
+<div class="row" n:if="sizeof($devices->devices) == 0">
+	<div class="col-12 col-md-6 mx-3 alert alert-warning d-flex align-items-center" role="alert">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+			<path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+		</svg>
+		<span class="ps-2">Zatiaľ nemáte žiadne zariadenia.</span>
+	</div>
+</div>
+
 {foreach $devices->devices as $device }
 
-    {foreach $device->sensors as $sensor }
-        
-        {if ($sensor['warning_icon']>0)} 
-            <p>
-            <b><a href="Sensor:show $sensor['id']" >{$device->attrs['name']}:{$sensor['name']}</a></b> - 
-            Senzor nedodává data. Poslední data: {$sensor['last_data_time']}.
-            {if ($sensor['warning_icon']==1)}
-                (monitoring ZAPNUTÝ)
-                {var $isError = true}
-            {else}
-                (monitoring vypnutý)
-                {var $isWarn = true}
-            {/if} 
-            </p>
-        {/if}
+	{foreach $device->sensors as $sensor }
+		
+		<p n:if="$sensor['warning_icon']>0">
+			<b><a n:href="Devices:sensor $sensor['id']" >{$device->attrs['name']}:{$sensor['name']}</a></b> - 
+			Senzor nedodává data. Poslední data: {$sensor['last_data_time']}.
+			{if ($sensor['warning_icon']==1)}
+				(monitoring ZAPNUTÝ)
+				{var $isError = true}
+			{else}
+				(monitoring vypnutý)
+				{var $isWarn = true}
+			{/if} 
+		</p>
 
-    {/foreach}
-    
+	{/foreach}
+	
 {/foreach}
 
-<p>
+	<p>
 
-{default $isError = false}
-{default $isWarn = false}
+		{default $isError = false}
+		{default $isWarn = false}
 
-Status:
-{if ($isError)} 
-    <font color="red">MONITORING_ERROR</font>
-{elseif ($isWarn)}
-    <font color="blue">MONITORING_WARN</font>
-{else}
-    <font color="green">MONITORING_OK</font>
-{/if}
-
-{/define}
+		Status:
+		{if ($isError)} 
+			<font color="red">MONITORING_ERROR</font>
+		{elseif ($isWarn)}
+			<font color="blue">MONITORING_WARN</font>
+		{else}
+			<font color="green">MONITORING_OK</font>
+		{/if}
+	</p>
+</div>

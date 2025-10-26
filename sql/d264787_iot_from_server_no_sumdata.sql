@@ -266,7 +266,7 @@ CREATE TABLE `rausers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 INSERT INTO `rausers` (`id`, `username`, `phash`, `role`, `id_user_roles`, `email`, `prefix`, `state_id`, `bad_pwds_count`, `locked_out_until`, `measures_retention`, `sumdata_retention`, `blob_retention`, `self_enroll`, `self_enroll_code`, `self_enroll_error_count`, `cur_login_time`, `cur_login_ip`, `cur_login_browser`, `prev_login_time`, `prev_login_ip`, `prev_login_browser`, `last_error_time`, `last_error_ip`, `last_error_browser`, `monitoring_token`) VALUES
-(1,	'admin',	'$2y$11$DReWNmWgn.WiqOYDlvkiVul3u/ADHsUNywIOjO3TxSJ5Y3iPsYjHC',	'admin,user',	4,	'petak23@echo-msz.eu',	'PV',	10,	0,	'2023-11-27 14:45:01',	90,	731,	14,	0,	NULL,	0,	'2025-07-31 11:23:41',	'217.12.60.62',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-07-25 06:37:05',	'217.12.60.62',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0 / en-US,en;q=0.5',	'2023-11-27 14:44:59',	'188.112.89.190',	'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	NULL);
+(1,	'admin',	'$2y$10$rStboW7HTJzQogn0o7KJouX4uSHQdNQRmOO/cJ/kben.tvdKe2HRC',	'admin,user',	4,	'petak23@echo-msz.eu',	'PV',	10,	0,	'2025-10-13 06:42:26',	90,	731,	14,	0,	NULL,	0,	'2025-10-20 07:35:54',	'217.12.60.62',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-10-10 13:33:04',	'178.253.155.197',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-10-13 06:42:24',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'kolko_je_to_6791345_Dat*+-');
 
 DROP TABLE IF EXISTS `rauser_state`;
 CREATE TABLE `rauser_state` (
@@ -411,6 +411,7 @@ CREATE TABLE `user_main` (
   `monitoring_token` varchar(100) DEFAULT NULL,
   `new_password_key` varchar(100) DEFAULT NULL COMMENT 'Kľúč nového hesla',
   `new_password_requested` datetime DEFAULT NULL COMMENT 'Čas požiadavky na nové heslo',
+  `comm_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `id_user_state` (`id_user_state`),
   KEY `id_user_roles` (`id_user_roles`),
@@ -420,8 +421,8 @@ CREATE TABLE `user_main` (
   CONSTRAINT `user_main_ibfk_3` FOREIGN KEY (`id_lang`) REFERENCES `lang` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='Hlavné údaje užívateľa';
 
-INSERT INTO `user_main` (`id`, `username`, `phash`, `role`, `id_user_roles`, `email`, `id_lang`, `prefix`, `id_user_state`, `bad_pwds_count`, `locked_out_until`, `measures_retention`, `sumdata_retention`, `blob_retention`, `self_enroll`, `self_enroll_code`, `self_enroll_error_count`, `cur_login_time`, `cur_login_ip`, `cur_login_browser`, `prev_login_time`, `prev_login_ip`, `prev_login_browser`, `last_error_time`, `last_error_ip`, `last_error_browser`, `monitoring_token`, `new_password_key`, `new_password_requested`) VALUES
-(1,	'admin',	'$2y$11$HiD7pethtowf5aOPT8T1nOfexBUSxEPu/UTBqIChVnMBZ/2Y1BQje',	'admin,user',	4,	'petak23@echo-msz.eu',	1,	'AA',	10,	0,	'2021-11-19 17:07:35',	90,	731,	14,	0,	NULL,	0,	'2023-07-28 12:13:32',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2023-07-28 12:12:00',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2021-11-19 17:07:03',	'188.112.68.18',	'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:94.0) Gecko/20100101 Firefox/94.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	NULL,	NULL,	NULL);
+INSERT INTO `user_main` (`id`, `username`, `phash`, `role`, `id_user_roles`, `email`, `id_lang`, `prefix`, `id_user_state`, `bad_pwds_count`, `locked_out_until`, `measures_retention`, `sumdata_retention`, `blob_retention`, `self_enroll`, `self_enroll_code`, `self_enroll_error_count`, `cur_login_time`, `cur_login_ip`, `cur_login_browser`, `prev_login_time`, `prev_login_ip`, `prev_login_browser`, `last_error_time`, `last_error_ip`, `last_error_browser`, `monitoring_token`, `new_password_key`, `new_password_requested`, `comm_id`) VALUES
+(1,	'admin',	'$2y$11$HiD7pethtowf5aOPT8T1nOfexBUSxEPu/UTBqIChVnMBZ/2Y1BQje',	'admin,user',	4,	'petak23@echo-msz.eu',	1,	'AA',	10,	0,	'2021-11-19 17:07:35',	90,	731,	14,	0,	NULL,	0,	'2023-07-28 12:13:32',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2023-07-28 12:12:00',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2021-11-19 17:07:03',	'188.112.68.18',	'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:94.0) Gecko/20100101 Firefox/94.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	NULL,	NULL,	NULL,	NULL);
 
 DROP TABLE IF EXISTS `user_permission`;
 CREATE TABLE `user_permission` (
@@ -443,13 +444,16 @@ INSERT INTO `user_permission` (`id`, `id_user_roles`, `id_user_resource`, `actio
 (4,	3,	4,	NULL),
 (5,	1,	5,	NULL),
 (6,	1,	6,	NULL),
-(7,	3,	7,	NULL),
-(8,	1,	8,	NULL),
-(9,	1,	9,	'logIn,logOut,user'),
-(10,	3,	9,	'users,user,default'),
-(11,	4,	9,	NULL),
-(12,	1,	10,	NULL),
-(13,	1,	11,	NULL);
+(7,	1,	7,	'measureslast'),
+(8,	3,	7,	NULL),
+(9,	1,	8,	NULL),
+(10,	1,	9,	'logIn,logOut,user'),
+(11,	3,	9,	'users,user,default,save'),
+(12,	4,	9,	NULL),
+(13,	1,	10,	NULL),
+(14,	1,	11,	NULL),
+(15,	1,	12,	NULL),
+(16,	1,	13,	NULL);
 
 DROP TABLE IF EXISTS `user_resource`;
 CREATE TABLE `user_resource` (
@@ -469,7 +473,9 @@ INSERT INTO `user_resource` (`id`, `name`) VALUES
 (8,	'Units'),
 (9,	'Users'),
 (10,	'Homepage'),
-(11,	'Comm');
+(11,	'Comm'),
+(12,	'Json'),
+(13,	'Monitor');
 
 DROP TABLE IF EXISTS `user_roles`;
 CREATE TABLE `user_roles` (
@@ -588,4 +594,4 @@ INSERT INTO `view_source` (`id`, `desc`, `short_desc`) VALUES
 (10,	'Hodinový/denní součet',	'Pro krátké pohledy hodinový součet, pro dlouhé denní součet (typicky pro srážky)'),
 (11,	'Týdenní součet',	'Týdenní součet (pro srážky)');
 
--- 2025-08-27 10:15:31
+-- 2025-10-23 12:18:39

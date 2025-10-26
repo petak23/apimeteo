@@ -1,10 +1,13 @@
 {block content}
 <div class="pb-3 pt-3 px-2 d-flex justify-content-between">
 	<h1 n:block=title>Základná stránka pre API</h1>
-	<div n:if="$user->isLoggedIn()">
+	<div class="pt-2"> 
+		<div class="badge text-primary text-bg-warning p-2">API Verzia 2025-10-26 | &copy; petak23</div>
+	</div>
+	<div n:if="$user->isLoggedIn()" class="pt-2">
 		<p class="mb-0 text-success-emphasis">Prihlásený ako: <strong>{$user->identity->prefix}</strong></p>	
 	</div>
-	<div n:else>
+	<div n:else class="pt-2">
 		<p class="mb-0 text-warning-emphasis">Neprihlásený užívateľ</p>
 	</div>
 </div>
@@ -61,6 +64,12 @@
 			<li><strong><a n:href="Json:">json</a></strong> - Testovacia akcia.</li>
 			<li><strong>json/data/[id]/[token]</strong> - Akcia pre výpis dát z daného zariadenia.</li>
 			<li><strong>json/meteo/[id]/[token]/?temp=[temp_sensor_name]&rain=[rain_sensor_name]</strong> - Akcia pre výpis meteo dát senzorov pre teplotu a dážď zo zariadenia.</li>
+		</ul>
+	</div>
+	<div class="col-12">
+		<h2>Monitor <small>(MonitorPresenter)</small></h2>
+		<ul>
+			<li><strong>monitor/show/[token]/[id]</strong> - Akcia pre výpis monitoringu užívateľa.</li>
 		</ul>
 	</div>
 </div>
