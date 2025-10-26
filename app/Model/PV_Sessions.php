@@ -9,13 +9,13 @@ use Nette\Utils\DateTime;
 /**
  * Model, ktorý sa stará o tabuľku sessions
  * 
- * Posledná zmena 28.08.2025
+ * Posledná zmena 26.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2021 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.3
+ * @version    1.0.4
  */
 class PV_Sessions extends Table
 {
@@ -25,6 +25,7 @@ class PV_Sessions extends Table
 
 	public function createLoginSession(int $deviceId, String $hash, String $key, String $remoteIp): int
 	{
+		$this->deleteSession($deviceId);
 		$row = $this->add([
 			'hash' => $hash,
 			'device_id' => $deviceId,
