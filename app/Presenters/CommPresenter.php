@@ -89,17 +89,17 @@ class CommPresenter extends BasePresenter
 			$sessionHash = Random::generate(8, '0-9A-Za-z');
 			$sessionId = $this->pv_sessions->createLoginSession( $device->attrs->id, $sessionHash, $control_hash,	$remoteIp );
 
-			$logger->write( Logger::INFO, "login-OK D:{$device->attrs->id} S:{$sessionId}" );
-			$this->sendJson(['status' => 200, 'device_id' => $device->attrs->id, 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
-
 		} catch (\Exception $e) {
-			$logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+			$logger->write( Logger::ERROR,  "ERR(comm-login-main): " . get_class($e) . ": " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
 			$httpResponse->setCode(Http\IResponse::S400_BAD_REQUEST );
 			$this->sendJson(['status' => 400, 'message' => "ERR {$e->getMessage()}"]);
 			$this->terminate();
 		}
+
+		$logger->write( Logger::INFO, "login-OK D:{$device->attrs->id} S:{$sessionId}" );
+		$this->sendJson(['status' => 200, 'device_id' => $device->attrs->id, 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
 	}
 
 	/**
