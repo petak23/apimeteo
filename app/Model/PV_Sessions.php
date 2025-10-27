@@ -39,7 +39,8 @@ class PV_Sessions extends Table
 
   public function deleteSession(int $id): void
   {
-    $this->findBy(["device_id" => $id])->delete();
+		$tmp = $this->findBy(["device_id" => $id]);
+		if ($tmp->count() > 0) $tmp->delete();
   }
 
   public function getSessionById(int $sessionId) : ActiveRow|null 
