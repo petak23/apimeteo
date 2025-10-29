@@ -8,7 +8,7 @@ use Nette\Utils\Random;
 
 /**
  * Prezenter pre pristup k api užívateľov.
- * Posledna zmena(last change): 14.10.2025
+ * Posledna zmena(last change): 29.10.2025
  *
  * Modul: API
  *
@@ -16,35 +16,67 @@ use Nette\Utils\Random;
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.3
+ * @version 1.0.4
  * @help 1.) https://forum.nette.org/cs/28370-data-z-post-request-body-reactjs-appka-se-po-ceste-do-php-ztrati
  * @help 2.) https://www.php.net/manual/en/function.checkdnsrr.php#48157
  */
 class UsersPresenter extends BasePresenter
 {
 	/**
-	 * Vráti zoznam všetkých užívateľov
-	 */
+	 * Vráti zoznam všetkých užívateľov */
 	public function actionDefault(): void
 	{
 		$this->sendJson($this->user_main->getUsers(true));
+	}
+
+	private function _sendUserJson(
+		int $status = 400,
+		string $message = 'Error user action',
+		mixed $user_data = null,
+		string|null $token = null,
+		mixed $permission = null
+	): void
+	{
+		$this->sendJson([
+				'status' => $status, 
+				'message' => $message,
+				'user' => $user_data,
+				'token' => $token,
+				'permission' => $permission,
+			]);
+		return;
 	}
 
 	/**
 	 * Vráti(cez sendJson) konkrétneho užívateľa. 
 	 * Ak je id = 0 vráti aktuálne prihláseného užívateľa, inak 
 	 * vráti užívateľa so zadaným id, ale len ak prihlásený užívateľ je admin
-	 * Ak užívateľ nie je prihlásený, tak vráti null
+	 * Ak užívateľ nie je prihlásený, tak vráti info
 	 */
 	public function actionUser(int $id = 0): void
 	{
-		$_tmp = $this->user->isLoggedIn() ? $this->user_main->getUser(
-				($id != 0 && $this->id_reg > 3) ? $id : $this->user->getId(),
-				$this->user->getId(),
+		$usr = $this->user;
+		if (!$usr->isLoggedIn()) {
+			$this->_sendUserJson(401, 'Užívateľ nie je prihlásený!');
+		}
+		$_tmp = $this->user_main->getUser(
+				($id != 0 && $usr->getIdentity()->id_user_roles > 3) ? $id : $usr->getId(),
+				$usr->getId(),
 				$this->template->baseUrl,
 				true
-			) : ['status' => 401, 'message' => 'Užívateľ nie je prihlásený!'];
-		$this->sendJson($_tmp);
+		);
+		unset($_tmp['data']['new_password_key'], 
+					$_tmp['data']['new_password_requested'], 
+					$_tmp['data']['comm_id'],
+					$_tmp['data']['self_enroll'],
+					$_tmp['data']['self_enroll_code'],
+					$_tmp['data']['self_enroll_error_count'],
+					$_tmp['data']['role'], // TODO @deprecadet
+				);
+		$permission = $this->user_permission->getAllowedPermission($usr->getIdentity()->id_user_roles, true);
+		$this->_sendUserJson($_tmp['status'], "", $_tmp['data'],
+											$usr->getIdentity()->comm_id, 
+											$permission);
 	}
 
 	public function actionLogIn(): void
@@ -53,25 +85,20 @@ class UsersPresenter extends BasePresenter
 		
 		try {
 			if (!Validators::isEmail($_post['email'])) { // Kontrola, či bol zadaný email v správnom tvare
-				throw new Nette\InvalidArgumentException;
+				throw new Nette\InvalidArgumentException("Zadajte email v správnom tvarey.");
 			}
-			/*if(!checkdnsrr(array_pop(explode("@",$_post['email'])),"MX")){ // @help 2.)
-        throw new Nette\InvalidArgumentException;						// Kontrola, či daná doména existuje
-			}*/
+			if (!Validators::is($_post['password'], "string:6..")) { // Kontrola dĺžky hesla
+				throw new Nette\InvalidArgumentException("Heslo musí mať minimálne 6 znakov.");
+			}
 			
 			$this->user->login($_post['email'], $_post['password']);
-			$_tmp = $this->user_main->getUser(
-					$this->user->getId(),
-					$this->user->getId(),
-					$this->template->baseUrl,
-					true
-			);
-			$this->sendJson(['status' => 200, 'user' => $_tmp, 'token' => Random::generate(20)]);
+			
+			$this->actionUser();
 
 		} catch (Nette\Security\AuthenticationException $e) {
-			$this->sendJson(['status' => 500, 'error'=>'Uživateľské meno alebo heslo je nesprávne!!!']);
+			$this->_sendUserJson(500, 'Uživateľské meno alebo heslo je nesprávne!!!');
 		} catch (Nette\InvalidArgumentException $e) {
-			$this->sendJson(['status' => 500, 'error'=>'Zadajte email v správnom tvare!!!']);
+			$this->_sendUserJson(500, $e->getMessage());
 		}
 		
 	}
@@ -79,10 +106,10 @@ class UsersPresenter extends BasePresenter
 	public function actionLogOut() : void 
 	{
 		$this->user->logout(true);
-		$this->sendJson(['status'=>200, 'message' => "Užívateľ bol odhlásený."]);	
+		$this->_sendUserJson(200, "Užívateľ bol odhlásený.");	
 	}
 
-	public function actionSave($id): void
+	public function actionSave(int $id): void
 	{
 		$_post = json_decode(file_get_contents("php://input"), true); // @help 1.)
 		try {
@@ -93,7 +120,7 @@ class UsersPresenter extends BasePresenter
 			$this->user_main->save($id, $_post);
 			$this->actionUser($id);
 		} catch (Nette\InvalidArgumentException $e) {
-			$this->sendJson(['status' => 500, 'error' => 'Zadajte email v správnom tvare!!!']);
+			$this->_sendUserJson(500, 'Zadajte email v správnom tvare!!!');
 		}
 	}
 
@@ -102,16 +129,16 @@ class UsersPresenter extends BasePresenter
 	 * Admin môže meniť heslo ktorémukoľvek užívateľovi, bežný užívateľ len svoje vlastné ale musí byť prihlásený a zadať aj staré heslo
 	 * @param int $id Id užívateľa, ktorého heslo sa má zmeniť
 	 */
-	public function actionPasswordChange($id): void
+	public function actionPasswordChange(int $id): void
 	{
 		// Kontrola prihlásenia
 		if ($this->user->isLoggedIn() === false) {
-			$this->sendJson(['status' => 401, 'error' => 'Užívateľ nie je prihlásený!']);
+			$this->_sendUserJson(401, 'Užívateľ nie je prihlásený!');
 			return;
 		}
 		// Kontrola práv na zmenu hesla iného užívateľa
-		if ($this->id_reg < 4 && $this->user->getId() != $id) {
-			$this->sendJson(['status' => 403, 'error' => 'Nemáte dostatočné práva na zmenu hesla iného užívateľa!']);
+		if ($this->user->getIdentity()->id_user_roles < 4 && $this->user->getId() != $id) {
+			$this->_sendUserJson(403, 'Nemáte dostatočné práva na zmenu hesla iného užívateľa!');
 			return;
 		}
 		
@@ -119,9 +146,9 @@ class UsersPresenter extends BasePresenter
 		
 		try {
 			$this->user_main->changePassword($id, $_post['old_password'], $_post['new_password']);
-			$this->sendJson(['status' => 200, 'message' => 'Heslo bolo zmenené.']);
+			$this->_sendUserJson(200, 'Heslo bolo zmenené.');
 		} catch (Nette\InvalidArgumentException $e) {
-			$this->sendJson(['status' => 500, 'error' => $e->getMessage()]);
+			$this->_sendUserJson(500, $e->getMessage());
 		}
 	}
 }

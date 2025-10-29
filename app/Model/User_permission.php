@@ -7,13 +7,13 @@ namespace App\Model;
 /**
  * Model starajuci sa o tabulku user_permission
  * 
- * Posledna zmena 28.09.2023
+ * Posledna zmena 29.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.1
+ * @version    1.0.2
  */
 class User_permission extends Table
 {
@@ -23,6 +23,41 @@ class User_permission extends Table
 	public function check(int $id_user_role = 1, String $resource = "Homepage:"): bool
 	{
 		$t = $this->findOneBy(["id_user_roles <= " . $id_user_role, "user_resource.name" => $resource]);
-		return ($t != null);
+		return $t != null;
+	}
+
+		/** 
+	 * Hlada urovne registracie uzivatela v rozsahu od do */
+	public function getAllowedPermission(int $id_user_roles = 0, bool $return_as_array = false): Nette\Database\Table\Selection|array
+	{
+		//dump($id_user_roles);
+		$out = $this->findBy(['id_user_roles <= ' . $id_user_roles]);
+		if ($return_as_array) {
+			$_tmp = [];
+			foreach ($out as $p) {
+				//dump($p);
+				$ov = 0;
+				foreach ($_tmp as $k => $v) {
+					if ($v['resource'] == $p->user_resource->name && $v['id_user_roles'] < $p->id_user_roles)
+						$ov = $k;
+				}
+				if ($ov) {
+					$_tmp[$ov] = [
+						'resource' => $p->user_resource->name,
+						'action' => $p->actions != null ? explode(",", $p->actions) : null,
+						'id_user_roles' => $p->id_user_roles,
+					];
+				} else {
+					$_tmp[] = [
+						'resource' => $p->user_resource->name,
+						'action' => $p->actions != null ? explode(",", $p->actions) : null,
+						'id_user_roles' => $p->id_user_roles,
+					];
+				}
+			}
+			$out = $_tmp;
+		}
+		//dumpe($out);
+		return $out;
 	}
 }

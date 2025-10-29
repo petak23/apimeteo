@@ -37,11 +37,8 @@ abstract class BasePresenter extends Presenter
 	/** @var Services\ApiConfig @inject */
 	public $config;
 
-	/** @persistent */
-	public $language = 'sk';
-
-	/** @var int Uroven registracie uzivatela  */
-	public $id_reg;
+	//#[Persistent]
+	//public $language = 'sk';
 
 	/** @var array - pole s chybami pri uploade */
 	public $upload_error = [
@@ -86,8 +83,6 @@ abstract class BasePresenter extends Presenter
 
 		// Sprava uzivatela
 		$user = $this->getUser(); //Nacitanie uzivatela
-		// Kontrola prihlasenia a nacitania urovne registracie
-		$this->id_reg = ($user->isLoggedIn()) ? $this->user_main->getUser($user->getId())->id_user_roles : 0;
 
 		// Kontrola ACL
 		if (!($user->isAllowed($this->name, $this->action))) {
