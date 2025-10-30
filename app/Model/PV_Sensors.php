@@ -55,6 +55,7 @@ class PV_Sensors extends Table
 		}
 		if ($return_as_array && $sensor) {
 			$out = $sensor->toArray();
+
 			//dumpe($sensor, $out);
 			$out['status'] = 200;
 			$out['dev_name'] = $sensor->device->name;
