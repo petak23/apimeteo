@@ -13,13 +13,13 @@ use Nette\Utils\DateTime;
 /**
  * Model, ktory sa stara o tabulku devices
  * 
- * Posledna zmena 03.08.2025
+ * Posledna zmena 31.10.2025
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.0
+ * @version    1.1.1
  */
 class PV_Devices
 {
@@ -94,18 +94,27 @@ class PV_Devices
 		return $d;
 	}
 
+	public function getDeviceSimple(int $deviceId): Database\Table\ActiveRow|array
+	{
+		if (($_device = $this->devices->get($deviceId)) == null) {
+			return ['status' => 404, 'message' => "Požadované zariadenie s id='". $deviceId."' som nenašiel.", 'error_n' => 1, 'device_id' => $deviceId];
+		}
+
+		return $_device;
+	}
+
 	/** Nájdenie zariadenia podľa id */
 	public function getDevice(
 		int $deviceId,
 		bool $with_sensors = false,
 		bool $return_as_array = false ): VDevice|array 
 	{
-		if (($_device = $this->devices->get($deviceId)) == null) {
-			return ['status' => 404, 'error' => "Device not found", 'error_n' => 1, 'device_id' => $deviceId];
-		}
+		$_device = $this->getDeviceSimple($deviceId);
 
-		return $this->_deviceInfo($_device, $with_sensors, $return_as_array);
+		return is_array($_device) && $_device['status'] == 404 ? $_device : $this->_deviceInfo($_device, $with_sensors, $return_as_array);
 	}
+
+	
 
 	/** Nájdenie zariadenia podľa poľa $by = ['pole'=>'hodnota'] */
   public function getDeviceBy(
@@ -114,7 +123,7 @@ class PV_Devices
 		bool $return_as_array = false): VDevice|array
   {
 		if (($_device = $this->devices->where($by)->limit(1)->fetch()) == null) {
-			return ['status' => 404, 'error' => "Device not found by...", 'error_n' => 2, 'by' => $by];
+			return ['status' => 404, 'message' => "Hľadané zariadenie podľa: '" . $by . "' som nenašiel.", 'error_n' => 2, 'by' => $by];
 		}
 
     return $this->_deviceInfo($_device, $with_sensors, $return_as_array);

@@ -4,6 +4,7 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
+use Nette\Database;
 use Nette\Utils\Strings;
 
 /**
@@ -51,13 +52,25 @@ class DevicesPresenter extends BasePresenter
 				$dd = $device['data'];
 				$arr = Strings::split($dd['name'], '~:~');
 				$name_no_prefix = $arr[1];
+				$pp = $this->config->decrypt($dd['passphrase'], $name_no_prefix);
+				if (!strlen($pp)) {
+					$pp = $this->config->decrypt($dd['passphrase'], $dd['name']);
+					if (!strlen($pp)) {
+						$device = [
+							'status' => 500,
+							'message' => "Chybná passphrase, nie je možné dešifrovať údaje zariadenia."
+						];
+						$this->sendJson($device);
+						return;
+					}
+				}
 				$device['data'] = array_merge($dd, [
 					'jsonUrl'		=> $this->link('//:Json:data', ['token' => $dd['json_token'], 'id' => $dd['id']]),
 					'jsonUrl2'	=> $this->link('//:Json:meteo', ['token' => $dd['json_token'], 'id' => $dd['id'], 'temp' => 'MENO_TEMP_SENZORU', 'rain' => 'MENO_RAIN_SENZORU']),
 					'blobUrl'		=> $this->link('//:Gallery:show', ['token' => $dd['blob_token'], 'id' => $dd['id']]),
 					'url'				=> /*$this->link('//:Ra:')*/ $this->template->baseUrl . '/ra',
 					'name_no_prefix' => $name_no_prefix,
-					'passphrase' => $this->config->decrypt($dd['passphrase'], $dd['name']),
+					'passphrase' => $pp,
 				]);
 			}
 		} else {
@@ -103,7 +116,7 @@ class DevicesPresenter extends BasePresenter
 			$values['name'] = $this->user->getIdentity()->prefix.":".$_post['name'];
 			$values['user_id'] = $this->user->id;
 			$values['passphrase'] = $this->config->encrypt( $_post['passphrase'], $_post['name'] );
-
+			//dumpe($values, $_post, $id);
 			if( $id ) {
 				// editace
 				$device = $this->devices->getDevice( $id );
@@ -114,15 +127,28 @@ class DevicesPresenter extends BasePresenter
 					Services\Logger::log( 'audit', Services\Logger::ERROR , 
 						sprintf("Užívateľ #%s (%s) zkúsil editovať zariadenie patriace užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $device->user_id));
 					$this->user->logout(true);
-					$out = ["status" => 500, "message" => "K tomuto zariadeniu nemáte oprtávnený prístup!"];
+					$out = ["status" => 500, "message" => "K tomuto zariadeniu nemáte oprávnený prístup!"];
 				} else {
 					
-					$device->update( $values );
+					$up = $device->attrs->update( $values );
+					//$up = $this->devices->getDeviceSimple($id)->update( $values );
 					$out = ["status" => 200, "message" => "Údaje zariadenia aktualizované."];
+					//dumpe($out);
 				}
 			} else { // zalozeni
-				$this->pv_devices->createDevice( $values );
-				$out = ["status" => 200, "message" => "Zariadenie bolo vytvorené."];
+				try {
+					$new_device = $this->devices->createDevice( $values , true );
+					$out = ["status" => 200, "message" => "Zariadenie bolo vytvorené.", "device" => $new_device];
+				} catch (Database\UniqueConstraintViolationException  $e) {
+					$out = ["status" => 500, 
+									"message" => "Chyba pri vytváraní zariadenia: 
+															 s názvom '".$values["name"]."' už existuje. Prosím, zvoľte iný názov."
+								 ];
+				} catch (\Exception $e) {
+					$out = ["status" => 500, 
+									"message" => "Chyba pri vytváraní zariadenia: " . $e->getMessage()
+								];
+				}
 			}
 		}
 		

@@ -22,7 +22,7 @@ class Config
 		return hash("sha256", $this->masterPassword . 'RatatoskrIoT', true);
 	}
 
-	public function encrypt($data, $fieldName)
+	public function encrypt($data, $fieldName): string
 	{
 		$aesIV = substr(hash("sha256", $fieldName, true), 0, 16);
 		$aesKey = $this->getMasterKey();
@@ -33,13 +33,14 @@ class Config
 		return bin2hex($encrypted);
 	}
 
-	public function decrypt($data, $fieldName)
+	public function decrypt($data, $fieldName): string
 	{
 		$aesIV = substr(hash("sha256", $fieldName, true), 0, 16);
 		$aesKey = $this->getMasterKey();
 
 		$decrypted = openssl_decrypt(hex2bin($data), 'AES-256-CBC', $aesKey, OPENSSL_RAW_DATA, $aesIV);
-		if ($decrypted == FALSE) {
+		//dumpe($decrypted, $data, $aesIV, $aesKey, $fieldName);
+		if ($decrypted === false) {
 			Logger::log('webapp', Logger::ERROR, "nelze desifrovat");
 			return "";
 		}

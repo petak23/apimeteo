@@ -1,6 +1,6 @@
 config/local.neon
 config/database.neon
-log/*.txt
+log/
 temp/
 vendor/
 deployment.*
