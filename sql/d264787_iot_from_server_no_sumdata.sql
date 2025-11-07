@@ -266,7 +266,7 @@ CREATE TABLE `rausers` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 INSERT INTO `rausers` (`id`, `username`, `phash`, `role`, `id_user_roles`, `email`, `prefix`, `state_id`, `bad_pwds_count`, `locked_out_until`, `measures_retention`, `sumdata_retention`, `blob_retention`, `self_enroll`, `self_enroll_code`, `self_enroll_error_count`, `cur_login_time`, `cur_login_ip`, `cur_login_browser`, `prev_login_time`, `prev_login_ip`, `prev_login_browser`, `last_error_time`, `last_error_ip`, `last_error_browser`, `monitoring_token`) VALUES
-(1,	'admin',	'$2y$10$rStboW7HTJzQogn0o7KJouX4uSHQdNQRmOO/cJ/kben.tvdKe2HRC',	'admin,user',	4,	'petak23@echo-msz.eu',	'PV',	10,	0,	'2025-10-13 06:42:26',	90,	731,	14,	0,	NULL,	0,	'2025-10-20 07:35:54',	'217.12.60.62',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-10-10 13:33:04',	'178.253.155.197',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-10-13 06:42:24',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'kolko_je_to_6791345_Dat*+-');
+(1,	'admin',	'$2y$11$hYyOrRLndVcldhxUDjJtX.acPYq50BmThGrOWXCwe5HaWqTIfZyg.',	'admin,user',	4,	'petak23@echo-msz.eu',	'PV',	10,	0,	'2025-10-13 06:42:26',	90,	731,	14,	0,	NULL,	0,	'2025-10-30 14:54:28',	'178.253.155.197',	'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-10-20 07:35:54',	'217.12.60.62',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'2025-10-13 06:42:24',	'217.12.60.61',	'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0 / sk,cs;q=0.8,en-US;q=0.5,en;q=0.3',	'kolko_je_to_6791345_Dat*+-');
 
 DROP TABLE IF EXISTS `rauser_state`;
 CREATE TABLE `rauser_state` (
@@ -317,7 +317,8 @@ CREATE TABLE `sensors` (
   KEY `device_id_name` (`device_id`,`name`),
   KEY `device_id_channel_id_name` (`device_id`,`channel_id`,`name`),
   KEY `id_value_types` (`id_value_types`),
-  CONSTRAINT `sensors_ibfk_1` FOREIGN KEY (`id_value_types`) REFERENCES `value_types` (`id`)
+  CONSTRAINT `sensors_ibfk_1` FOREIGN KEY (`id_value_types`) REFERENCES `value_types` (`id`),
+  CONSTRAINT `sensors_ibfk_2` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='List of sensors. Each sensor is a part of one DEVICE.';
 
 INSERT INTO `sensors` (`id`, `device_id`, `channel_id`, `name`, `device_class`, `id_value_types`, `msg_rate`, `desc`, `display_nodata_interval`, `preprocess_data`, `preprocess_factor`, `last_data_time`, `last_out_value`, `data_session`, `imp_count`, `warn_max`, `warn_max_after`, `warn_max_val`, `warn_max_val_off`, `warn_max_text`, `warn_max_fired`, `warn_max_sent`, `warn_min`, `warn_min_after`, `warn_min_val`, `warn_min_val_off`, `warn_min_text`, `warn_min_fired`, `warn_min_sent`, `warn_noaction_fired`, `warning_icon`) VALUES
@@ -342,8 +343,8 @@ CREATE TABLE `sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='Sessions on IoT interface.';
 
 INSERT INTO `sessions` (`id`, `hash`, `device_id`, `started`, `remote_ip`, `session_key`) VALUES
-(688,	'z8hEqa7z',	1,	'2024-05-24 10:12:12',	'46.34.240.71',	'fc912a383406fadea14e323a3e3000d51c0ba8bc7b81cacacda91b8298c1c2a9'),
-(802,	'VUiNaH1A',	3,	'2024-09-13 22:14:40',	'178.253.187.223',	'd96207956f645eeb78992e427a25554a7d2617fb682ded9c21067ee0c373a2c9');
+(802,	'VUiNaH1A',	3,	'2024-09-13 22:14:40',	'178.253.187.223',	'd96207956f645eeb78992e427a25554a7d2617fb682ded9c21067ee0c373a2c9'),
+(845,	'xYHz4wFX',	1,	'2025-10-27 15:18:04',	'178.253.155.197',	'aa8c872cecc6957a5a308a5d89111ea4a6c00bbd4bcc7d9e22808f0a0dd4597c');
 
 DROP TABLE IF EXISTS `sumdata`;
 CREATE TABLE `sumdata` (
@@ -594,4 +595,4 @@ INSERT INTO `view_source` (`id`, `desc`, `short_desc`) VALUES
 (10,	'Hodinový/denní součet',	'Pro krátké pohledy hodinový součet, pro dlouhé denní součet (typicky pro srážky)'),
 (11,	'Týdenní součet',	'Týdenní součet (pro srážky)');
 
--- 2025-10-23 12:18:39
+-- 2025-10-30 13:58:26
