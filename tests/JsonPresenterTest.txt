@@ -1,0 +1,35 @@
+<?php
+declare(strict_types=1);
+require __DIR__ . '/../vendor/autoload.php';
+
+//use Tester\Assert;
+use App\Services;
+use Nette;
+use Tester\TestCase;
+use Tester\HttpAssert;
+
+require __DIR__ . '/bootstrap.php';
+
+class JsonPresenterTest extends TestCase
+{
+	/** @var \App\Presenters\JsonPresenter */
+	private $presenter;
+
+	protected function setUp(): void
+	{
+		$db = new Nette\Database\Explorer(); // Initialize your database connection here
+		$ds = new Services\InventoryDataSource($db);
+		$this->presenter = new \App\Presenters\JsonPresenter($ds);
+	}
+
+	public function testDefaultAction()
+	{
+		$response = HttpAssert::fetch('http://localhost/apimeteo/json');
+		$response
+			->expectCode(200)
+			->expectHeader('Content-Type', contains: 'json')
+			->expectBody(contains: '"status":200');
+	}
+}
+
+(new JsonPresenterTest())->run();
