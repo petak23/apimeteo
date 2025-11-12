@@ -140,6 +140,6 @@ class PV_Sensors extends Table
 	 */
 	public function getSensorByChannel(int $deviceId, int $channel): ActiveRow|null
 	{
-		return $this->findOneBy(['device_id'=>$deviceId, 'channel_id'=>$channel]);
+		return $this->findOneBy(['device_id'=>$deviceId, 'id'=>$channel]); //'channel_id'=>$channel
 	}
 }

@@ -2,7 +2,7 @@
 <div class="pb-3 pt-3 px-2 d-flex justify-content-between">
 	<h1 n:block=title>Základná stránka pre API</h1>
 	<div class="pt-2"> 
-		<div class="badge text-primary text-bg-warning p-2">API Verzia 2025-11-11 | &copy; petak23</div>
+		<div class="badge text-primary text-bg-warning p-2">API Verzia 2025-11-24 | &copy; petak23</div>
 	</div>
 	<div n:if="$user->isLoggedIn()" class="pt-2">
 		<p class="mb-0 text-success-emphasis">Prihlásený ako: <strong>{$user->identity->prefix}</strong></p>	
@@ -56,7 +56,7 @@
 			<li><strong><a n:href="Comm:">comm</a></strong> - Testovacia akcia.</li>
 			<li><strong>comm/login</strong> - Akcia pre prihlásenie zariadenia.</li>
 			<li><strong>comm/data</strong> - Akcia pre príjem dát zo zariadenia.</li>
-			<li><strong>comm/datajson</strong> - Akcia pre príjem dát zo zariadenia.</li>
+			<li><strong>comm/datajson</strong> - Akcia pre príjem dát zo zariadenia cez JSON.</li>
 		</ul>
 	</div>
 	<div class="col-12">
