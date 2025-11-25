@@ -199,13 +199,14 @@ class CommPresenter extends BasePresenter
 			$logger->write( Logger::INFO, "OK");
 
 			$this->sendJson(['status' => 200, 'message' => 'OK']);
+			$this->terminate();
 				
 		} catch (\Exception $e) {
-			$logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+			$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: " . get_class($e) . ": " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
 			$httpResponse->setCode(Http\IResponse::S400_BAD_REQUEST );
-			$this->sendJson(['status' => 400, 'message' => "ERR {$e->getMessage()}"]);
+			$this->sendJson(['status' => 400, 'message' => "CommPresenter:actionDatajson:Ex=> ERR {$e->getMessage()}"]);
 			$this->terminate();
 		}
 	}
