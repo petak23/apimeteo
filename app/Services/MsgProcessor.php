@@ -87,7 +87,7 @@ public function testSetUpTime($device_id, $d)
 		Logger $logger): void
 	{
 
-		if ($sensor->id_device_classes != 3) { 
+		if ($sensor->device_class != 3) { 
 			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG a DEVCLASS_CONTINUOUS
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
 			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
