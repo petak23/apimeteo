@@ -5,10 +5,12 @@ namespace App\Presenters;
 use App\Model;
 use App\Services;
 use App\Services\Logger;
+use Nette\Application\AbortException;
 use Nette\Http;
 use Nette\Utils;
 use Nette\Utils\Random;
 use Nette\Utils\Strings;
+use Throwable;
 use Tracy\Debugger;
 
 /**
@@ -199,9 +201,12 @@ class CommPresenter extends BasePresenter
 			$logger->write( Logger::INFO, "OK");
 
 			$this->sendJson(['status' => 200, 'message' => 'OK']);
-			$this->terminate();
+			//$this->terminate();
 				
-		} catch (\Exception $e) {
+		} catch (Throwable $e) {
+			if ($e instanceof AbortException) {
+					throw $e;
+			}
 			$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: " . get_class($e) . ": " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
