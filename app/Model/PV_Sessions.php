@@ -66,7 +66,7 @@ class PV_Sessions extends Table
 		$now = new DateTime;
 		// Životnosť session 1 deň
 		if ($now->diff($session->started)->days > 0) {
-			throw new NoSessionException("session expired");
+			throw new NoSessionException("session expired", 401);
 		}
 
 		return $session;

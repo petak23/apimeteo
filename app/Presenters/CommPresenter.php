@@ -207,11 +207,11 @@ class CommPresenter extends BasePresenter
 			if ($e instanceof AbortException) {
 					throw $e;
 			}
-			$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: " . get_class($e) . ": " . $e->getMessage() );
+			$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: " . get_class($e) . "(".$e->getCode()."): " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
-			$httpResponse->setCode(Http\IResponse::S400_BAD_REQUEST );
-			$this->sendJson(['status' => 400, 'message' => "CommPresenter:actionDatajson:Ex=> ERR {$e->getMessage()}"]);
+			$httpResponse->setCode($e->getCode() != 0 ? $e->getCode() : Http\IResponse::S400_BAD_REQUEST );
+			$this->sendJson(['status' => $e->getCode() != 0 ? $e->getCode() : 400, 'message' => "CommPresenter:actionDatajson:Ex=> ERR {$e->getMessage()}"]);
 			$this->terminate();
 		}
 	}
