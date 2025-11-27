@@ -130,6 +130,8 @@ public function testSetUpTime($device_id, $d)
 			$value_out *= $sensor->preprocess_factor;
 		}
 		
+		$messageTime = DateTime::createFromFormat('d.m.Y H:i:s', $messageTime);
+
 		$this->pv_measures->save(0, [
 			'sensor_id' => $sensor->id,
 			'data_time' => $messageTime,
