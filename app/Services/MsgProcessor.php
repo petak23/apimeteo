@@ -55,10 +55,10 @@ public function testSetUpTime($device_id, $d)
 	public function process_pv(Table\ActiveRow $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
 	{
 
-		$logger->write(Logger::DEBUG, "MsgProcessor:process_pv => uptime:{$msgTotal[0]}, session device id:{$sessionDevice->device_id}");
+		$logger->write(Logger::DEBUG, "MsgProcessor:process_pv => uptime:{$msgTotal[3]}, session device id:{$sessionDevice->device_id}");
 		// Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
 		$this->pv_devices->setUptime( $sessionDevice->device_id,
-																  DateTime::createFromFormat('d.m.Y H:i:s', $msgTotal[0])->getTimestamp()); 
+																  DateTime::createFromFormat('d.m.Y H:i:s', $msgTotal[3])->getTimestamp()); 
 		//$key = 0;
 		foreach ($msgTotal[2] as $ds) {						// Spracujem data z jednotlivých senzorov
 			$sensor = $this->pv_sensors->findOneBy(['device_id'=>$sessionDevice->device_id, 'name' => $ds['id']]); // Nájdenie príslušného senzora

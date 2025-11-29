@@ -196,7 +196,7 @@ class CommPresenter extends BasePresenter
 			[1] - dĺžka dát = $json_msg["data_length"]
 			[2] - data = $json_msg["sensors"]
 			*/
-			$this->msgProcessor->process_pv( $sessionDevice, [ $json_msg["last_measure"], $json_msg["data_length"], $json_msg["sensors"] ], $remoteIp, $logger );  
+			$this->msgProcessor->process_pv( $sessionDevice, [ $json_msg["last_measure"], $json_msg["data_length"], $json_msg["sensors"], $json_msg["uptime"] ], $remoteIp, $logger );  
 
 			$logger->write( Logger::INFO, "OK");
 
