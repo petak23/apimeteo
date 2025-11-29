@@ -157,6 +157,7 @@ class PV_Devices
 			$_d['sensors'] = $d->sensors;
 			$_d['first_login'] = $_d['first_login'] != null ? $_d['first_login']->format('d.m.Y H:i:s') : null;
 			$_d['last_login'] = $_d['last_login'] !=null ? $_d['last_login']->format('d.m.Y H:i:s') : null;
+			$_d['uptime_readable'] = $this->secondsToTime((int)($_d['uptime']/1000)); // TODO: prevod z ms na s dočasný!!!
 			$d = ['status' => 200, 'data'=> $_d];
 		}
 		return $d;
@@ -218,6 +219,46 @@ class PV_Devices
 		$this->devices->get($id)->delete();
 
 		Logger::log('webapp', Logger::DEBUG,  "Delete OK.");
+	}
+
+	
+	private function secondsToTime($inputSeconds)
+	{
+		$secondsInAMinute = 60;
+		$secondsInAnHour = 3600;
+		$secondsInADay = 86400;
+
+		// Extract days
+		$days = floor($inputSeconds / $secondsInADay);
+
+		// Extract hours
+		$hourSeconds = $inputSeconds % $secondsInADay;
+		$hours = floor($hourSeconds / $secondsInAnHour);
+
+		// Extract minutes
+		$minuteSeconds = $hourSeconds % $secondsInAnHour;
+		$minutes = floor($minuteSeconds / $secondsInAMinute);
+
+		// Extract the remaining seconds
+		$remainingSeconds = $minuteSeconds % $secondsInAMinute;
+		$seconds = ceil($remainingSeconds);
+
+		// Format and return
+		$timeParts = [];
+		$sections = [
+			'd' => (int)$days,
+			'hod' => (int)$hours,
+			'min' => (int)$minutes,
+			'sec' => (int)$seconds,
+		];
+
+		foreach ($sections as $name => $value) {
+			if ($value > 0) {
+				$timeParts[] = $value . ' ' . $name;
+			}
+		}
+
+		return implode(', ', $timeParts);
 	}
 }
 // ------------------------------------  End class PV_Devices

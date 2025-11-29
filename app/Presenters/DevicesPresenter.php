@@ -5,6 +5,7 @@ namespace App\Presenters;
 use App\Model;
 use App\Services;
 use Nette\Database;
+use Nette\Utils\DateTime;
 use Nette\Utils\Strings;
 
 /**
@@ -64,6 +65,18 @@ class DevicesPresenter extends BasePresenter
 						return;
 					}
 				}
+				$lastLoginTs = (DateTime::from($dd['last_login']))->getTimestamp();
+				$lastTime = $lastLoginTs;
+
+				foreach ($dd['sensors'] as $sensor) {
+					if ($sensor['last_data_time']) {
+						$utime = (DateTime::from($sensor['last_data_time']))->getTimestamp();
+						if (!$lastTime || ($utime > $lastTime)) {
+							$lastTime = $utime;
+						}
+					}
+				}
+
 				$device['data'] = array_merge($dd, [
 					'jsonUrl'		=> $this->link('//:Json:data', ['token' => $dd['json_token'], 'id' => $dd['id']]),
 					'jsonUrl2'	=> $this->link('//:Json:meteo', ['token' => $dd['json_token'], 'id' => $dd['id'], 'temp' => 'MENO_TEMP_SENZORU', 'rain' => 'MENO_RAIN_SENZORU']),
@@ -71,6 +84,7 @@ class DevicesPresenter extends BasePresenter
 					'url'				=> /*$this->link('//:Ra:')*/ $this->template->baseUrl . '/ra',
 					'name_no_prefix' => $name_no_prefix,
 					'passphrase' => $pp,
+					'last_data_time' => $lastTime ? DateTime::from($lastTime)->format('d.m.Y H:i:s') : null
 				]);
 			}
 		} else {
