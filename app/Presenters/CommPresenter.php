@@ -38,8 +38,17 @@ class CommPresenter extends BasePresenter
 
 	public function actionDefault() : void 
 	{
-		//$this->msgProcessor->testSetUpTime(1, '24.11.2025 14:22:01');
-		$this->sendJson(['status'=>200, 'message'=>'Testovacia akcia.']);		
+		$httpRequest = $this->getHttpRequest();
+
+		$postMessage = $httpRequest->getRawBody(); // Ulož príchodziu správu
+
+		try {
+			$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
+		} catch (Utils\JsonException $e) {
+			$json_msg = null;
+		}
+
+		$this->sendJson(['status' => 200, 'message' => 'Testovacia akcia.', 'data' => $json_msg]);		
 	}
 
 	/**
