@@ -37,7 +37,7 @@ tracy:
 
 di:
 	export:
-		parameters: no
+		parameters: yes
 		tags: no
 
 includes:
