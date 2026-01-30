@@ -9,13 +9,13 @@ use Nette\Utils\DateTime;
 /**
  * Model, ktorý sa stará o tabuľku sensors
  * 
- * Posledna zmena 30.09.2025
+ * Posledna zmena 29.01.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2022 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.2
+ * @version    1.0.3
  */
 class PV_Sensors extends Table
 {
@@ -141,5 +141,39 @@ class PV_Sensors extends Table
 	public function getSensorByChannel(int $deviceId, int $channel): ActiveRow|null
 	{
 		return $this->findOneBy(['device_id'=>$deviceId, 'id'=>$channel]); //'channel_id'=>$channel
+	}
+
+	public function getSensors(int $userId): array
+	{
+		$sensors = [];
+		$result = $this->findBy(["device.user_id" => $userId]);
+		/*$result = $this->connection->query('
+						select 
+								s.*, 
+								d.name as dev_name, d.desc as dev_desc, d.user_id,
+								vt.unit
+						from sensors s
+						left outer join devices d
+						on s.device_id = d.id
+						left outer join value_types vt
+						on s.id_value_types = vt.id
+						where d.user_id = ?
+						order by vt.unit asc, d.name asc, s.name asc
+				', $userId);*/
+
+		//dumpe($result);
+
+		foreach ($result as $row) {
+			$sensors[$row->id] = array_merge( $row->toArray(), [
+				"dev_name" => $row->device->name,
+				"dev_desc" => $row->device->desc,
+				"user_id" => $row->device->user_id,
+				"unit" => $row->value_types->unit,
+				"last_data_time" => $row->last_data_time ? $row->last_data_time->format('d.m.Y H:i:s') : null,
+				"warn_noaction_fired" => $row->warn_noaction_fired !=null ? $row->warn_noaction_fired->format('d.m.Y H:i:s') : null,
+			]);
+		}
+
+		return $sensors;
 	}
 }

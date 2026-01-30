@@ -146,7 +146,7 @@ class InventoryDataSource
 
 	public function getSensors($userId)
 	{
-		$sensors = array();
+		$sensors = [];
 
 		$result = $this->database->query('
 						select 

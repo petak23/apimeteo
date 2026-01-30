@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use Nette\Database;
+
 /**
  * Model starajuci sa o tabulku user_permission
  * 
- * Posledna zmena 29.10.2025
+ * Posledna zmena 29.01.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.2
+ * @version    1.0.3
  */
 class User_permission extends Table
 {
@@ -22,13 +24,13 @@ class User_permission extends Table
 
 	public function check(int $id_user_role = 1, String $resource = "Homepage:"): bool
 	{
-		$t = $this->findOneBy(["id_user_roles <= " . $id_user_role, "user_resource.name" => $resource]);
+		$t = $this->findOneBy(["id_user_roles <= " => $id_user_role, "user_resource.name" => $resource]);
 		return $t != null;
 	}
 
 		/** 
 	 * Hlada urovne registracie uzivatela v rozsahu od do */
-	public function getAllowedPermission(int $id_user_roles = 0, bool $return_as_array = false): Nette\Database\Table\Selection|array
+	public function getAllowedPermission(int $id_user_roles = 0, bool $return_as_array = false): Database\Table\Selection|array
 	{
 		//dump($id_user_roles);
 		$out = $this->findBy(['id_user_roles <= ' . $id_user_roles]);

@@ -4,7 +4,7 @@ namespace App\Presenters;
 
 use Nette;
 use Nette\Utils\Validators;
-use Nette\Utils\Random;
+//use Nette\Utils\Random;
 
 /**
  * Prezenter pre pristup k api užívateľov.
