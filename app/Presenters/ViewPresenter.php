@@ -6,21 +6,20 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
-use App\Services\Logger;
-//use Nette;
-use Nette\Application\UI\Form;
-use Nette\Http\Url;
-use Nette\Utils\Random;
+//use App\Services\Logger;
+//use Nette\Application\UI\Form;
+//use Nette\Http\Url;
+//use Nette\Utils\Random;
 
 /**
  * Prezenter pre pristup k api grafou.
- * Posledna zmena(last change): 29.01.2026
+ * Posledna zmena(last change): 02.02.2026
  *
  * @author Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 final class ViewPresenter extends BasePresenter
@@ -31,7 +30,7 @@ final class ViewPresenter extends BasePresenter
 	public $viewid = "";
 	
 	/** @var Services\InventoryDataSource */
-	private $datasource;
+	//private $datasource;
 
 	// -- DB
 	/** @var Model\PV_Sensors @inject */
@@ -39,33 +38,31 @@ final class ViewPresenter extends BasePresenter
 	/** @var Model\Views @inject */
 	public $views;
 
-	public function __construct(Services\InventoryDataSource $datasource )
+	/*public function __construct(Services\InventoryDataSource $datasource )
 	{
 		$this->datasource = $datasource;
-	}
+	}*/
 
 	private function doViewsHome( $detailed ): array
 	{
 		$out = $this->views->readViews( $this->getUser()->id );
 		
-		//$out["views"] = $this->views->toArray();
-		//$out["tokens"] = $this->views->tokens;
-		//$out["tokenView"] = $this->views->tokenView;
 		$out["sensors"] = $this->sensors->getSensors( $this->getUser()->id );
 		//dumpe($out);
 		return $out;
 	}
 
+	// TODO: je to potrebné?
 	public function renderViewsdetail(): void
 	{
 		$out = $this->doViewsHome( true );
-		return $this->sendJson( [ 'status' => 200, 'data' =>	$out ] );
+		$this->sendJson( [ 'status' => 200, 'data' =>	$out ] );
 	}
 
 	public function renderViews(): void
 	{
 		$out = $this->doViewsHome( false );
-		return $this->sendJson( [ 'status' => 200, 'data' =>	$out ] );
+		$this->sendJson( [ 'status' => 200, 'data' =>	$out ] );
 	}
 
 	/*
