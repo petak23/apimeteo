@@ -11,9 +11,11 @@ class Config
 	use Nette\SmartObject;
 
 	private $masterPassword;
+	public $minYear = 2020;
 
-	public function __construct( $masterPassword ) {
+	public function __construct( $masterPassword, int $minYear = 2020) {
 		$this->masterPassword = $masterPassword;
+		$this->minYear = $minYear;
 	}
 
 

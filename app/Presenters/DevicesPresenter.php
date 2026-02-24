@@ -9,16 +9,16 @@ use Nette\Utils\DateTime;
 use Nette\Utils\Strings;
 
 /**
- * Prezenter pre pristup k api užívateľov.
- * Posledna zmena(last change): 03.08.2025
+ * Prezenter pre pristup k api zariadení.
+ * Posledna zmena(last change): 24.02.2026
  *
  * Modul: API
  *
  * @author Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.5
+ * @version 1.0.6
  */
 class DevicesPresenter extends BasePresenter
 {
@@ -94,29 +94,6 @@ class DevicesPresenter extends BasePresenter
 			];
 		}
 		$this->sendJson($device);
-	}
-
-	/** Vráti zoznam senzorov pre dané zariadenie */
-	public function actionSensors(int $id): void
-	{
-		$d = $this->devices->getDevice($id, true, true);
-		$this->sendJson($d["sensors"]);
-	}
-
-	public function actionSensor(int $id): void
-	{
-		$sensor = $this->sensors->getSensor($id, true);
-		$this->sendJson($sensor);
-	}
-
-	public function actionMeasures(int $id): void
-	{
-		$this->sendJson($this->measures->getMeasures($id));
-	}
-
-	public function actionMeasureslast(int $id): void
-	{
-		$this->sendJson($this->measures->getLastMeasure($id));
 	}
 
 	public function actionEdit(int $id) : void {

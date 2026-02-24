@@ -5,17 +5,11 @@ search:
 services:
 	- App\Router\RouterFactory::createRouter
 
-#	- App\Presenters\DevicesPresenter(%parameters%)
-#	- App\Presenters\HomePresenter(%parameters%)
-#	- App\Presenters\UnitsPresenter(%parameters%)
-#	- App\Presenters\UsersPresenter(%parameters%)
-
-
 	- App\Model\AuthorizatorFactory::create(@Nette\Database\Explorer)
 	authenticator: App\Services\Authenticator
 
 	- App\Services\ApiConfig( %links%, %title%, %dataRetentionDays%,  %minYear%, %masterPassword% )
-	- App\Services\Config( %masterPassword% )
+	- App\Services\Config( %masterPassword%, %minYear% )
 	- App\Services\MsgProcessor
 	- App\Services\RaDataSource
 	- App\Services\InventoryDataSource

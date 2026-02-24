@@ -37,3 +37,23 @@ ADD FOREIGN KEY (`id_view_source`) REFERENCES `view_source` (`id`);
 ALTER TABLE `view_detail`
 CHANGE `view_id` `id_view` smallint(6) NOT NULL COMMENT 'Reference to VIEWS' AFTER `id`,
 ADD FOREIGN KEY (`id_view`) REFERENCES `views` (`id`);
+
+-- 2026-02-24
+
+INSERT INTO user_resource (name)
+SELECT 'Sensors'
+WHERE NOT EXISTS (
+		SELECT 1 FROM user_resource WHERE name = 'Sensors'
+);
+INSERT INTO user_permission (id_user_roles, id_user_resource, actions)
+SELECT 1, ur.id, NULL
+FROM user_resource ur
+WHERE ur.name = 'Sensors'
+	AND NOT EXISTS (
+			SELECT 1
+			FROM user_permission up
+			WHERE up.id_user_roles = 1
+				AND up.id_user_resource = ur.id
+	);
+
+UPDATE `user_permission` SET `id_user_resource` = '15' WHERE `id` = '7';

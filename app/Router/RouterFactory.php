@@ -16,8 +16,9 @@ final class RouterFactory
 	{
 		$router = new RouteList;
 		$router->addRoute('device[/<id>[/<action>]]', 'Devices:device');
-		$router->addRoute('sensor/last/<id>', 'Devices:measureslast');
-		$router->addRoute('sensor/<id>', 'Devices:sensor');
+		$router->addRoute('sensor/last/<id>', 'Sensors:measureslast');
+		$router->addRoute('sensor/<id>', 'Sensors:sensor');
+		$router->addRoute('sensorstat/<id>', 'Sensors:sensorstat');
 		$router->addRoute('devices[/<action>[/<id>]]', 'Devices:default');
 		$router->addRoute('units[/<action>[/<id>]]', 'Units:default');
 		$router->addRoute('comm[/action[/id]]', 'Comm:default');
