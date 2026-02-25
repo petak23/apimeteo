@@ -66,9 +66,9 @@ class SensorsPresenter extends BasePresenter
 	 */
 	public function actionSensorstat(
 		$id,
-		$dateFrom = "",
+		$dateFrom = "2000-01-01",
 		$lenDays = 7,
-		$altYear = "",
+		$altYear = "2000",
 		$plus = "",
 		$minus = "",
 		$altplus = "",
@@ -104,17 +104,18 @@ class SensorsPresenter extends BasePresenter
 
 			$this->config->minYear
 		);
-
+		
 		$params->allowCompare(true);
+		
 		$chart = new Model\Chart(null);
-		$sensor = $this->datasource->getSensor($id);
+		$sensor = $this->sensors->getSensor($id, true);
 		//$this->checkSensorAccess($sensor != NULL ? $sensor->user_id : NULL, $id);
 		$device = [
-			'name' => $sensor->dev_name,
-			'desc' => $sensor->dev_desc
+			'name' => $sensor['dev_name'],
+			'desc' => $sensor['dev_desc']
 		];
 		
-		$this->devices[$sensor->device_id] = $device;
+		$my_devices[$sensor['device_id']] = $device;
 
 		$out = [
 			'allowCompare' => TRUE,
@@ -122,14 +123,11 @@ class SensorsPresenter extends BasePresenter
 			'dateFrom' => $params->dateTimeFrom->format('Y-m-d'),
 			'lenDays' => $params->lenDays,
 			'altYear' => $params->altYear,
-			'appName' => $this->config->appName,
+			
 			'chW' => $chart->width(),
 			'chH' => $chart->height(),
 			// sirka sloupce pro vykresleni - obrazek + mala rezerva
 			'maxW' => $chart->width() + 85,
-
-			'dataRetentionDays' => $this->config->dataRetentionDays,
-			'links' => $this->config->links,
 
 			'sensor' => $sensor,
 
@@ -143,12 +141,17 @@ class SensorsPresenter extends BasePresenter
 			'sumdataStats' => $this->datasource->getSumdataStats($id),
 			'sumdataCount' => $this->datasource->getSumdataCount($id),
 
-			'devices' => $this->devices,
+			'devices' => $my_devices,
 			'years' => $params->getAltYearsList(),
-			'minYear' => $this->config->minYear
+
+			//Prenesené inak
+			//'appName' => $this->config->appName,
+			//'minYear' => $this->config->minYear
+			//'dataRetentionDays' => $this->config->dataRetentionDays,
+			//'links' => $this->config->links,
 
 		];
-
+		dumpe($out);
 		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor->device_class, $params->lenDays));
 		
 		$outView = [];

@@ -40,7 +40,7 @@ class ChartParameters
 	}
 
 	public function __construct(
-		string $dateFrom = '', int $lenDays = 3, string $altYear = NULL, 
+		string $dateFrom = '', int $lenDays = 3, string $altYear = "2000", 
 		string $plus = '', string $minus = '', 
 		string $altplus = '', string $altminus = '',
 		string $current = '', string $currentweek = '', string $currentmonth = '', string $currentyear = '',
