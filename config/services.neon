@@ -13,6 +13,7 @@ services:
 	- App\Services\MsgProcessor
 	- App\Services\RaDataSource
 	- App\Services\InventoryDataSource
+	- App\Services\ChartDataSource
 
 	- App\Model\User_main(%baseUrl%)
 

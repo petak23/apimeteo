@@ -4,13 +4,13 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
-use Nette\Database;
-use Nette\Utils\DateTime;
-use Nette\Utils\Strings;
+//use Nette\Database;
+//use Nette\Utils\DateTime;
+//use Nette\Utils\Strings;
 
 /**
  * Prezenter pre pristup k api senzorov.
- * Posledna zmena(last change): 24.02.2026
+ * Posledna zmena(last change): 27.02.2026
  *
  * Modul: API
  *
@@ -18,7 +18,7 @@ use Nette\Utils\Strings;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.6
+ * @version 1.0.7
  */
 class SensorsPresenter extends BasePresenter
 {
@@ -34,8 +34,11 @@ class SensorsPresenter extends BasePresenter
 	/** @var Services\Config */
 	public $config;
 
-	public function __construct(Services\Config $config) {
+	private $datasource;
+
+	public function __construct(Services\Config $config, Services\ChartDataSource $datasource) {
 		$this->config = $config;
+		$this->datasource = $datasource;
 	}
 
 	/** Vráti zoznam senzorov pre dané zariadenie */
