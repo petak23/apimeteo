@@ -198,6 +198,8 @@ class CommPresenter extends BasePresenter
 			$logger->write( Logger::INFO, "data_message control_hash: ->[$control_hash]<-" );
 			if ($control_hash1 !== $control_hash) {
 				$logger->write( Logger::ERROR,  "Hashes do not match!" );
+			} else {
+				$logger->write( Logger::INFO,  "Hashes match." );
 			}
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message! " . $json_msg["data_message"]);
