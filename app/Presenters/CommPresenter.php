@@ -192,7 +192,13 @@ class CommPresenter extends BasePresenter
 			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword');
 			$logger->write( Logger::INFO, "Message  str_message for hash: ->[$str_message]<-" );
 			$logger->write( Logger::INFO, "Message data_message for hash: ->[" .$json_msg['data_message'] ."]<-" );
+			$control_hash1 = hash('sha256', $str_message);
 			$control_hash = hash('sha256', $json_msg["data_message"]);
+			$logger->write( Logger::INFO, "str_message control_hash1: ->[$control_hash1]<-" );
+			$logger->write( Logger::INFO, "data_message control_hash: ->[$control_hash]<-" );
+			if ($control_hash1 !== $control_hash) {
+				$logger->write( Logger::ERROR,  "Hashes do not match!" );
+			}
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message! " . $json_msg["data_message"]);
 			}
