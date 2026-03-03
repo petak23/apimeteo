@@ -194,9 +194,9 @@ class CommPresenter extends BasePresenter
 				"last_measure" => $json_msg["last_measure"],
 				"priority" => $json_msg["priority"]
 			];
-			// todo premeň na json a vlož do data_string namiesto pôvodného stringu
-			$str_message2 = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".json_encode($data_string) . $this->config->getConfig('masterPassword');
-			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword');
+			
+			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".json_encode($data_string) . $this->config->getConfig('masterPassword');
+			/*$str_message2 = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword');
 
 			$logger->write( Logger::INFO, "str_message: ". $str_message );
 			$logger->write( Logger::INFO, "str_message2: ". $str_message2 );
@@ -207,8 +207,9 @@ class CommPresenter extends BasePresenter
 				$logger->write( Logger::INFO, "SHA256 OK - both hashes match");
 			} else {
 				$logger->write( Logger::ERROR, "SHA256 NOT OK - hashes do not match! control_hash: {$control_hash}, control_hash2: {$control_hash2}" );
-			}
+			}*/
 
+			$control_hash = hash('sha256', $str_message);
 
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message! " . $json_msg["data_message"]);
