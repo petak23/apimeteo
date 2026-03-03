@@ -170,11 +170,9 @@ class CommPresenter extends BasePresenter
 			$postMessage = $httpRequest->getRawBody(); // Ulož príchodziu správu zisti jej veľkosť a zaloguj
 			$postSize = strlen( $postMessage );
 			$logger->write( Logger::INFO, "data+ {$postSize}b {$remoteIp}");
-			$logger->write( Logger::INFO, "[{$postMessage}]" );
 
 			try {
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
-				$logger->write( Logger::INFO, "JSON decoded in actionDatajson: ". $postMessage );
 			} catch (Utils\JsonException $e) {
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
 			}
@@ -196,18 +194,6 @@ class CommPresenter extends BasePresenter
 			];
 			
 			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".json_encode($data_string) . $this->config->getConfig('masterPassword');
-			/*$str_message2 = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword');
-
-			$logger->write( Logger::INFO, "str_message: ". $str_message );
-			$logger->write( Logger::INFO, "str_message2: ". $str_message2 );
-
-			$control_hash = hash('sha256', $str_message);
-			$control_hash2 = hash('sha256', $str_message2);
-			if ( $control_hash === $control_hash2 ) {
-				$logger->write( Logger::INFO, "SHA256 OK - both hashes match");
-			} else {
-				$logger->write( Logger::ERROR, "SHA256 NOT OK - hashes do not match! control_hash: {$control_hash}, control_hash2: {$control_hash2}" );
-			}*/
 
 			$control_hash = hash('sha256', $str_message);
 
