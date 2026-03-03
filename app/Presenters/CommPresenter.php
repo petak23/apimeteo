@@ -189,18 +189,27 @@ class CommPresenter extends BasePresenter
 
 			$sessionDevice = $this->pv_sessions->checkSessionPV( $json_msg["session_id"], $json_msg["session_hash"] ); // Over session id voči session hash
 			$logger->setContext("D;D:{$sessionDevice->device_id}");
+			$data_string = [
+				"sensors" => $json_msg["sensors"],
+				"last_measure" => $json_msg["last_measure"],
+				"priority" => $json_msg["priority"]
+			];
+			// todo premeň na json a vlož do data_string namiesto pôvodného stringu
+			$str_message2 = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".json_encode($data_string) . $this->config->getConfig('masterPassword');
 			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword');
-			//$logger->write( Logger::INFO, "Message  str_message for hash: ->[$str_message]<-" );
-			//$logger->write( Logger::INFO, "Message data_message for hash: ->[" .$json_msg['data_message'] ."]<-" );
+
+			$logger->write( Logger::INFO, "str_message: ". $str_message );
+			$logger->write( Logger::INFO, "str_message2: ". $str_message2 );
+
 			$control_hash = hash('sha256', $str_message);
-			//$control_hash1 = hash('sha256', $json_msg["data_message"]);
-			//$logger->write( Logger::INFO, "str_message control_hash1: ->[$control_hash1]<-" );
-			//$logger->write( Logger::INFO, "data_message control_hash: ->[$control_hash]<-" );
-			//if ($control_hash1 !== $control_hash) {
-			//	$logger->write( Logger::ERROR,  "Hashes do not match!" );
-			//} else {
-			//	$logger->write( Logger::INFO,  "Hashes match." );
-			//}
+			$control_hash2 = hash('sha256', $str_message2);
+			if ( $control_hash === $control_hash2 ) {
+				$logger->write( Logger::INFO, "SHA256 OK - both hashes match");
+			} else {
+				$logger->write( Logger::ERROR, "SHA256 NOT OK - hashes do not match! control_hash: {$control_hash}, control_hash2: {$control_hash2}" );
+			}
+
+
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message! " . $json_msg["data_message"]);
 			}
