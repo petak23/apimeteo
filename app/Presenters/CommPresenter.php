@@ -187,13 +187,13 @@ class CommPresenter extends BasePresenter
 
 			$sessionDevice = $this->pv_sessions->checkSessionPV( $json_msg["session_id"], $json_msg["session_hash"] ); // Over session id voči session hash
 			$logger->setContext("D;D:{$sessionDevice->device_id}");
-			$data_string = [
+			$data_string = json_encode([
 				"sensors" => $json_msg["sensors"],
 				"last_measure" => $json_msg["last_measure"],
 				"priority" => $json_msg["priority"]
-			];
+			]);
 			
-			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".json_encode($data_string) . $this->config->getConfig('masterPassword');
+			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".$data_string . $this->config->getConfig('masterPassword');
 
 			$control_hash = hash('sha256', $str_message);
 
@@ -201,7 +201,7 @@ class CommPresenter extends BasePresenter
 				throw new \Exception("Not valid sha256 of message! " . $json_msg["data_message"]);
 			}
 
-			if( strlen($json_msg["data_string"]) !== (int)$json_msg["data_length"]  ) {
+			if( strlen($data_string) !== (int)$json_msg["data_length"]  ) {
 				throw new \Exception("Incorrect data length!");
 			}
 			
