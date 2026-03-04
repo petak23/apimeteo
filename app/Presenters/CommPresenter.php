@@ -170,11 +170,9 @@ class CommPresenter extends BasePresenter
 			$postMessage = $httpRequest->getRawBody(); // Ulož príchodziu správu zisti jej veľkosť a zaloguj
 			$postSize = strlen( $postMessage );
 			$logger->write( Logger::INFO, "data+ {$postSize}b {$remoteIp}");
-			$logger->write( Logger::INFO, "[{$postMessage}]" );
 
 			try {
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
-				$logger->write( Logger::INFO, "JSON decoded in actionDatajson: ". $postMessage );
 			} catch (Utils\JsonException $e) {
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
 			}
@@ -189,8 +187,16 @@ class CommPresenter extends BasePresenter
 
 			$sessionDevice = $this->pv_sessions->checkSessionPV( $json_msg["session_id"], $json_msg["session_hash"] ); // Over session id voči session hash
 			$logger->setContext("D;D:{$sessionDevice->device_id}");
-			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";". $json_msg["data_string"] .$this->config->getConfig('masterPassword');
-			$control_hash = hash('sha256', $json_msg["data_message"]);
+			$data_string = [
+				"sensors" => $json_msg["sensors"],
+				"last_measure" => $json_msg["last_measure"],
+				"priority" => $json_msg["priority"]
+			];
+			
+			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".json_encode($data_string) . $this->config->getConfig('masterPassword');
+
+			$control_hash = hash('sha256', $str_message);
+
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
 				throw new \Exception("Not valid sha256 of message! " . $json_msg["data_message"]);
 			}
