@@ -65,6 +65,28 @@ class SensorsPresenter extends BasePresenter
 	}
 
 	/**
+	 * Pouziva se pro jen vykresleni automaticky pripraveneho grafu volaneho z detailu zarizeni.
+	 */
+	private function getViewSourceId($device_class, $lenDays)
+	{
+		if ($device_class == 1) {
+			// CONTINUOUS_MINMAXAVG
+			$vsId = 1; // Automatická data
+		} else if ($device_class == 2) {
+			// CONTINUOUS
+			$vsId = 5; // Detailní data
+		} else {
+			// IMPULSE_SUM
+			if ($lenDays > 30) {
+				$vsId = 6;  // denni suma
+			} else {
+				$vsId = 7;  // hodinova suma
+			}
+		}
+		return $vsId;
+	}
+
+	/**
 	 * Rendering statistiky pro senzor - volano z administrace, autentizovany uzivatel.
 	 */
 	public function actionSensorstat(
@@ -121,6 +143,7 @@ class SensorsPresenter extends BasePresenter
 		$my_devices[$sensor['device_id']] = $device;
 
 		$out = [
+			'status' => 200,
 			'allowCompare' => TRUE,
 			'id' => $id,
 			'dateFrom' => $params->dateTimeFrom->format('Y-m-d'),
@@ -154,17 +177,17 @@ class SensorsPresenter extends BasePresenter
 			//'links' => $this->config->links,
 
 		];
-		dumpe($out);
-		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor->device_class, $params->lenDays));
+		//dumpe($out);
+		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['device_class'], $params->lenDays));
 		
 		$outView = [];
 		$vi = [
 			'sensor_ids' => $id,
 			'axis' => 1,
-			'name' => $sensor->desc,
-			'sensor_name' => $sensor->dev_name . ':' . $sensor->name,
-			'unit' => $sensor->unit,
-			'source_desc' => $viewSource->short_desc,
+			'name' => $sensor['desc'],
+			'sensor_name' => $sensor['dev_name'] . ':' . $sensor['name'],
+			'unit' => $sensor['unit'],
+			'source_desc' => $viewSource['short_desc'],
 			'color' => (new Model\Color(255, 0, 0))->getHtmlColor(),
 			'date' => $params->dateTimeFrom->format('d.m.Y'),
 			'nr' => 1
@@ -177,7 +200,7 @@ class SensorsPresenter extends BasePresenter
 		//$this->populateChartMenu($id, $sensor->name, 100, $sensor->device_id, $sensor->dev_name);
 
 
-		if ($sensor->device_class == 3) {
+		if ($sensor['device_class'] == 3) {
 			// jen pro impulzni senzory - vytahneme mesicni sumy
 			$rs = $this->datasource->getMonthSummaryImp($id);
 			$mesicniSumarizace = [];
@@ -191,7 +214,7 @@ class SensorsPresenter extends BasePresenter
 				$mesicniSumarizace[$rok]['celkem'] = $prev + $row->suma;
 			}
 			$out['mesicniSumarizace'] = $mesicniSumarizace;
-		} else if ($sensor->device_class == 1) {
+		} else if ($sensor['device_class'] == 1) {
 			// jen pro spojite senzory - vytahneme mesicni min/max/avg
 			$rs = $this->datasource->getMonthSummaryCont($id);
 			$mesicniSumarizace = [];
