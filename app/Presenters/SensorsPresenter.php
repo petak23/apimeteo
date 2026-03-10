@@ -41,6 +41,22 @@ class SensorsPresenter extends BasePresenter
 		$this->datasource = $datasource;
 	}
 
+	private function getAndCheckSensorAccess(int $id): array {
+		$sensor = $this->sensors->getSensor($id, true);
+		if (!$sensor) {
+			return ["status" => 404, "message" => "Senzor sa nenašiel"];
+		} elseif (!$this->user->isLoggedIn()) {
+			return ["status" => 401, "message" => "Pre prístup k tomuto senzoru sa musíte prihlásiť!"];
+		} elseif ($this->user->id != $sensor['user_id']) {
+			Services\Logger::log('audit', Services\Logger::ERROR,
+				sprintf("Užívateľ #%s (%s) sa pokúšal o prístup k senzoru #%s, ktorý patrí užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $id, $sensor['user_id']));
+			$this->user->logout(true);
+			return ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
+		} else {
+			return array_merge($sensor, ['status' => 200, 'message' => 'OK']);
+		}
+	}
+
 	/** Vráti zoznam senzorov pre dané zariadenie */
 	public function actionSensors(int $id): void
 	{
@@ -50,7 +66,7 @@ class SensorsPresenter extends BasePresenter
 
 	public function actionSensor(int $id, int $detail = 0): void
 	{
-		$sensor = $this->sensors->getSensor($id, true);
+		$sensor = $this->getAndCheckSensorAccess($id);
 		$this->sendJson($sensor);
 	}
 
@@ -65,7 +81,7 @@ class SensorsPresenter extends BasePresenter
 	}
 
 	/**
-	 * Pouziva se pro jen vykresleni automaticky pripraveneho grafu volaneho z detailu zarizeni.
+	 * Používa sa len na vykreslenie automaticky pripraveného grafu volaného z detailu zariadenia.
 	 */
 	private function getViewSourceId($device_class, $lenDays)
 	{
@@ -87,7 +103,7 @@ class SensorsPresenter extends BasePresenter
 	}
 
 	/**
-	 * Rendering statistiky pro senzor - volano z administrace, autentizovany uzivatel.
+	 * Vykresľovanie štatistík pre senzor - volané z administrácie, autentizovaný používateľ.
 	 */
 	public function actionSensorstat(
 		$id,
@@ -109,6 +125,12 @@ class SensorsPresenter extends BasePresenter
 		$currentday = ""
 	) {
 
+		$sensor = $this->getAndCheckSensorAccess($id);
+		if ($sensor['status'] != 200) {
+			$this->sendJson($sensor);
+			return;
+		}
+
 		$params = new Model\ChartParameters(
 			$dateFrom,
 			$lenDays,
@@ -129,12 +151,12 @@ class SensorsPresenter extends BasePresenter
 
 			$this->config->minYear
 		);
-		
+
 		$params->allowCompare(true);
 		
 		$chart = new Model\Chart(null);
-		$sensor = $this->sensors->getSensor($id, true);
-		//$this->checkSensorAccess($sensor != NULL ? $sensor->user_id : NULL, $id);
+		
+		
 		$device = [
 			'name' => $sensor['dev_name'],
 			'desc' => $sensor['dev_desc']
@@ -152,7 +174,7 @@ class SensorsPresenter extends BasePresenter
 			
 			'chW' => $chart->width(),
 			'chH' => $chart->height(),
-			// sirka sloupce pro vykresleni - obrazek + mala rezerva
+			// šírka stĺpca pre vykreslenie - obrázok + malá rezerva
 			'maxW' => $chart->width() + 85,
 
 			'sensor' => $sensor,
@@ -169,15 +191,8 @@ class SensorsPresenter extends BasePresenter
 
 			'devices' => $my_devices,
 			'years' => $params->getAltYearsList(),
-
-			//Prenesené inak
-			//'appName' => $this->config->appName,
-			//'minYear' => $this->config->minYear
-			//'dataRetentionDays' => $this->config->dataRetentionDays,
-			//'links' => $this->config->links,
-
 		];
-		//dumpe($out);
+
 		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['device_class'], $params->lenDays));
 		
 		$outView = [];
@@ -201,7 +216,7 @@ class SensorsPresenter extends BasePresenter
 
 
 		if ($sensor['device_class'] == 3) {
-			// jen pro impulzni senzory - vytahneme mesicni sumy
+			// len pre impulzné senzory - vytiahneme mesačné sumy
 			$rs = $this->datasource->getMonthSummaryImp($id);
 			$mesicniSumarizace = [];
 
@@ -215,7 +230,7 @@ class SensorsPresenter extends BasePresenter
 			}
 			$out['mesicniSumarizace'] = $mesicniSumarizace;
 		} else if ($sensor['device_class'] == 1) {
-			// jen pro spojite senzory - vytahneme mesicni min/max/avg
+			// len pre spojité senzory - vytiahneme mesačné min/max/avg
 			$rs = $this->datasource->getMonthSummaryCont($id);
 			$mesicniSumarizace = [];
 

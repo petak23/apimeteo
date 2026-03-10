@@ -16,7 +16,7 @@ CREATE TABLE `blobs` (
   `filename` varchar(255) DEFAULT NULL,
   `session_id` mediumint(9) DEFAULT NULL,
   `remote_ip` varchar(32) DEFAULT NULL,
-  `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1 = nahrano, 2 = zpracovano cron taskem (jen obrazky jpg), 3 = exportovano (jen obrazky jpg)',
+  `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1 = nahrané, 2 = spracované cron taskom (len obrázky jpg), 3 = exportované (len obrázky jpg)',
   `filesize` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin;
@@ -358,7 +358,7 @@ CREATE TABLE `sumdata` (
   `max_time` time DEFAULT NULL,
   `avg_val` double DEFAULT NULL,
   `sum_val` double DEFAULT NULL,
-  `ct_val` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'Počet započtených hodnot (pro denní sumy)',
+  `ct_val` tinyint(4) NOT NULL DEFAULT 0 COMMENT 'Počet započítaných hodnôt (pre denné sumy)',
   `status` tinyint(4) DEFAULT 0 COMMENT '0 = created hourly stat (= daily stat should be recomputed), 1 = used',
   PRIMARY KEY (`id`),
   KEY `sensor_id_rec_date_sum_type` (`sensor_id`,`rec_date`,`sum_type`)
@@ -590,8 +590,8 @@ INSERT INTO `view_source` (`id`, `desc`, `short_desc`) VALUES
 (6,	'Denní součet',	'Denní suma'),
 (7,	'Hodinový součet',	'Hodinová suma'),
 (8,	'Hodinové maximum',	'Hodinové maximum'),
-(9,	'Hodinové/denní maximum',	'Do 90denních pohledů hodinové maximum, pro delší denní maximum'),
-(10,	'Hodinový/denní součet',	'Pro krátké pohledy hodinový součet, pro dlouhé denní součet (typicky pro srážky)'),
-(11,	'Týdenní součet',	'Týdenní součet (pro srážky)');
+(9,	'Hodinové/denné maximum',	'Do 90denných pohľadov hodinové maximum, pre dlhšie denné maximum'),
+(10,	'Hodinový/denný súčet',	'Pre krátke pohľady hodinový súčet, pre dlhé denný súčet (typicky pre zrážky)'),
+(11,	'Týždenný súčet',	'Týždenný súčet (pre zrážky)');
 
 -- 2025-10-23 12:19:54 UTC

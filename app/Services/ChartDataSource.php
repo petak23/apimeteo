@@ -37,7 +37,7 @@ class ChartDataSource
 
 
 	/**
-	 * Data pro graf coverage
+	 * Dáta pre graf pokrytia
 	 */
 	public function getSensorCoverageData( $sensor, $year ) 
 	{
@@ -60,7 +60,7 @@ class ChartDataSource
 
 
 	/**
-	 * Data pro avg - z denni sumarizace
+	 * Dáta pre priemer - z dennej sumarizácie
 	 */
 	public function getAvgData( $sensors, $year , $years ) 
 	{
@@ -87,14 +87,14 @@ class ChartDataSource
 	}
 
 
-	//TODO: datasource pro denni sumarizace, ktere jeste nemame spoctene
+	//TODO: datasource pre dennú sumarizáciu, ktorú ešte nemáme spočítanú
 
 
 	/**
-	 * Vraci data pro graf z detailnich dat
-	 * Hodi se pro graf teploty
+	 * Vracia dáta pre graf z detailných dát
+	 * Hodí sa pre graf teploty
 	 * 
-	 * Vraci objekt SensorDataSeries
+	 * Vracia objekt SensorDataSeries
 	 */
 	public function getSensorData_temperature_detail( $sensor, $dateTimeFrom, $intervalLenDays ) : SensorDataSeries
 	{
@@ -125,10 +125,10 @@ class ChartDataSource
 
 	
 	/**
-	 * Vraci data pro graf z min/max hodnot hodinovych sumarizaci.
-	 * Hodi se tedy pro graf teploty, kde na kazdy den zustane 2x24 = 48 px (na sirku 1500 bodu = 31 dni)
+	 * Vracia dáta pre graf z min/max hodnôt hodinových sumarizácií.
+	 * Hodí sa teda pre graf teploty, kde na každý deň zostane 2x24 = 48 px (na šírku 1500 bodov = 31 dní)
 	 * 
-	 * Vraci objekt SensorDataSeries
+	 * Vracia objekt SensorDataSeries
 	 */
 	public function getSensorData_temperature_summary( $sensors, $dateTimeFrom, $intervalLenDays ) : SensorDataSeries
 	{
@@ -167,7 +167,7 @@ class ChartDataSource
 				$prevDate = $row->rec_date;
 				$prevHour = $row->rec_hour;
 			} else if( $prevDate==$row->rec_date && $prevHour == $row->rec_hour ) {
-				// data z dalsiho senzoru pro stejnou hodinu ignorujeme
+				// dáta z ďalšieho senzora pre rovnakú hodinu ignorujeme
 				continue;
 			}
 			$prevDate = $row->rec_date;
@@ -183,7 +183,7 @@ class ChartDataSource
 				$rc->pushPoint( new ChartPoint( $maxRelTime, floatval($row->max_val) ) );
 				$rc->pushPoint( new ChartPoint( $minRelTime, floatval($row->min_val) ) );
 			} else {
-				// mame jen jeden bod
+				// máme len jeden bod
 				$rc->pushPoint( new ChartPoint( $maxRelTime, floatval($row->max_val) ) );
 			}
 		}
@@ -211,7 +211,7 @@ class ChartDataSource
 	}
 
 	/**
-	 * Vraci data pro graf z min/max/avg hodnot dennich/hodinovych sumarizaci.
+	 * Vracia dáta pre graf z min/max/avg hodnôt denných/hodinových sumarizácií.
 	 * 
 	 * mode: 
 	 * - 1=denni min
@@ -242,7 +242,7 @@ class ChartDataSource
 
 		$sum_type = 2;
 		if( $mode==5 || $mode==7 ) {
-			// pouze pro 5 a 7 jsou hodinove sumarizace
+			// len pre 5 a 7 sú hodinové sumarizácie
 			$sum_type = 1;
 		}
 
@@ -269,7 +269,7 @@ class ChartDataSource
 				$prevDate = $row->rec_date;
 				$prevHour = $row->rec_hour;
 			} else if( $prevDate==$row->rec_date && $prevHour == $row->rec_hour ) {
-				// data z dalsiho senzoru pro stejnou hodinu ignorujeme
+				// dáta z ďalšieho senzora pre rovnakú hodinu ignorujeme
 				continue;
 			}
 			$prevDate = $row->rec_date;
@@ -284,7 +284,8 @@ class ChartDataSource
 				/* Nyni se nastavuje relativni cas 12:00.
 				 * Kdyby se povolila nasledujici radka, vykreslovalo by se to ve skutecnem case minima:
 				 *  $relTime = $this->computeOffset( $row->rec_date, $row->min_time, $startTs );
-				 * jenze se ukazuje, ze v tom pripad se napr. cary maxima a minima prekryvaji.
+				 * ale ukazuje sa, že v tom prípade sa napríklad čiary maxima a minima prekrývajú.
+				 * ale ukazuje sa, že v tom prípade sa napríklad čiary maxima a minima prekrývajú.
 				 * Aby to fungovalo, je treba v SensorDataSeries->pushPoint nastavit misto 90000 hodnotu 2*86400
 				*/ 
 				$relTime = $this->computeOffset( $row->rec_date, $row->min_time, $startTs );
@@ -301,7 +302,7 @@ class ChartDataSource
 				$rc->pushPoint( new ChartPoint( $relTime, floatval($row->sum_val) ), TRUE );
 			} else if( $mode == 5 ) {
 				// hodinova suma
-				// odecitame 12, protoze vyse se pocita offset pro 12:00
+				// odčítame 12, pretože vyššie sa počíta offset pre 12:00
 				$relTime += ($row->rec_hour-12)*3600 + 1800;
 				$rc->pushPoint( new ChartPoint( $relTime, floatval($row->sum_val) ) );
 

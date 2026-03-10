@@ -52,7 +52,7 @@ class RaDataSource
 		return $this->database->getInsertId();
 	}
 
-	//TODO: Bude smazano - je pro stary login
+	//TODO: Bude zmazané - je pre starý login
 	/**
 	 * Delete older sessions for the same device
 	 * Create session
