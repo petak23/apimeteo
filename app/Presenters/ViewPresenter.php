@@ -88,7 +88,7 @@ final class ViewPresenter extends BasePresenter
 
 		$form->addText('token', 'Zabezpečovací token:')
 			->setOption('description', 'Stane se součástí URL. Zadejte dlouhý náhodný text. Všechny grafy se stejným tokenem budou vidět v jednom bloku a budou mít společné levé menu.'  )
-			->addRule(Form::PATTERN, 'Jen písmena, čísla, pomlčka', '([0-9A-Za-z\-]+)')
+			->addRule(Form::PATTERN, 'Len písmená, čísla, pomlčka', '([0-9A-Za-z\-]+)')
 			->setHtmlAttribute('size', 50)
 			->setDefaultValue( Random::generate(40) )
 			->setRequired();
@@ -102,13 +102,13 @@ final class ViewPresenter extends BasePresenter
 			'avgtemp' => 'Průměrná teplota',
 			'avgyears0' => 'Porovnání průměrné teploty',
 			'avgyears1' => 'Porovnání minimální teploty',
-			'line' => 'Vodorovné čáry - vhodné pro směr větru',
-			'bar' => 'Sloupcový graf - vhodné pro srážky',
+			'line' => 'Vodorovné čiary - vhodné pre smer vetra',
+			'bar' => 'Stĺpcový graf - vhodné pre zrážky',
 		];
 
 		$form->addSelect('render', 'Vykreslovací stroj:', $renders)
 			->setDefaultValue('chart')
-			->setPrompt('- Zvolte způsob vykreslení -')
+			->setPrompt('- Zvoľte spôsob vykreslenia -')
 			->setRequired();
 
 		$form->addInteger('vorder', 'Pořadí:')
@@ -175,7 +175,7 @@ final class ViewPresenter extends BasePresenter
 			$id = $row->id;
 		}
 
-		$this->flashMessage("Změny provedeny.", 'success');
+		$this->flashMessage("Zmeny prevedené.", 'success');
 		$this->redirect('View:edit', $id );
 	}
 
@@ -205,14 +205,14 @@ final class ViewPresenter extends BasePresenter
 		$id = $this->getParameter('id');
 
 		if( $id ) {
-			// tohle je overeni prav, proto to tu musi byt
+			// toto je overenie práv, preto to tu musí byť
 			$this->datasource->getViews( $this->getUser()->id );
 			$view = $this->datasource->views[$id];
 
 			$this->datasource->deleteView( $id );
 		} 
 
-		$this->flashMessage("Graf smazán.", 'success');
+		$this->flashMessage("Graf zmazaný.", 'success');
 		$this->redirect('View:views' );
 	}*/
 

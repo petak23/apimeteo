@@ -29,24 +29,24 @@ class SensorDataSeries
 
 
 	/**
-	 * Max hodnota pro skalovani grafu
+	 * Max hodnota pre škálovanie grafu
 	 */
 	public $maxVal;
 
 	/**
-	 * Min hodnota pro skalovani grafu
+	 * Min hodnota pre škálovanie grafu
 	 */
 	public $minVal;
 
 
 	/**
-	 * Relativni cas predesleho bodu. Pro pushPoint.
+	 * Relatívny čas predchádzajúceho bodu. Pre pushPoint.
 	 */
 	private $prevPointTime;
 
 	/**
 	 * Vlozi bod do pole. 
-	 * Vyplni, zda je propojen s predeslym nebo neni.
+	 * Vyplní, či je prepojený s predchádzajúcim alebo nie.
 	 * Nastavuje max/min hodnoty v serii.
 	 */
 	public function pushPoint(ChartPoint $point, $dailySum = FALSE)
@@ -60,7 +60,7 @@ class SensorDataSeries
 		$maxDiff = $dailySum ? 180000 : $this->firstSensor->display_nodata_interval;
 
 		if ($this->prevPointTime != null) {
-			// pokud existuje predesly bod a je casove bliz nez zobrazovaci limit, oznacime si, ze je propojen
+			// ak existuje predchádzajúci bod a je časovo bližšie než zobrazovací limit, označíme si, že je prepojený
 			if (($point->relativeTime - $this->prevPointTime) < $maxDiff) {
 				$point->connectedFromPrevious = TRUE;
 			}

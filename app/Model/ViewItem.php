@@ -71,7 +71,7 @@ class ViewItem
 	public $sourceDesc;
 	public $colors;
 
-	// jen pro editaci
+	// len pre editáciu
 	public $id;
 	public $vorder;
 
@@ -123,7 +123,7 @@ class ViewItem
 	}
 
 	/*
-	 * Jen pro inventory
+	 * Len pre inventory
 	 */
 	public $sensorIds;
 }

@@ -41,6 +41,22 @@ class SensorsPresenter extends BasePresenter
 		$this->datasource = $datasource;
 	}
 
+	private function getAndCheckSensorAccess(int $id): array {
+		$sensor = $this->sensors->getSensor($id, true);
+		if (!$sensor) {
+			return ["status" => 404, "message" => "Senzor sa nenašiel"];
+		} elseif (!$this->user->isLoggedIn()) {
+			return ["status" => 401, "message" => "Pre prístup k tomuto senzoru sa musíte prihlásiť!"];
+		} elseif ($this->user->id != $sensor['user_id']) {
+			Services\Logger::log('audit', Services\Logger::ERROR,
+				sprintf("Užívateľ #%s (%s) sa pokúšal o prístup k senzoru #%s, ktorý patrí užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $id, $sensor['user_id']));
+			$this->user->logout(true);
+			return ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
+		} else {
+			return array_merge($sensor, ['status' => 200, 'message' => 'OK']);
+		}
+	}
+
 	/** Vráti zoznam senzorov pre dané zariadenie */
 	public function actionSensors(int $id): void
 	{
@@ -50,7 +66,7 @@ class SensorsPresenter extends BasePresenter
 
 	public function actionSensor(int $id, int $detail = 0): void
 	{
-		$sensor = $this->sensors->getSensor($id, true);
+		$sensor = $this->getAndCheckSensorAccess($id);
 		$this->sendJson($sensor);
 	}
 
@@ -65,7 +81,29 @@ class SensorsPresenter extends BasePresenter
 	}
 
 	/**
-	 * Rendering statistiky pro senzor - volano z administrace, autentizovany uzivatel.
+	 * Používa sa len na vykreslenie automaticky pripraveného grafu volaného z detailu zariadenia.
+	 */
+	private function getViewSourceId($device_class, $lenDays)
+	{
+		if ($device_class == 1) {
+			// CONTINUOUS_MINMAXAVG
+			$vsId = 1; // Automatická data
+		} else if ($device_class == 2) {
+			// CONTINUOUS
+			$vsId = 5; // Detailní data
+		} else {
+			// IMPULSE_SUM
+			if ($lenDays > 30) {
+				$vsId = 6;  // denni suma
+			} else {
+				$vsId = 7;  // hodinova suma
+			}
+		}
+		return $vsId;
+	}
+
+	/**
+	 * Vykresľovanie štatistík pre senzor - volané z administrácie, autentizovaný používateľ.
 	 */
 	public function actionSensorstat(
 		$id,
@@ -87,6 +125,12 @@ class SensorsPresenter extends BasePresenter
 		$currentday = ""
 	) {
 
+		$sensor = $this->getAndCheckSensorAccess($id);
+		if ($sensor['status'] != 200) {
+			$this->sendJson($sensor);
+			return;
+		}
+
 		$params = new Model\ChartParameters(
 			$dateFrom,
 			$lenDays,
@@ -107,12 +151,12 @@ class SensorsPresenter extends BasePresenter
 
 			$this->config->minYear
 		);
-		
+
 		$params->allowCompare(true);
 		
 		$chart = new Model\Chart(null);
-		$sensor = $this->sensors->getSensor($id, true);
-		//$this->checkSensorAccess($sensor != NULL ? $sensor->user_id : NULL, $id);
+		
+		
 		$device = [
 			'name' => $sensor['dev_name'],
 			'desc' => $sensor['dev_desc']
@@ -121,6 +165,7 @@ class SensorsPresenter extends BasePresenter
 		$my_devices[$sensor['device_id']] = $device;
 
 		$out = [
+			'status' => 200,
 			'allowCompare' => TRUE,
 			'id' => $id,
 			'dateFrom' => $params->dateTimeFrom->format('Y-m-d'),
@@ -129,7 +174,7 @@ class SensorsPresenter extends BasePresenter
 			
 			'chW' => $chart->width(),
 			'chH' => $chart->height(),
-			// sirka sloupce pro vykresleni - obrazek + mala rezerva
+			// šírka stĺpca pre vykreslenie - obrázok + malá rezerva
 			'maxW' => $chart->width() + 85,
 
 			'sensor' => $sensor,
@@ -146,25 +191,18 @@ class SensorsPresenter extends BasePresenter
 
 			'devices' => $my_devices,
 			'years' => $params->getAltYearsList(),
-
-			//Prenesené inak
-			//'appName' => $this->config->appName,
-			//'minYear' => $this->config->minYear
-			//'dataRetentionDays' => $this->config->dataRetentionDays,
-			//'links' => $this->config->links,
-
 		];
-		dumpe($out);
-		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor->device_class, $params->lenDays));
+
+		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['device_class'], $params->lenDays));
 		
 		$outView = [];
 		$vi = [
 			'sensor_ids' => $id,
 			'axis' => 1,
-			'name' => $sensor->desc,
-			'sensor_name' => $sensor->dev_name . ':' . $sensor->name,
-			'unit' => $sensor->unit,
-			'source_desc' => $viewSource->short_desc,
+			'name' => $sensor['desc'],
+			'sensor_name' => $sensor['dev_name'] . ':' . $sensor['name'],
+			'unit' => $sensor['unit'],
+			'source_desc' => $viewSource['short_desc'],
 			'color' => (new Model\Color(255, 0, 0))->getHtmlColor(),
 			'date' => $params->dateTimeFrom->format('d.m.Y'),
 			'nr' => 1
@@ -177,8 +215,8 @@ class SensorsPresenter extends BasePresenter
 		//$this->populateChartMenu($id, $sensor->name, 100, $sensor->device_id, $sensor->dev_name);
 
 
-		if ($sensor->device_class == 3) {
-			// jen pro impulzni senzory - vytahneme mesicni sumy
+		if ($sensor['device_class'] == 3) {
+			// len pre impulzné senzory - vytiahneme mesačné sumy
 			$rs = $this->datasource->getMonthSummaryImp($id);
 			$mesicniSumarizace = [];
 
@@ -191,8 +229,8 @@ class SensorsPresenter extends BasePresenter
 				$mesicniSumarizace[$rok]['celkem'] = $prev + $row->suma;
 			}
 			$out['mesicniSumarizace'] = $mesicniSumarizace;
-		} else if ($sensor->device_class == 1) {
-			// jen pro spojite senzory - vytahneme mesicni min/max/avg
+		} else if ($sensor['device_class'] == 1) {
+			// len pre spojité senzory - vytiahneme mesačné min/max/avg
 			$rs = $this->datasource->getMonthSummaryCont($id);
 			$mesicniSumarizace = [];
 
