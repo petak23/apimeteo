@@ -34,6 +34,17 @@ final class ErrorPresenter implements Nette\Application\IPresenter
 		// Log the exception and display a generic error message to the user
 		$this->logger->log($exception, ILogger::EXCEPTION);
 		return new Responses\CallbackResponse(function (Http\IRequest $httpRequest, Http\IResponse $httpResponse): void {
+			$allowedOrigins = ['https://vuemeteo.echo-msz.eu', 'http://localhost:5173'];
+			$origin = $httpRequest->getHeader('Origin');
+			if ($origin && in_array($origin, $allowedOrigins, true)) {
+				$httpResponse->setHeader('Access-Control-Allow-Origin', $origin);
+			} else {
+				$httpResponse->setHeader('Access-Control-Allow-Origin', $allowedOrigins[0]);
+			}
+			$httpResponse->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+			$httpResponse->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+			$httpResponse->setHeader('Access-Control-Allow-Credentials', 'true');
+
 			if (preg_match('#^text/html(?:;|$)#', (string) $httpResponse->getHeader('Content-Type'))) {
 				require __DIR__ . '/../templates/Error/500.phtml';
 			}

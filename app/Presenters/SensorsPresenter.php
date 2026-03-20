@@ -107,9 +107,9 @@ class SensorsPresenter extends BasePresenter
 	 */
 	public function actionSensorstat(
 		$id,
-		$dateFrom = "2000-01-01",
+		$dateFrom = '',
 		$lenDays = 7,
-		$altYear = "2000",
+		$altYear = null,
 		$plus = "",
 		$minus = "",
 		$altplus = "",
@@ -151,8 +151,9 @@ class SensorsPresenter extends BasePresenter
 
 			$this->config->minYear
 		);
+		//dumpe($params);
 
-		$params->allowCompare(true);
+		$params->allowCompare();
 		
 		$chart = new Model\Chart(null);
 		
@@ -233,7 +234,6 @@ class SensorsPresenter extends BasePresenter
 			// len pre spojité senzory - vytiahneme mesačné min/max/avg
 			$rs = $this->datasource->getMonthSummaryCont($id);
 			$mesicniSumarizace = [];
-
 			foreach ($rs as $row) {
 				$rok = substr($row->datum_mesic, 0, 4);
 				$mesic = intval(substr($row->datum_mesic, 5, 2));

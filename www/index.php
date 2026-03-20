@@ -1,18 +1,14 @@
 <?php
-/* - old index.php -
 declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
+/* - old index.php -
 
 $configurator = App\Bootstrap::boot();
 $container = $configurator->createContainer();
 $application = $container->getByType(Nette\Application\Application::class);
 $application->run();
 */
-
-declare(strict_types=1);
-
-require __DIR__ . '/../vendor/autoload.php';
 
 $isLocalhost = in_array($_SERVER['SERVER_NAME'], ['localhost', '127.0.0.1'], true);
 

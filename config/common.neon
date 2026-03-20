@@ -4,7 +4,7 @@ parameters:
 	dataRetentionDays: 90
 	title: 'apiMeteo-petak23'
 	# len pre informáciu pri grafoch
-	minYear: 2023
+	minYear: 2025
 	links:
 		- {
 			name: 'Github-petak23'

@@ -21,7 +21,7 @@ class ChartParameters
 
 	public $minYear;
 
-	public function allowCompare( bool $allowCompare = true ) 
+	public function allowCompare( bool $allowCompare = false ) 
 	{
 		if( ! $allowCompare ) {
 			$this->altYear = null;
@@ -40,7 +40,7 @@ class ChartParameters
 	}
 
 	public function __construct(
-		string $dateFrom = '', int $lenDays = 3, string $altYear = "2000", 
+		string $dateFrom = '', int $lenDays = 7, ?string $altYear = null, 
 		string $plus = '', string $minus = '', 
 		string $altplus = '', string $altminus = '',
 		string $current = '', string $currentweek = '', string $currentmonth = '', string $currentyear = '',
@@ -147,7 +147,8 @@ class ChartParameters
 	public function getAltYearsList()
 	{
 		$years = [];
-		for( $i =  intval( (new DateTime('now'))->format("Y") ); $i >= $this->minYear; $i-- ) {
+		for( $i =  intval( (new DateTime('now'))->format("Y") ); $i >= $this->minYear; $i-- ) 
+		{
 			$years[] = "" . $i;
 		}
 		return $years;

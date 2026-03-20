@@ -396,7 +396,7 @@ class ChartDataSource
 			}
 
 			if( $prevWeek != $row->week ) {
-				$rc->pushPoint( new ChartPoint( $curRelTime, $curSum, TRUE ) );
+				$rc->pushPoint( new ChartPoint( $curRelTime, $curSum, true ) );
 
 				$prevWeek = $row->week;
 				$curRelTime = $relTime;
@@ -407,7 +407,7 @@ class ChartDataSource
 		}
 
 		if( $prevWeek!==NULL ) {
-			$rc->pushPoint( new ChartPoint( $curRelTime, $curSum, TRUE ) );
+			$rc->pushPoint( new ChartPoint( $curRelTime, $curSum, true ) );
 		}
 
 		// Debugger::log( $rc->toString( TRUE ) );
@@ -565,19 +565,17 @@ class ChartDataSource
 
 	public function getMonthSummaryCont($sensorId)
 	{
-		return $this->database->fetchAll(
-			'
-			select datum_mesic, min( min_val ) as min_val, max( max_val ) as max_val, avg( avg_val ) as avg_val
-			from 
-			(
-			select rec_date, min_val, max_val, avg_val, DATE_FORMAT(`rec_date`,\'%Y-%m\') as datum_mesic
-			from sumdata where sensor_id = ? and sum_type = 2
-			) data
-			group by datum_mesic
-			order by datum_mesic asc
-			',
-			$sensorId
-		);
+		// přepnuto na Explorer fluent API místo raw SQL
+		return $this->database->table('sumdata')
+			->select("DATE_FORMAT(rec_date, ?) AS datum_mesic", '%Y-%m') 
+			->select('MIN(min_val) AS min_val')
+			->select('MAX(max_val) AS max_val')
+			->select('AVG(avg_val) AS avg_val')
+			->where('sensor_id', $sensorId)
+			->where('sum_type', 2)
+			->group('datum_mesic')
+			->order('datum_mesic ASC')
+			->fetchAll();
 	}
 }
 
