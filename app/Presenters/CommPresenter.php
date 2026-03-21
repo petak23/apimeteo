@@ -169,7 +169,7 @@ class CommPresenter extends BasePresenter
 
 			$postMessage = $httpRequest->getRawBody(); // Ulož príchodziu správu zisti jej veľkosť a zaloguj
 			$postSize = strlen( $postMessage );
-			$logger->write( Logger::INFO, "data+ {$postSize}b {$remoteIp}");
+			$logger->write( Logger::INFO, "Begin of Datajson: data+ {$postSize}b {$remoteIp}");
 
 			try {
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
@@ -202,7 +202,7 @@ class CommPresenter extends BasePresenter
 			}
 
 			if( strlen($data_string) !== (int)$json_msg["data_length"]  ) {
-				throw new \Exception("Incorrect data length!");
+				throw new \Exception("Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"]);
 			}
 			
 			/*
