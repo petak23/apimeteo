@@ -396,7 +396,7 @@ class ChartDataSource
 			}
 
 			if( $prevWeek != $row->week ) {
-				$rc->pushPoint( new ChartPoint( $curRelTime, $curSum, true ) );
+				$rc->pushPoint( new ChartPoint( $curRelTime, $curSum ) );
 
 				$prevWeek = $row->week;
 				$curRelTime = $relTime;
@@ -407,7 +407,7 @@ class ChartDataSource
 		}
 
 		if( $prevWeek!==NULL ) {
-			$rc->pushPoint( new ChartPoint( $curRelTime, $curSum, true ) );
+			$rc->pushPoint( new ChartPoint( $curRelTime, $curSum ) );
 		}
 
 		// Debugger::log( $rc->toString( TRUE ) );
