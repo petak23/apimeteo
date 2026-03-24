@@ -5,17 +5,18 @@ namespace App\Model;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
 use Nette\Utils\DateTime;
+use App\Services\Logger;
 
 /**
  * Model, ktorý sa stará o tabuľku sensors
  * 
- * Posledna zmena 29.01.2026
+ * Posledna zmena 23.03.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.3
+ * @version    1.0.4
  */
 class PV_Sensors extends Table
 {
@@ -175,5 +176,22 @@ class PV_Sensors extends Table
 		}
 
 		return $sensors;
+	}
+
+	
+	public function getAndCheckSensorAccess(int $id): array {
+		$sensor = $this->getSensor($id, true);
+		if (!$sensor) {
+			return ["status" => 404, "message" => "Senzor sa nenašiel"];
+		} elseif (!$this->user->isLoggedIn()) {
+			return ["status" => 401, "message" => "Pre prístup k tomuto senzoru sa musíte prihlásiť!"];
+		} elseif ($this->user->id != $sensor['user_id']) {
+			Logger::log('audit', Logger::ERROR,
+				sprintf("Užívateľ #%s (%s) sa pokúšal o prístup k senzoru #%s, ktorý patrí užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $id, $sensor['user_id']));
+			$this->user->logout(true);
+			return ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
+		} else {
+			return array_merge($sensor, ['status' => 200, 'message' => 'OK']);
+		}
 	}
 }

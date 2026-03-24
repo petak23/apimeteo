@@ -4,13 +4,10 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
-//use Nette\Database;
-//use Nette\Utils\DateTime;
-//use Nette\Utils\Strings;
 
 /**
  * Prezenter pre pristup k api senzorov.
- * Posledna zmena(last change): 27.02.2026
+ * Posledna zmena(last change): 23.03.2026
  *
  * Modul: API
  *
@@ -18,7 +15,7 @@ use App\Services;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.7
+ * @version 1.0.8
  */
 class SensorsPresenter extends BasePresenter
 {
@@ -41,22 +38,6 @@ class SensorsPresenter extends BasePresenter
 		$this->datasource = $datasource;
 	}
 
-	private function getAndCheckSensorAccess(int $id): array {
-		$sensor = $this->sensors->getSensor($id, true);
-		if (!$sensor) {
-			return ["status" => 404, "message" => "Senzor sa nenašiel"];
-		} elseif (!$this->user->isLoggedIn()) {
-			return ["status" => 401, "message" => "Pre prístup k tomuto senzoru sa musíte prihlásiť!"];
-		} elseif ($this->user->id != $sensor['user_id']) {
-			Services\Logger::log('audit', Services\Logger::ERROR,
-				sprintf("Užívateľ #%s (%s) sa pokúšal o prístup k senzoru #%s, ktorý patrí užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $id, $sensor['user_id']));
-			$this->user->logout(true);
-			return ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
-		} else {
-			return array_merge($sensor, ['status' => 200, 'message' => 'OK']);
-		}
-	}
-
 	/** Vráti zoznam senzorov pre dané zariadenie */
 	public function actionSensors(int $id): void
 	{
@@ -66,7 +47,7 @@ class SensorsPresenter extends BasePresenter
 
 	public function actionSensor(int $id, int $detail = 0): void
 	{
-		$sensor = $this->getAndCheckSensorAccess($id);
+		$sensor = $this->sensors->getAndCheckSensorAccess($id);
 		$this->sendJson($sensor);
 	}
 
@@ -125,7 +106,7 @@ class SensorsPresenter extends BasePresenter
 		$currentday = ""
 	) {
 
-		$sensor = $this->getAndCheckSensorAccess($id);
+		$sensor = $this->sensors->getAndCheckSensorAccess($id);
 		if ($sensor['status'] != 200) {
 			$this->sendJson($sensor);
 			return;
@@ -180,11 +161,10 @@ class SensorsPresenter extends BasePresenter
 
 			'sensor' => $sensor,
 
-			'source1' => TRUE,
-			'isKompozit' => FALSE,
+			'source1' => true,
+			'isKompozit' => false,
 
-			'isChart' => TRUE,
-			'path' => "../../../",
+			'isChart' => true,
 
 			'measureStats' => $this->datasource->getMeasuresStats($id),
 			'sumdataStats' => $this->datasource->getSumdataStats($id),
