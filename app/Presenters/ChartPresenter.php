@@ -8,7 +8,7 @@ use App\Model;
 use App\Services;
 use Nette;
 use Nette\Utils\ImageColor;
-use Tracy\Debugger;
+//use Tracy\Debugger;
 use Nette\Utils\DateTime;
 use Nette\Utils\Image;
 
@@ -1533,17 +1533,20 @@ final class ChartPresenter extends BasePresenter
 	 */
 	public function renderSensorchart($id, $dateFrom, $lenDays, $altYear = NULL)
 	{
-		$this->checkUserRole('user');
-
 		// vypocet datumu
 		$dateTimeFrom = DateTime::from($dateFrom);
 
-		$sensor = $this->datasource->getSensor($id);
-		$this->checkSensorAccess($sensor != NULL ? $sensor->user_id : NULL, $id);
+		//$sensor = $this->datasource->getSensor($id);
+		//$this->checkSensorAccess($sensor != NULL ? $sensor->user_id : NULL, $id);
+		$sensor = $this->sensors->getAndCheckSensorAccess($id);
+		if ($sensor['status'] != 200) {
+			$this->sendJson($sensor);
+			return;
+		}
 
 		$viewitem = new ViewItem();
 		$viewitem->pushSensor($sensor);
-		$viewitem->source = $this->getViewSourceId($sensor->device_class, $lenDays);
+		$viewitem->source = $this->getViewSourceId($sensor['device_class'], $lenDays);
 		$viewitem->axisY = 1;
 
 		$this->chart = new Chart($dateTimeFrom);
@@ -1704,22 +1707,11 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Pouziva se pro jen vykresleni automaticky pripraveneho grafu volaneho z detailu zarizeni.
 	 */
-	private function getViewSourceId($device_class, $lenDays)
+	private function getViewSourceId($device_class = 1, $lenDays = 8)
 	{
-		if ($device_class == 1) {
-			// CONTINUOUS_MINMAXAVG
-			$vsId = 1; // Automatická data
-		} else if ($device_class == 2) {
-			// CONTINUOUS
-			$vsId = 5; // Detailní data
-		} else {
-			// IMPULSE_SUM
-			if ($lenDays > 30) {
-				$vsId = 6;  // denni suma
-			} else {
-				$vsId = 7;  // hodinova suma
-			}
-		}
+		$vsId = ($device_class == 1) ? 1 /* Automatická data (CONTINUOUS_MINMAXAVG)*/
+			: ($device_class == 2 ? 5 /* Detailní data (CONTINUOUS) */
+			: ($lenDays > 30 ? 6 /*denni suma*/ : 7 /*hodinova suma*/)); 
 		return $vsId;
 	}
 

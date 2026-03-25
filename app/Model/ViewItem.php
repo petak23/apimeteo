@@ -9,6 +9,8 @@ use Nette;
 /**
  * Položka pohledu
  * Prevzaté z RatatoskrIoT
+ * Posledna zmena 25.03.2026
+ * Úprava pre APIMeteo. 
  */
 class ViewItem
 {
@@ -31,7 +33,7 @@ class ViewItem
 
 	public function getSensorName( $i )
 	{
-		return "{$this->sensors[0]->dev_name}:{$this->sensors[0]->name}";
+		return "{$this->sensors[0]['dev_name']}:{$this->sensors[0]['name']}";
 	}
 
 	public function getSensorsName()
@@ -41,7 +43,7 @@ class ViewItem
 			if( strlen($out)>0 ) {
 				$out .= "+";
 			}
-			$out .= "{$sensor->dev_name}:{$sensor->name}";
+			$out .= "{$sensor['dev_name']}:{$sensor['name']}";
 		}
 		return $out;
 	}
@@ -53,7 +55,7 @@ class ViewItem
 			if( strlen($out)>0 ) {
 				$out .= " | ";
 			}
-			$out .= $sensor->desc;
+			$out .= $sensor['desc'];
 		}
 		if( $this->isKompozit() ) {
 			$out = "Kompozit: " . $out;
