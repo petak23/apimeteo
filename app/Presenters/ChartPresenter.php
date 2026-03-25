@@ -16,9 +16,9 @@ use \App\Model\ChartAxisX;
 use \App\Model\ChartAxisY;
 use \App\Model\ChartSeries;
 use \App\Model\SensorDataSeries;
-use \App\Model\Chart;
+//use \App\Model\Chart;
 use \App\Model\View;
-use \App\Model\ViewItem;
+//use \App\Model\ViewItem;
 use \App\Model\ChartParameters;
 use \App\Model\Color;
 use \App\Model\Avg;
@@ -697,7 +697,7 @@ final class ChartPresenter extends BasePresenter
 
 
 	/**
-	 * Vykresluje graf zadany v \App\Model\Chart
+	 * Vykresluje graf zadany v App\Model\Chart
 	 * 
 	 * mode:
 	 * 0 - bezny carovy graf
@@ -778,7 +778,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Nacte jedno ViewItem ve forme pole
 	 */
-	private function loadSerie($item, $startDateTime, $lenDays, $nr, $color)
+	private function loadSerie(Model\ViewItem $item, Nette\Utils\DateTime $startDateTime, int $lenDays, int $nr, Model\Color $color)
 	{
 		$dataSeries = NULL;
 
@@ -902,7 +902,7 @@ final class ChartPresenter extends BasePresenter
 		// vypocet datumu
 		$dateTimeFrom = DateTime::from($dateFrom);
 
-		$this->chart = new Chart($dateTimeFrom);
+		$this->chart = new Model\Chart($dateTimeFrom);
 
 		$this->loadSeries($view, $dateTimeFrom, $lenDays, 1);
 
@@ -1544,12 +1544,12 @@ final class ChartPresenter extends BasePresenter
 			return;
 		}
 
-		$viewitem = new ViewItem();
+		$viewitem = new Model\ViewItem();
 		$viewitem->pushSensor($sensor);
 		$viewitem->source = $this->getViewSourceId($sensor['device_class'], $lenDays);
 		$viewitem->axisY = 1;
 
-		$this->chart = new Chart($dateTimeFrom);
+		$this->chart = new Model\Chart($dateTimeFrom);
 
 		$this->loadSerie($viewitem, $dateTimeFrom, $lenDays, 1, new Color(255, 0, 0));
 
@@ -1683,7 +1683,7 @@ final class ChartPresenter extends BasePresenter
 		$this->template->dataRetentionDays = $this->config->dataRetentionDays;
 		$this->template->links = $this->config->links;
 
-		$chart = new Chart(NULL);
+		$chart = new Model\Chart(NULL);
 		$this->template->chW = $chart->width();
 		$this->template->chH = $chart->height();
 		// sirka sloupce pro vykresleni - obrazek + mala rezerva

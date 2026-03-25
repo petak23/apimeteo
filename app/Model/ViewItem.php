@@ -26,6 +26,18 @@ class ViewItem
 	 */
 	public $sensors;
 
+	public $axisY;
+	public $source;
+	public $sourceDesc;
+	public $colors;
+
+	// len pre editáciu
+	public $id;
+	public $vorder;
+
+	//Len pre inventory
+	public $sensorIds;
+
 	public function isKompozit()
 	{
 		return sizeof($this->sensors)>1;
@@ -67,32 +79,25 @@ class ViewItem
 	{
 		$this->sensors[] = $sensor;
 	}
-	
-	public $axisY;
-	public $source;
-	public $sourceDesc;
-	public $colors;
-
-	// len pre editáciu
-	public $id;
-	public $vorder;
 
 	public function toArray( bool $detailed = false ): array
 	{
-		$vi = [];
+		$vi = [
+			"source" 			=> $this->source,
+			"source_desc" => $this->sourceDesc,
+			"axisY" 			=> $this->axisY,
+			"colors" 			=> $this->colors,
+			"vorder" 			=> $this->vorder,
+			"id" 					=> $this->id,
+			"sensors" 		=> $this->sensors,
+			"sensorIds" 	=> $this->sensorIds,
+		];
 		if( $detailed ) {
 			$vi["name"] = $this->getSensorsDesc();
 			$vi["sensor_name"] = $this->getSensorsName();
 			$vi["unit"] = $this->getUnit();
 		}
-		$vi["source"] = $this->source;
-		$vi["source_desc"] = $this->sourceDesc;
-		$vi["axisY"] = $this->axisY;
-		$vi["colors"] = $this->colors;
-		$vi["vorder"] = $this->vorder;
-		$vi["id"] = $this->id;
-		$vi["sensors"] = $this->sensors;
-		$vi["sensorIds"] = $this->sensorIds;
+		
 		return $vi;
 	}
 
@@ -123,12 +128,4 @@ class ViewItem
 	{
 		return "Y:{$this->axisY} src:{$this->source}";
 	}
-
-	/*
-	 * Len pre inventory
-	 */
-	public $sensorIds;
 }
-
-
-
