@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Model;
 
 use Nette;
-//use Tracy\Debugger;
 
 /**
- * Device session
+ * SensorDataSeries
  */
 class SensorDataSeries
 {
@@ -57,7 +56,7 @@ class SensorDataSeries
 
 		$point->connectedFromPrevious = FALSE;
 
-		$maxDiff = $dailySum ? 180000 : $this->firstSensor->display_nodata_interval;
+		$maxDiff = $dailySum ? 180000 : $this->firstSensor['display_nodata_interval'];
 
 		if ($this->prevPointTime != null) {
 			// ak existuje predchádzajúci bod a je časovo bližšie než zobrazovací limit, označíme si, že je prepojený
@@ -101,7 +100,7 @@ class SensorDataSeries
 
 	public function toString($verbose = FALSE): string
 	{
-		$rc = "SensorDataSeries [sensor {$this->firstSensor->id} '{$this->firstSensor->dev_name}:{$this->firstSensor->name}'; ct={$this->size()}";
+		$rc = "SensorDataSeries [sensor {$this->firstSensor['id']} '{$this->firstSensor['dev_name']}:{$this->firstSensor['name']}'; ct={$this->size()}";
 		$rc .= " min={$this->minVal} max={$this->maxVal}";
 		if ($verbose) {
 			$rc .= "; data:";

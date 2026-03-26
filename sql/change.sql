@@ -57,3 +57,21 @@ WHERE ur.name = 'Sensors'
 	);
 
 UPDATE `user_permission` SET `id_user_resource` = '15' WHERE `id` = '7';
+
+-- 2026-02-25
+
+INSERT INTO user_resource (name)
+SELECT 'Chart'
+WHERE NOT EXISTS (
+		SELECT 1 FROM user_resource WHERE name = 'Chart'
+);
+INSERT INTO user_permission (id_user_roles, id_user_resource, actions)
+SELECT 1, ur.id, NULL
+FROM user_resource ur
+WHERE ur.name = 'Chart'
+	AND NOT EXISTS (
+			SELECT 1
+			FROM user_permission up
+			WHERE up.id_user_roles = 1
+				AND up.id_user_resource = ur.id
+	);

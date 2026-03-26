@@ -53,7 +53,7 @@ class ChartDataSource
 			and rec_date >= ?
 			and rec_date < ?
 			order by rec_date asc
-		', $sensor->id, $startTs, $endTs  );
+		', $sensor['id'], $startTs, $endTs  );
 
 		return $result;
 	}
@@ -72,7 +72,7 @@ class ChartDataSource
 			if( strlen($sensorList)>0 ) {
 				$sensorList .= ",";
 			}
-			$sensorList .= intval($sensor->id);
+			$sensorList .= intval($sensor['id']);
 		}
 
 		return $this->database->query( "
@@ -111,7 +111,7 @@ class ChartDataSource
 			and data_time > ?
 			and data_time <= ?
 			order by data_time asc
-		', $sensor->id, $dateTimeFrom , $dateTimeTo  );
+		', $sensor['id'], $dateTimeFrom , $dateTimeTo  );
 
 		foreach ($result as $row) {
 			// Debugger::log( $row );
@@ -142,7 +142,7 @@ class ChartDataSource
 			if( strlen($sensorList)>0 ) {
 				$sensorList .= ",";
 			}
-			$sensorList .= intval($sensor->id);
+			$sensorList .= intval($sensor['id']);
 		}
 
 		$result = $this->database->query( "
@@ -237,7 +237,7 @@ class ChartDataSource
 			if( strlen($sensorList)>0 ) {
 				$sensorList .= ",";
 			}
-			$sensorList .= intval($sensor->id);
+			$sensorList .= intval($sensor['id']);
 		}
 
 		$sum_type = 2;
@@ -364,7 +364,7 @@ class ChartDataSource
 			if( strlen($sensorList)>0 ) {
 				$sensorList .= ",";
 			}
-			$sensorList .= intval($sensor->id);
+			$sensorList .= intval($sensor['id']);
 		}
 
 		$result = $this->database->query("

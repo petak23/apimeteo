@@ -2,8 +2,11 @@
 
 namespace App\Model;
 
+use Nette;
+use Nette\Database;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
+use Nette\Security;
 use Nette\Utils\DateTime;
 use App\Services\Logger;
 
@@ -23,6 +26,19 @@ class PV_Sensors extends Table
 
 	/** @var string */
 	protected $tableName = 'sensors';
+
+	/**
+	 * @param Database\Context $db
+	 * @throws Nette\InvalidStateException */
+	public function __construct(Database\Explorer $db, Security\User $user)
+	{
+		$this->connection = $db;
+		if ($this->tableName === NULL) {
+			$class = get_class($this);
+			throw new Nette\InvalidStateException("Názov tabuľky musí byť definovaný v $class::\$tableName.");
+		}
+		$this->user = $user;
+	}
 
 	public function getDeviceSensors(int $deviceId, int $monitoring = 0): Selection
 	{

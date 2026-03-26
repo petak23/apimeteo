@@ -5,24 +5,18 @@ declare(strict_types=1);
 namespace App\Presenters;
 
 use App\Model;
+use App\Model\ChartAxisX;
+use App\Model\ChartAxisY;
+use App\Model\ChartSeries;
+use App\Model\ChartParameters;
+use App\Model\Color;
 use App\Services;
+use App\Services\Logger;
+
 use Nette;
-use Nette\Utils\ImageColor;
-//use Tracy\Debugger;
 use Nette\Utils\DateTime;
 use Nette\Utils\Image;
-
-use \App\Model\ChartAxisX;
-use \App\Model\ChartAxisY;
-use \App\Model\ChartSeries;
-use \App\Model\SensorDataSeries;
-//use \App\Model\Chart;
-use \App\Model\View;
-//use \App\Model\ViewItem;
-use \App\Model\ChartParameters;
-use \App\Model\Color;
-use \App\Model\Avg;
-use \App\Services\Logger;
+use Nette\Utils\ImageColor;
 
 final class ChartPresenter extends BasePresenter
 {
@@ -38,24 +32,22 @@ final class ChartPresenter extends BasePresenter
 	private $fontName;
 	private $fontNameBold;
 
-	public $config;
+	//public $old_config;
 
 	private $dbRows;
 
 	public function __construct(
 		Services\ChartDataSource $datasource,
-		Services\Config $config
 	) {
 		$this->datasource = $datasource;
 		$this->fontName  = __DIR__ . "/../../www/font/LiberationMono-Regular.ttf";
 		$this->fontNameBold = __DIR__ . "/../../www/font/LiberationMono-Bold.ttf";
-		$this->config = $config;
 	}
 
 	// duplicita s BaseAdminPresenter->populateTemplate !
 	private function populateChartMenu($sensorId, $sensorName, $activeItem, $devId, $devName)
 	{
-		$submenu = array();
+		$submenu = [];
 		$submenu[] =   ['id' => '103', 'link' => "device/show/{$devId}", 'name' => "· Zařízení {$devName}"];
 		$submenu[] =   ['id' => '102', 'link' => "sensor/show/{$sensorId}", 'name' => "· · Senzor {$sensorName}"];
 		$submenu[] =   ['id' => '100', 'link' => "chart/sensorstat/show/{$sensorId}", 'name' => "· · · Statistika"];
@@ -100,14 +92,14 @@ final class ChartPresenter extends BasePresenter
 				} else {
 					$c = $this->image->colorAllocate($chartSerie->color->r, $chartSerie->color->g, $chartSerie->color->b);
 					$this->image->setStyle(
-						array(
+						[
 							$c,
 							$c,
 							$c,
 							IMG_COLOR_TRANSPARENT,
 							IMG_COLOR_TRANSPARENT,
 							IMG_COLOR_TRANSPARENT
-						)
+					]
 					);
 					$this->image->line(
 						$prevPointX,
@@ -652,7 +644,7 @@ final class ChartPresenter extends BasePresenter
 		}
 
 		// vypsat nahoru jednotky
-		$jednotka = $this->chart->series1[0]->data->firstSensor->unit;
+		$jednotka = $this->chart->series1[0]->data->firstSensor['unit'];
 		$this->popiskaY($this->chart->marginYT - 18, true, $jednotka, true);
 	}
 
@@ -730,11 +722,11 @@ final class ChartPresenter extends BasePresenter
 		$this->chart->changeBorders($this->axisY1, $this->axisY2);
 
 		$this->createChart();
-
-		$this->decorateAxisY1($this->chart->series1[0]->data->firstSensor->unit);
+		// dumpe($this->chart);
+		$this->decorateAxisY1(/*$this->chart->series1[0]->data->firstSensor['unit']*/);
 
 		$this->decorateAxisY2(
-			sizeof($this->chart->series2) != 0 ? $this->chart->series2[0]->data->firstSensor->unit : $this->chart->series1[0]->data->firstSensor->unit
+			sizeof($this->chart->series2) != 0 ? $this->chart->series2[0]->data->firstSensor['unit'] : $this->chart->series1[0]->data->firstSensor['unit']
 		);
 
 		$this->axisX = new ChartAxisX($this->chart->sizeX, $this->chart->marginXL, $intervalLenDays);
@@ -792,8 +784,7 @@ final class ChartPresenter extends BasePresenter
 			*/
 			$dateAge = intval((new DateTime('now'))->diff($startDateTime)->format('%a'));
 			// Debugger::log( "age {$dateAge} for {$startDateTime}" );
-
-			if (($lenDays <= 5) && ($dateAge < $this->config->dataRetentionDays) && sizeof($item->sensors) == 1) {
+			if (($lenDays <= 5) && ($dateAge < $this->config->getConfig('dataRetentionDays')) && sizeof($item->sensors) == 1) {
 				$dataSeries = $this->datasource->getSensorData_temperature_detail($item->sensors[0], $startDateTime, $lenDays);
 			} else if ($lenDays <= 90) {
 				$dataSeries = $this->datasource->getSensorData_temperature_summary($item->sensors, $startDateTime, $lenDays);
@@ -952,7 +943,7 @@ final class ChartPresenter extends BasePresenter
 	 */
 	private function loadCoverageSeries($sensor, $year)
 	{
-		$rc = array();
+		$rc = [];
 
 		$ct = 0;
 
@@ -1103,7 +1094,7 @@ final class ChartPresenter extends BasePresenter
 			Image::rgb(242, 242, 242)
 		);
 
-		$colors = array();
+		$colors = [];
 		$colors[0] = $this->image->colorAllocate(255, 255, 255);
 		$colors[1] = $this->image->colorAllocate(0, 68, 0);
 		$colors[2] = $this->image->colorAllocate(17, 102, 17);
@@ -1178,14 +1169,14 @@ final class ChartPresenter extends BasePresenter
 	 */
 	private function prepareAvgData($sensors, $yearFrom, $years, $mode)
 	{
-		$this->avg = new Avg();
-		$this->avgSeries = array();
+		$this->avg = new Model\Avg();
+		$this->avgSeries = [];
 
 		$result = $this->datasource->getAvgData($sensors, $yearFrom, $years);
 
 		$prevDate = NULL;
-		$values = array();
-		$counts = array();
+		$values = [];
+		$counts = [];
 
 		foreach ($result as $row) {
 			//Debugger::log( $row );
@@ -1198,8 +1189,8 @@ final class ChartPresenter extends BasePresenter
 
 			if ($prevDate != $row->rec_date) {
 				$this->processAvgs($values, $counts, $prevDate);
-				$values = array();
-				$counts = array();
+				$values = [];
+				$counts = [];
 				$prevDate = $row->rec_date;
 			}
 
@@ -1218,7 +1209,7 @@ final class ChartPresenter extends BasePresenter
 
 	private function generateColors($colorsText)
 	{
-		$rc  = array();
+		$rc  = [];
 		foreach ($colorsText as $color) {
 			$c = Color::parseHexColor($color);
 			$rc[] = $this->image->colorAllocate($c->r, $c->g, $c->b);
@@ -1234,9 +1225,8 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Naplni promenne
 	 *     $colorsPlus;
-		   $colorsMinus;
-		   $colorZero;
-
+	 *	   $colorsMinus;
+	 *	   $colorZero;
 	 */
 	private function generateHeatmapColors()
 	{
@@ -1531,7 +1521,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek - carovy graf pro jeden senzor, autorizovany (z administrace)
 	 */
-	public function renderSensorchart($id, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderSensorchart(int $id, $dateFrom, int $lenDays, $altYear = null)
 	{
 		// vypocet datumu
 		$dateTimeFrom = DateTime::from($dateFrom);
@@ -1563,6 +1553,7 @@ final class ChartPresenter extends BasePresenter
 		$response->setHeader('Cache-Control', 'no-cache');
 		$response->setExpiration('1 min');
 
+		//dumpe($this->chart);
 		$this->drawChart("s={$id}", $lenDays, 0);
 	}
 
@@ -1639,7 +1630,7 @@ final class ChartPresenter extends BasePresenter
 			$minusYear,
 			$currentday,
 
-			$this->config->minYear
+			$this->config->getConfig('minYear')
 		);
 
 		$view = $this->datasource->getView($id, $token);
@@ -1680,8 +1671,8 @@ final class ChartPresenter extends BasePresenter
 		$this->template->altYear = $params->altYear;
 		$this->template->appName = $view->appName;
 		$this->template->menu = $this->datasource->readViews($token);
-		$this->template->dataRetentionDays = $this->config->dataRetentionDays;
-		$this->template->links = $this->config->links;
+		$this->template->dataRetentionDays = $this->config->getConfig('dataRetentionDays');
+		$this->template->links = $this->config->getConfig('links');
 
 		$chart = new Model\Chart(NULL);
 		$this->template->chW = $chart->width();
@@ -1692,7 +1683,7 @@ final class ChartPresenter extends BasePresenter
 		$this->template->source1 = FALSE;
 		$this->template->isKompozit = FALSE;
 
-		$outView = array();
+		$outView = [];
 		$outView = $this->addViewItems($outView, $view, $params->dateTimeFrom, 1);
 		if ($params->altSeries()) {
 			$outView = $this->addViewItems($outView, $view, $params->altDateFrom, 2);
@@ -1700,7 +1691,7 @@ final class ChartPresenter extends BasePresenter
 		$this->template->items = $outView;
 		$this->template->devices = $this->devices;
 		$this->template->years = $params->getAltYearsList();
-		$this->template->minYear = $this->config->minYear;
+		$this->template->minYear = $this->config->getConfig('minYear');
 	}
 
 
@@ -1715,33 +1706,12 @@ final class ChartPresenter extends BasePresenter
 		return $vsId;
 	}
 
-
-
-	/**
-	 * Pouziva se pro jen vykresleni automaticky pripraveneho grafu volaneho z detailu zarizeni.
-	 */
-	private function checkSensorAccess($sensorUserId, $sensorId)
-	{
-		if ($this->getUser()->id != $sensorUserId) {
-			Logger::log(
-				'audit',
-				Logger::ERROR,
-				"[{$this->getHttpRequest()->getRemoteAddress()}] ACCESS: Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pouzit senzor #{$sensorId} patrici jinemu uzivateli"
-			);
-
-			$this->getUser()->logout();
-			$this->flashMessage('K tomuto sensoru nemáte práva!');
-			$this->redirect('Sign:in');
-		}
-	}
-
-
 	// http://lovecka.info/ra/chart/sensor/show/6/
 	/**
 	 * Rendering grafu pro senzor - volano z administrace, autentizovany uzivatel.
 	 */
 	public function renderSensor(
-		$id,
+		int $id,
 		$dateFrom = "",
 		$lenDays = 7,
 		$altYear = "",
@@ -1785,10 +1755,10 @@ final class ChartPresenter extends BasePresenter
 			$minusYear,
 			$currentday,
 
-			$this->config->minYear
+			$this->config->getConfig('minYear')
 		);
 
-		$params->allowCompare(TRUE);
+		$params->allowCompare($altYear !== '');
 		$chart = new Model\Chart(null);
 		
 		$device = [
@@ -1854,8 +1824,8 @@ final class ChartPresenter extends BasePresenter
 		$out['name'] = $vi['sensor_name'];
 		$out['desc'] = $vi['name'];
 
-		$this->template->minYear = $this->config->minYear;
-
+		// $this->template->minYear = $this->config->getConfig('minYear');
+		$this->sendJson($out);
 
 		// $this->populateChartMenu($id, $sensor['name'], 101, $sensor['device_id'], $sensor['dev_name']);
 	}
