@@ -62,7 +62,7 @@ final class ChartPresenter extends BasePresenter
 	private $axisY2;
 	private $chart;
 
-	private function drawSeries(ChartAxisY $axisY, \App\Model\ChartSeries $chartSerie, $poradi)
+	private function drawSeries(ChartAxisY $axisY, ChartSeries $chartSerie, $poradi)
 	{
 		/** \App\Model\SensorDataSeries */
 		$serie = $chartSerie->data;
@@ -146,7 +146,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * vykresleni serie v modu 'vorodovne cary'
 	 */
-	private function drawSeriesLine(ChartAxisY $axisY, \App\Model\ChartSeries $chartSerie, $poradi)
+	private function drawSeriesLine(ChartAxisY $axisY, ChartSeries $chartSerie, $poradi)
 	{
 		/** \App\Model\SensorDataSeries */
 		$serie = $chartSerie->data;
@@ -223,7 +223,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * vykresleni serie v modu 'bargrafu'
 	 */
-	private function drawSeriesBar(ChartAxisY $axisY, \App\Model\ChartSeries $chartSerie, $poradi)
+	private function drawSeriesBar(ChartAxisY $axisY, ChartSeries $chartSerie, $poradi)
 	{
 		/** \App\Model\SensorDataSeries */
 		$serie = $chartSerie->data;
