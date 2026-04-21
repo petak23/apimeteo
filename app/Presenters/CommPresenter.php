@@ -106,7 +106,7 @@ class CommPresenter extends BasePresenter
 			$logger->write( Logger::ERROR,  "ERR(comm-login-main): " . get_class($e) . ": " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
-			$httpResponse->setCode(Http\IResponse::S400_BAD_REQUEST );
+			$httpResponse->setCode(Http\IResponse::S400_BadRequest );
 			$this->sendJson(['status' => 400, 'message' => "ERR {$e->getMessage()}"]);
 			$this->terminate();
 		}
@@ -122,7 +122,6 @@ class CommPresenter extends BasePresenter
 	 *          "session_hash": "<hash session>",
 	 *          "last_measure": "<dátum a čas odoslania>",
 	 *          "data_length": <dĺžka dát>,
-	 *          "data_string": "<data>",
 	 *          "data_message": "<last_measure>;<data_length>;<data_string>",
 	 *          "payload_hash": "<SHA256 z data_message>"
 	 *      }
@@ -143,8 +142,7 @@ class CommPresenter extends BasePresenter
 	 * 	"last_measure":"25.11.2025 11:41:00",
 	 * 	"priority":1,
 	 * 	"data_length":5,
-	 * 	"data_string":":::::",
-	 * 	"data_message":";5;:::::Ka5t_Qu1646",
+	 * 	"data_message":";5;:::::xxxxxxxxx",
 	 * 	"payload_hash":"e6c2117a5593b89ba3f2a0573f644693e43a1ad86c85b5e4de4c6bb3ac42237d",
 	 * 	"session_id":887,
 	 * 	"session_hash":"6UN7lOmD",
@@ -225,7 +223,7 @@ class CommPresenter extends BasePresenter
 			$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: " . get_class($e) . "(".$e->getCode()."): " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
-			$httpResponse->setCode($e->getCode() != 0 ? $e->getCode() : Http\IResponse::S400_BAD_REQUEST );
+			$httpResponse->setCode($e->getCode() != 0 ? $e->getCode() : Http\IResponse::S400_BadRequest );
 			$this->sendJson(['status' => $e->getCode() != 0 ? $e->getCode() : 400, 'message' => "CommPresenter:actionDatajson:Ex=> ERR {$e->getMessage()}"]);
 			$this->terminate();
 		}

@@ -93,34 +93,28 @@ public function testSetUpTime($device_id, $d)
 			$impCount = 0;
 		} 
 		//TODO: ***** Zatiaľ vypnuté *****
-		/*else {
+		else {
 			// senzor DEVCLASS_IMPULSE_SUM
 			// musíme počítať deltu v rámci aktuálnej session
-			$fields = explode(';', $data, 2);
-			if (count($fields) != 2) {
-				throw new \Exception("Can't parse '{$data}' for dev {$sessionDevice->device_id}.");
-			}
-			$impCount = intval($fields[0]);
+			$impCount = intval($value); // ??? ak počítam len impulzy
 			$prevVal = 'X';
-			if (
-				$sensor['data_session'] != NULL && strcmp($sensor['data_session'], $fields[1]) == 0
-			) {
+			if ( $sensor['data_session'] != NULL && strcmp($sensor['data_session'], $fields[1]) == 0) {
 				// ide o data v rámci aktuálnej session; teda meriame rozdiel od posledného získaného
-				if ($sensor['imp_count'] > $impCount) {
+				if ($sensor->imp_count > $impCount) {
 					// nejaké divné, že by sa náhodovu vygenerovalo rovnaké číslo session?
 					$value_out = $impCount;
-					$prevVal = "!{$sensor['imp_count']}!";
+					$prevVal = "!{$sensor->imp_count}!";
 				} else {
-					$value_out = $impCount - $sensor['imp_count'];
-					$prevVal = $sensor['imp_count'];
+					$value_out = $impCount - $sensor->imp_count;
+					$prevVal = $sensor->imp_count;
 				}
 			} else {
 				// nova session = začíname od nuly
 				$value_out = $impCount;
 			}
-			$dataSession = $fields[1];
-			$logger->write(Logger::INFO,  "data: ch:{$sensor} s:{$sensor['id']} '{$data}' I({$prevVal})-> {$value_out} @ -{$timeDiff} s");
-		}*/
+			$dataSession = $sessionDevice->hash;
+			$logger->write(Logger::INFO,  "data: ch:{$sensor->chanel_id} s:{$sensor->id} '{$data}' I({$prevVal})-> {$value_out} @ -{$messageTime} s");
+		}
 
 		$sVal = $value_out;
 		if ($sensor->preprocess_data == 1) {
@@ -249,7 +243,7 @@ public function testSetUpTime($device_id, $d)
 		while (true) {
 
 			//---- iterace ďalšej správy v dátovom bloku
-			$msgLen = @ord($msgTotal[$j]);
+			$msgLen = @ord($msgTotal[$j]);timeDiff
 			//D/ $logger->write( Logger::INFO, "  pos={$j}, len={$msgLen}");
 			if ($msgLen == 0) {
 				break;
@@ -281,7 +275,7 @@ public function testSetUpTime($device_id, $d)
 	 */
 	public function processData(Model\SessionDevice $sessionDevice, $msg, ?string $remoteIp, int $i, int $channel, $timeDiff, Logger $logger)
 	{
-		/*$sensor = $this->pv_sensors->getSensorByChannel($sessionDevice->device_id, $channel);
+		/*$sensor = $this->pv_sensors->getSensorByChannel($sessionDtimeDiffevice->device_id, $channel);
 		if ($sensor == NULL) {
 			throw new \Exception("Ch {$channel} not found for dev {$sessionDevice->device_id}.");
 		}
