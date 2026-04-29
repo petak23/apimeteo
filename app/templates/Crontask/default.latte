@@ -1,0 +1,12 @@
+{layout '../@layoutCron.latte'}
+
+{define content}
+
+{dump $ip_not_allowed}
+
+{if ! $ip_not_allowed }
+Processed: {$batches} batches and {$records} records in {$time} sec.
+{else}
+IP address not allowed.
+{/if}
+{/define}
