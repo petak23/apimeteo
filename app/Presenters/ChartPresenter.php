@@ -45,7 +45,7 @@ final class ChartPresenter extends BasePresenter
 	}
 
 	// duplicita s BaseAdminPresenter->populateTemplate !
-	private function populateChartMenu($sensorId, $sensorName, $activeItem, $devId, $devName)
+	/*private function populateChartMenu($sensorId, $sensorName, $activeItem, $devId, $devName)
 	{
 		$submenu = [];
 		$submenu[] =   ['id' => '103', 'link' => "device/show/{$devId}", 'name' => "· Zařízení {$devName}"];
@@ -53,7 +53,7 @@ final class ChartPresenter extends BasePresenter
 		$submenu[] =   ['id' => '100', 'link' => "chart/sensorstat/show/{$sensorId}", 'name' => "· · · Statistika"];
 		$submenu[] =   ['id' => '101', 'link' => "chart/sensor/show/{$sensorId}", 'name' => "· · · Graf"];
 		$this->populateMenu($activeItem, 1, $submenu);
-	}
+	}*/
 
 
 	private $image;

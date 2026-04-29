@@ -75,3 +75,41 @@ WHERE ur.name = 'Chart'
 			WHERE up.id_user_roles = 1
 				AND up.id_user_resource = ur.id
 	);
+
+-- 2026-04-23 11:20:16
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+SET foreign_key_checks = 0;
+SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+DROP TABLE IF EXISTS `device_classes`;
+CREATE TABLE `device_classes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Index',
+  `desc` varchar(50) NOT NULL COMMENT 'Popis',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='Druh merania senzora';
+
+INSERT INTO `device_classes` (`id`, `desc`) VALUES
+(1,	'CONTINUOUS_MINMAXAVG'),
+(2,	'CONTINUOUS'),
+(3,	'IMPULSE_SUM'),
+(4,	'RAIN_SUM');
+
+-- 2026-04-29
+
+INSERT INTO user_resource (name)
+SELECT 'Crontask'
+WHERE NOT EXISTS (
+		SELECT 1 FROM user_resource WHERE name = 'Crontask'
+);
+INSERT INTO user_permission (id_user_roles, id_user_resource, actions)
+SELECT 1, ur.id, NULL
+FROM user_resource ur
+WHERE ur.name = 'Crontask'
+	AND NOT EXISTS (
+			SELECT 1
+			FROM user_permission up
+			WHERE up.id_user_roles = 1
+				AND up.id_user_resource = ur.id
+	);

@@ -85,18 +85,25 @@ public function testSetUpTime($device_id, $d)
 		Logger $logger): void
 	{
 
-		if ($sensor->device_class != 3) { 
+		if ($sensor->device_class == 1 || $sensor->device_class == 2) { 
 			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG a DEVCLASS_CONTINUOUS
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
 			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
 			$dataSession = '';
 			$impCount = 0;
-		} 
+		} elseif ($sensor->device_class == 4) {
+			// senzor RAIN_SUM
+			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
+			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
+			$dataSession = '';
+			$impCount = 0;
+		}
+
 		//TODO: ***** Zatiaľ vypnuté *****
 		else {
 			// senzor DEVCLASS_IMPULSE_SUM
 			// musíme počítať deltu v rámci aktuálnej session
-			$impCount = intval($value); // ??? ak počítam len impulzy
+			/*$impCount = intval($value); // ??? ak počítam len impulzy
 			$prevVal = 'X';
 			if ( $sensor['data_session'] != NULL && strcmp($sensor['data_session'], $fields[1]) == 0) {
 				// ide o data v rámci aktuálnej session; teda meriame rozdiel od posledného získaného
@@ -113,7 +120,7 @@ public function testSetUpTime($device_id, $d)
 				$value_out = $impCount;
 			}
 			$dataSession = $sessionDevice->hash;
-			$logger->write(Logger::INFO,  "data: ch:{$sensor->chanel_id} s:{$sensor->id} '{$data}' I({$prevVal})-> {$value_out} @ -{$messageTime} s");
+			$logger->write(Logger::INFO,  "data: ch:{$sensor->chanel_id} s:{$sensor->id} '{$data}' I({$prevVal})-> {$value_out} @ -{$messageTime} s");*/
 		}
 
 		$sVal = $value_out;
@@ -136,7 +143,7 @@ public function testSetUpTime($device_id, $d)
 
 		$values = [];
 		$values['last_data_time'] = $messageTime;
-		if ($sensor['device_class'] != 3) {
+		if ($sensor->device_class == 1 || $sensor->device_class == 2 || $sensor->device_class == 4) {
 			$values['last_out_value'] = $value_out;
 		}
 		if ($dataSession != '') {
@@ -243,7 +250,7 @@ public function testSetUpTime($device_id, $d)
 		while (true) {
 
 			//---- iterace ďalšej správy v dátovom bloku
-			$msgLen = @ord($msgTotal[$j]);timeDiff
+			$msgLen = @ord($msgTotal[$j]);
 			//D/ $logger->write( Logger::INFO, "  pos={$j}, len={$msgLen}");
 			if ($msgLen == 0) {
 				break;
