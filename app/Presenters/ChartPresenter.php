@@ -48,7 +48,7 @@ final class ChartPresenter extends BasePresenter
 	/*private function populateChartMenu($sensorId, $sensorName, $activeItem, $devId, $devName)
 	{
 		$submenu = [];
-		$submenu[] =   ['id' => '103', 'link' => "device/show/{$devId}", 'name' => "· Zařízení {$devName}"];
+		$submenu[] =   ['id' => '103', 'link' => "device/show/{$devId}", 'name' => "· Zariadenie {$devName}"];
 		$submenu[] =   ['id' => '102', 'link' => "sensor/show/{$sensorId}", 'name' => "· · Senzor {$sensorName}"];
 		$submenu[] =   ['id' => '100', 'link' => "chart/sensorstat/show/{$sensorId}", 'name' => "· · · Statistika"];
 		$submenu[] =   ['id' => '101', 'link' => "chart/sensor/show/{$sensorId}", 'name' => "· · · Graf"];
@@ -776,11 +776,11 @@ final class ChartPresenter extends BasePresenter
 
 		if ($item->source == 1) {
 			/*
-				Pro několikadenní pohledy použije zdrojová data; pro delší použije hodinové sumarizace. 
-				Pro data starsi nez 'dataRetentionDays' pouzije vzdy sumarizaci.
-				Pro kompozity použije vždy sumarizaci.
-				Pro velmi dlouhé pohledy použije denní minimum a maximum
-				Vhodné pro teplotu.
+				Pre niekoľkodňové pohľady použije zdrojové dáta; pre dlhšie použije hodinové sumarizácie.
+				Pre dáta staršie než 'dataRetentionDays' použije vždy sumarizáciu.
+				Pre kompozity použije vždy sumarizáciu.
+				Pre veľmi dlhé pohľady použije denné minimum a maximum
+				Vhodné pre teplotu.
 			*/
 			$dateAge = intval((new DateTime('now'))->diff($startDateTime)->format('%a'));
 			// Debugger::log( "age {$dateAge} for {$startDateTime}" );

@@ -70,10 +70,10 @@ final class GalleryPresenter extends BasePresenter
 	{
 		$device = $this->devices->getDevice($id);
 		if (!$device) {
-			$this->error('Zařízení nebylo nalezeno');
+			$this->error('Zariadenie nebolo nájdené');
 		}
 		if (!$token || ($device['blob_token'] !== $token)) {
-			$this->error('Token nesouhlasí.');
+			$this->error('Token nesúhlasí.');
 		}
 
 		$this->template->links = $this->links;
@@ -151,15 +151,15 @@ final class GalleryPresenter extends BasePresenter
 
 		$device = $this->devices->getDevice($id);
 		if (!$device) {
-			$this->error('Zařízení nebylo nalezeno');
+			$this->error('Zariadenie nebolo nájdené');
 		}
 		if (!$token || ($device['blob_token'] !== $token)) {
-			$this->error('Token nesouhlasí.');
+			$this->error('Token nesúhlasí.');
 		}
 
 		$blob = $this->blobs->getBlob($id, $blobid);
 		if (!$blob) {
-			// $this->error('Soubor nenalezen nebo k němu nejsou práva.', Nette\HTTP\Response::S404_NotFound );
+			// $this->error('Súbor nebol nájdený alebo k nemu nie sú práva.', Nette\HTTP\Response::S404_NotFound );
 			$response->setCode(Nette\Http\Response::S404_NotFound);
 			$this->terminate();
 			return;

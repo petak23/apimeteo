@@ -17,7 +17,7 @@ class ViewItem
 	use Nette\SmartObject;
 
 	/**
-	 * Pole senzorů. Každý senzor má vlastnosti:
+	 * Pole senzorov. Každý senzor má vlastnosti:
 	 * 
 	 * id	device_id	channel_id	name	device_class	value_type	msg_rate	desc	display_nodata_interval	
 	 * preprocess_data	preprocess_factor	

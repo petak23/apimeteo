@@ -81,7 +81,7 @@ class ChartParameters
 			$this->dateTimeFrom->modify( '-1 year' );
 		}
 
-		// kontrola limitů
+		// kontrola limitov
 
 		if( $this->dateTimeFrom->getTimestamp() > time() ) {
 			$this->dateTimeFrom=(new DateTime('now'))->modify("-1 day");
@@ -92,7 +92,7 @@ class ChartParameters
 		}
 
 
-		// srovnávací rok
+		// porovnávací rok
 
 		if( strlen($altminus)>0 ) {
 			if( $altYear==NULL ) {
@@ -117,7 +117,7 @@ class ChartParameters
 		}
 
 
-		// předvolby
+		// predvoľby
 
 		if( strlen($currentday)>0 ) {
 			$this->lenDays = 1;

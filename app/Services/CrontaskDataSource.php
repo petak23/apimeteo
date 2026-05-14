@@ -74,13 +74,16 @@ class CrontaskDataSource
 
 	/**
 	 * id	device_id	channel_id	name	device_class	value_type	msg_rate	desc	display_nodata_interval	preprocess_data	preprocess_factor
+	 * @deprecated - používat getSensor() z Model\PV_Sensors, který vrací i další potřebná pole pro zpracování notifikací
+	 * @return array|false|Nette\Database\IRow
 	 */
 	public function getSensor($sensorId)
 	{
 		return $this->database->fetch('SELECT * FROM sensors WHERE id = ?', $sensorId);
 	}
 
-	public function getRecordsForSensorHour($sensorId, $date, $hour)
+	/** */
+	public function getRecordsForSensorHour(int $sensorId, string $date, string $hour): array
 	{
 		$dateFrom = $date . " " . $hour . ":00:00";
 		$dateTo = $date . " " . $hour . ":59:59";
