@@ -71,13 +71,13 @@ final class ViewPresenter extends BasePresenter
 		$form = new Form;
 		$form->addProtection();
 
-		$form->addText('name', 'Jméno grafu:')
-		->setOption('description', 'Bude zobrazeno jako nadpis nad grafem a jako jméno volby v levém menu.'  )
+		$form->addText('name', 'Názov grafu:')
+		->setOption('description', 'Bude zobrazené ako nadpis nad grafom a ako názov voľby v ľavom menu.'  )
 			->setHtmlAttribute('size', 50)
 			->setRequired();
 
-		$form->addText('app_name', 'Jméno aplikace:')
-			->setOption('description', 'Bude zobrazeno v šedém pruhu nahoře.'  )
+		$form->addText('app_name', 'Názov aplikácie:')
+			->setOption('description', 'Bude zobrazené v sivom pruhu hore.'  )
 			->setHtmlAttribute('size', 50)
 			->setRequired();
 	
@@ -87,36 +87,36 @@ final class ViewPresenter extends BasePresenter
 			->setRequired();
 
 		$form->addText('token', 'Zabezpečovací token:')
-			->setOption('description', 'Stane se součástí URL. Zadejte dlouhý náhodný text. Všechny grafy se stejným tokenem budou vidět v jednom bloku a budou mít společné levé menu.'  )
+			->setOption('description', 'Stane sa súčasťou URL. Zadajte dlhý náhodný text. Všetky grafy s rovnakým tokenom budú viditeľné v jednom bloku a budú mať spoločné ľavé menu.'  )
 			->addRule(Form::PATTERN, 'Len písmená, čísla, pomlčka', '([0-9A-Za-z\-]+)')
 			->setHtmlAttribute('size', 50)
 			->setDefaultValue( Random::generate(40) )
 			->setRequired();
 
-		$form->addCheckbox('allow_compare', 'Povolit srovnávání')
-			->setOption('description', 'Pokud je zaškrtnuto, bude nabídnuta možnost srovnávání s jiným rokem.'  );
+		$form->addCheckbox('allow_compare', 'Povoliť porovnávanie')
+			->setOption('description', 'Ak je zaškrtnuté, bude ponúknutá možnosť porovnávania s iným rokom.'  );
 
 		$renders = [
-			'chart' => 'Základní graf',
-			'coverage' => 'Zobrazení pokrytí dat',
-			'avgtemp' => 'Průměrná teplota',
-			'avgyears0' => 'Porovnání průměrné teploty',
-			'avgyears1' => 'Porovnání minimální teploty',
+			'chart' => 'Základný graf',
+			'coverage' => 'Zobrazenie pokrytia dát',
+			'avgtemp' => 'Priemerná teplota',
+			'avgyears0' => 'Porovnanie priemernej teploty',
+			'avgyears1' => 'Porovnanie minimálnej teploty',
 			'line' => 'Vodorovné čiary - vhodné pre smer vetra',
 			'bar' => 'Stĺpcový graf - vhodné pre zrážky',
 		];
 
-		$form->addSelect('render', 'Vykreslovací stroj:', $renders)
+		$form->addSelect('render', 'Vykresľovací stroj:', $renders)
 			->setDefaultValue('chart')
 			->setPrompt('- Zvoľte spôsob vykreslenia -')
 			->setRequired();
 
-		$form->addInteger('vorder', 'Pořadí:')
-			->setOption('description', 'Pořadí v menu - pokud je více grafů se stejným tokenem, řadí se podle této hodnoty. Vyšší číslo = více nahoře.'  )
+		$form->addInteger('vorder', 'Poradie:')
+			->setOption('description', 'Poradie v menu - ak je viac grafov s rovnakým tokenom, triedi sa podľa tejto hodnoty. Vyššie číslo = viac hore.'  )
 			->setDefaultValue(10)
 			->setRequired();
 
-		$form->addSubmit('send', 'Uložit')
+		$form->addSubmit('send', 'Uložiť')
 			->setHtmlAttribute('onclick', 'if( Nette.validateForm(this.form) ) { this.form.submit(); this.disabled=true; } return false;');
 			
 		$form->onSuccess[] = [$this, 'viewFormSucceeded'];

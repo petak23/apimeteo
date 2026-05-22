@@ -16,40 +16,41 @@
  * 
  * 
  * public function renderDefault()
- * Task spousteny kazdou hodinu; bezi maximalne minutu.
+ * Task spúšťaný každú hodinu; beží maximálne minútu.
  * 
- * Provadi akce:
- * - zkontroluje stav senzoru a nafrontuje pozadavky na notifikacni maily:
- *      - prekroceni min/max limitu
- *      - neprichazejici data
- * - odesle notifikacni maily, pokud nejake jsou
- * - smaze stare zaznamy v 'prelogin' a pokud jsou, aktualizuje odpovidajici zaznamy v 'devices'
- * - zpracuje 'measures' 
- *      - vygeneruje z novych zaznamu hodinova 'sumdata' 
- *      - vygeneruje ze zmenenych hodinovych 'sumdata' denni 'sumdata'
- * - projde nove obrazky (bloby s typem 'jpg' a nazvem 'camera' a otaguje ty, co jsou cerne)
+ * Vykonáva akcie:
+ * - zkontroluje stav senzorov a nafrontuje požiadavky na notifikačné maily:
+ *      - prekročenie min/max limitu
+ *      - neprichádzajúce dáta
+ * 			- odošle notifikačné maily, ak sú k dispozícii
+ * 			- vymaže staré záznamy v 'prelogin' a ak sú k dispozícii, aktualizuje zodpovedajúce záznamy v 'devices'
+ * 			- spracuje 'measures' 
+ *      - vygeneruje z nových záznamov hodinové 'sumdata' 
+ *      - vygeneruje zo zmenených hodinových 'sumdata' denné 'sumdata'
+ * 			- prejde nové obrázky (bloby s typom 'jpg' a názvom 'camera' a otaguje tie, čo sú čierne)
  * 
  *----------------------------------------------------
  * public function renderDaily()
- * Task spousteny jednou denne; delka behu neomezena.
+ * Task spúšťaný raz denne; dĺžka behu neomedzená.
  * 
- * Denni tasky:
- * - smaze odeslane notifikace z tabulky notifications (starsi nez 14 dni)
- * - smaze stara data
+ * Denné tasky:
+ * - zmaže odoslané notifikácie z tabulky notifications (staršie ako 14 dní)
+ * - zmaže staré data
  *      - measures
  *      - sumdata
- *      - bloby (db i soubory)
- * - smaze stare logy
+ *      - bloby (db aj súbory)
+ * - zmaže staré logy
  * 
  * ----------------------------------------------------
  * public function renderExport()
- * Export novych measures do externiho systemu.
- * Viz popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
+ * Export nových measures do externého systému.
+ * Pozri popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
  */
 declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Model;
 use App\Services;
 use App\Services\Logger;
 use Nette;
@@ -89,13 +90,15 @@ final class CrontaskPresenter extends BasePresenter
 	public $processedRecords = 0;
 
 
-
 	/** @var Services\CrontaskDataSource */
 	private $datasource;
 
 	private $mailService;
 
 	public $config;
+
+	/** @var Model\PV_Sensors @inject */
+	public $sensors;
 
 	public function __construct(
 		Services\CrontaskDataSource $datasource,
@@ -236,8 +239,6 @@ final class CrontaskPresenter extends BasePresenter
 		}
 	}
 
-
-
 	/**
 	 * Zpracuje cekajici notifikace
 	 */
@@ -250,49 +251,50 @@ final class CrontaskPresenter extends BasePresenter
 			$type = abs($row['event_type']);
 			$eventStart = $row['event_type'] > 0;
 			if ($eventStart) {
-				$prefix = "VAROVÁNÍ: ";
+				$prefix = "VAROVANIE: ";
 			} else {
-				$prefix = "Konec poplachu: ";
+				$prefix = "Koniec poplachu: ";
 			}
-
+			$subject = " - {$row['dev_name']}:{$row['s_name']}";
+			$text = "";
 			if ($type == 1) {
-				$subject = "Hodnota moc vysoká - {$row['dev_name']}:{$row['s_name']}";
+				$subject = "Hodnota príliš vysoká" . $subject;
 				$text =
 					"<p>{$prefix} {$subject}</p>
 					<p><b>{$row['custom_text']}<b></p>
 					<p>
 					Hodnota: <b>{$row['out_value']} {$row['unit']}</b>
-					<br>Zařízení: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
-					<br>Sensor: <b>{$row['s_name']}</b> ({$row['s_desc']})
+					<br>Zariadenie: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
+					<br>Senzor: <b>{$row['s_name']}</b> ({$row['s_desc']})
 					<br>Čas: <b>{$row['event_ts']}</b>
 					</p>
 					";
 			} else if ($type == 2) {
-				$subject = "Hodnota příliš nízká - {$row['dev_name']}:{$row['s_name']}";
+				$subject = "Hodnota príliš nízka" . $subject;
 				$text =
 					"<p>{$prefix} {$subject}</p>
 					<p><b>{$row['custom_text']}<b></p>
 					<p>
 					Hodnota: <b>{$row['out_value']} {$row['unit']}</b>
-					<br>Zařízení: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
-					<br>Sensor: <b>{$row['s_name']}</b> ({$row['s_desc']})
+					<br>Zariadenie: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
+					<br>Senzor: <b>{$row['s_name']}</b> ({$row['s_desc']})
 					<br>Čas: <b>{$row['event_ts']}</b>
 					</p>
 					";
 			} else if ($type == 4) {
-				$subject = "Ze senzoru nepřichází data - {$row['dev_name']}:{$row['s_name']}";
+				$subject = "Zo senzora neprichádzajú dáta" . $subject;
 				$text =
 					"<p>{$prefix} {$subject}</p>
 					<p>
-					Zařízení: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
-					<br>Sensor: <b>{$row['s_name']}</b> ({$row['s_desc']})
-					<br>Poslední data: <b>{$row['custom_text']}<b>
-					<br>Aktuální čas: <b>{$row['event_ts']}</b>
+					Zariadenie: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
+					<br>Senzor: <b>{$row['s_name']}</b> ({$row['s_desc']})
+					<br>Posledné dáta: <b>{$row['custom_text']}<b>
+					<br>Aktuálny čas: <b>{$row['event_ts']}</b>
 					</p>
 					";
 			}
 
-			$logger->write(Logger::INFO, "Notifikace #{$row['id']} '{$prefix} {$subject}' pro {$row['u1_email']}");
+			$logger->write(Logger::INFO, "Notifikace #{$row['id']} '{$prefix} {$subject}' pre {$row['u1_email']}");
 
 			$this->mailService->sendMail(
 				$row['u1_email'],
@@ -312,10 +314,10 @@ final class CrontaskPresenter extends BasePresenter
 
 
 	/**
-	 * projde vsechny zaznamy za danou hodinu a 
-	 * - pro zaznamy, kde neni status=1:
-	 *      - nastavi status=1
-	 * - spocte hodinove prumery/sumy a ulozi je do tabulky, pokud to pro dany senzor ma delat
+	 * Prejde všetky záznamy za danú hodinu a 
+	 * - pre záznamy, kde nie je status=1:
+	 *      - nastaví status=1
+	 * - spočíta hodinové priemery/sumy a uloží ich do tabuľky, ak to pre daný senzor má robiť
 	 */
 	private function processSensorHour(int $sensorId, string $date, string $hour, Logger $logger)
 	{
@@ -328,9 +330,9 @@ final class CrontaskPresenter extends BasePresenter
 		$avg = NULL;
 		$sum = 0;
 
-		$sensor = $this->datasource->getSensor($sensorId);
+		$sensor = $this->sensors->getSensor($sensorId);
 		if (!$sensor) {
-			$logger->write(Logger::ERROR, "Nenalezen senzor {$sensorId}!");
+			$logger->write(Logger::ERROR, "Nenájdený senzor {$sensorId}!");
 			return;
 		}
 		$rows = $this->datasource->getRecordsForSensorHour($sensorId, $date, $hour);
@@ -434,10 +436,10 @@ final class CrontaskPresenter extends BasePresenter
 
 
 	/**
-	 * projde vsechny sumarizace za dany den a 
-	 * - pro zaznamy, kde neni status=1:
-	 *      - nastavi status=1
-	 * - spocte  prumery a ulozi je do tabulky
+	 * Prejde všetky sumarizácie za daný deň a 
+	 * - pre záznamy, kde nie je status=1:
+	 *      - nastaví status=1
+	 * - spočíta  priemery a uloží ich do tabuľky
 	 */
 	private function processSensorSummary(int $sensorId, string $date, Logger $logger)
 	{
@@ -457,7 +459,7 @@ final class CrontaskPresenter extends BasePresenter
 		$val18 = NULL;
 
 
-		$sensor = $this->datasource->getSensor($sensorId);
+		$sensor = $this->sensors->getSensor($sensorId);
 		$rows = $this->datasource->getSumsForSensorDay($sensorId, $date);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  (array)$rec );
@@ -815,7 +817,7 @@ final class CrontaskPresenter extends BasePresenter
 
 
 	/**
-	 * Task spousteny jednou denne; delka behu neomezena.
+	 * Task spúšťaný jednou denne; delka behu neomezena.
 	 * 
 	 * Denni tasky:
 	 * - smaze odeslane notifikace z tabulky notifications (starsi nez 14 dni)

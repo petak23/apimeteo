@@ -565,7 +565,7 @@ class ChartDataSource
 
 	public function getMonthSummaryCont($sensorId)
 	{
-		// přepnuto na Explorer fluent API místo raw SQL
+		// prepnuté na Explorer fluent API namiesto raw SQL
 		return $this->database->table('sumdata')
 			->select("DATE_FORMAT(rec_date, ?) AS datum_mesic", '%Y-%m') 
 			->select('MIN(min_val) AS min_val')
