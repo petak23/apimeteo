@@ -53,6 +53,7 @@ namespace App\Presenters;
 use App\Services;
 use App\Services\Logger;
 use Nette;
+use Nette\Database\Table;
 use Nette\Utils\DateTime;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
@@ -110,70 +111,70 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Zkontroluje prekroceni min/max limitu
 	 */
-	private function checkMinMaxLimits(array $sensor, float $value_out, $data_ts): int
+	private function checkMinMaxLimits(Table\ActiveRow $sensor, float $value_out, $data_ts): int
 	{
 		$zapisWarningy = 0;
 
-		if (isset($sensor['warn_max']) && $sensor['warn_max']) { // mame hlidat maximum
-			if ($value_out >= $sensor['warn_max_val']) { // prekrocene maximum
+		if (isset($sensor->warn_max) && $sensor->warn_max) { // mame hlidat maximum
+			if ($value_out >= $sensor->warn_max_val) { // prekrocene maximum
 
 				// zacatek udalosti
-				if (!$sensor['warn_max_fired']) { // pokud to nemame zapsane
-					$sensor['warn_max_fired'] = $data_ts;
-					$sensor['warn_max_sent'] = 0;
+				if (!$sensor->warn_max_fired) { // pokud to nemame zapsane
+					$sensor->warn_max_fired = $data_ts;
+					$sensor->warn_max_sent = 0;
 					$zapisWarningy = 1;
-					Logger::log(self::NAME,  Logger::INFO,  "MAX reached: {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] {$value_out} >= {$sensor['warn_max_val']}");
+					Logger::log(self::NAME,  Logger::INFO,  "MAX reached: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val}");
 				}
 
 				// poslani notifikace
-				if ($sensor['warn_max_fired'] && $sensor['warn_max_sent'] == 0) {
+				if ($sensor->warn_max_fired && $sensor->warn_max_sent == 0) {
 					// casova vzdalenost!
-					$utime = (DateTime::from($sensor['warn_max_fired']))->getTimestamp();
-					if (time() - $utime > $sensor['warn_max_after']) {
-						$sensor['warn_max_sent'] = 1;
+					$utime = (DateTime::from($sensor->warn_max_fired))->getTimestamp();
+					if (time() - $utime > $sensor->warn_max_after) {
+						$sensor->warn_max_sent = 1;
 						$zapisWarningy = 1;
-						$this->datasource->insertNotification($sensor['device_id'], $sensor['id'], 1, $sensor['warn_max_text'], $value_out, $sensor['warn_max_fired']);
-						Logger::log(self::NAME,  Logger::INFO,  "MAX notification: {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] {$value_out} >= {$sensor['warn_max_val']} delay={$sensor['warn_max_after']} s");
+						$this->datasource->insertNotification($sensor->device_id, $sensor->id, 1, $sensor->warn_max_text, $value_out, $sensor->warn_max_fired);
+						Logger::log(self::NAME,  Logger::INFO,  "MAX notification: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val} delay={$sensor->warn_max_after} s");
 					}
 				}
-			} else if ($value_out < $sensor['warn_max_val_off']) { // jsme OK pod vypinacim limitem
-				if ($sensor['warn_max_fired']) { // ale mame znacku, ze jsme nad => smazat
-					$sensor['warn_max_fired'] = null;
+			} else if ($value_out < $sensor->warn_max_val_off) { // jsme OK pod vypinacim limitem
+				if ($sensor->warn_max_fired) { // ale mame znacku, ze jsme nad => smazat
+					$sensor->warn_max_fired = null;
 					$zapisWarningy = 1;
-					$this->datasource->insertNotification($sensor['device_id'], $sensor['id'], -1, $sensor['warn_max_text'], $value_out, $data_ts);
-					Logger::log(self::NAME,  Logger::INFO,  "MAX cleared {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] ");
+					$this->datasource->insertNotification($sensor->device_id, $sensor->id, -1, $sensor->warn_max_text, $value_out, $data_ts);
+					Logger::log(self::NAME,  Logger::INFO,  "MAX cleared {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] ");
 				}
 			}
 		}
 
-		if (isset($sensor['warn_min']) && $sensor['warn_min']) { // mame hlidat minimum
-			if ($value_out <= $sensor['warn_min_val']) { // prekrocene minimum
+		if (isset($sensor->warn_min) && $sensor->warn_min) { // mame hlidat minimum
+			if ($value_out <= $sensor->warn_min_val) { // prekrocene minimum
 
 				// zacatek udalosti
-				if (!$sensor['warn_min_fired']) { // pokud to nemame zapsane
-					$sensor['warn_min_fired'] = $data_ts;
-					$sensor['warn_min_sent'] = 0;
+				if (!$sensor->warn_min_fired) { // pokud to nemame zapsane
+					$sensor->warn_min_fired = $data_ts;
+					$sensor->warn_min_sent = 0;
 					$zapisWarningy = 1;
-					Logger::log(self::NAME, Logger::INFO,  "MIN reached: {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] {$value_out} <= {$sensor['warn_min_val']}");
+					Logger::log(self::NAME, Logger::INFO,  "MIN reached: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val}");
 				}
 
 				// poslani notifikace
-				if ($sensor['warn_min_fired'] && $sensor['warn_min_sent'] == 0) {
+				if ($sensor->warn_min_fired && $sensor->warn_min_sent == 0) {
 					// casova vzdalenost!
-					$utime = (DateTime::from($sensor['warn_min_fired']))->getTimestamp();
-					if (time() - $utime > $sensor['warn_min_after']) {
-						$sensor['warn_min_sent'] = 1;
+					$utime = (DateTime::from($sensor->warn_min_fired))->getTimestamp();
+					if (time() - $utime > $sensor->warn_min_after) {
+						$sensor->warn_min_sent = 1;
 						$zapisWarningy = 1;
-						$this->datasource->insertNotification($sensor['device_id'], $sensor['id'], 2, $sensor['warn_min_text'], $value_out, $sensor['warn_min_fired']);
-						Logger::log(self::NAME,  Logger::INFO,  "MIN notification: {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] {$value_out} <= {$sensor['warn_min_val']} delay={$sensor['warn_min_after']} s");
+						$this->datasource->insertNotification($sensor->device_id, $sensor->id, 2, $sensor->warn_min_text, $value_out, $sensor->warn_min_fired);
+						Logger::log(self::NAME,  Logger::INFO,  "MIN notification: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val} delay={$sensor->warn_min_after} s");
 					}
 				}
-			} else if ($value_out > $sensor['warn_min_val_off']) { // jsme OK nad limitem
-				if ($sensor['warn_min_fired']) { // ale mame znacku, ze jsme pod => smazat
-					$sensor['warn_min_fired'] = null;
+			} else if ($value_out > $sensor->warn_min_val_off) { // jsme OK nad limitem
+				if ($sensor->warn_min_fired) { // ale mame znacku, ze jsme pod => smazat
+					$sensor->warn_min_fired = null;
 					$zapisWarningy = 1;
-					$this->datasource->insertNotification($sensor['device_id'], $sensor['id'], -2, $sensor['warn_min_text'], $value_out, $data_ts);
-					Logger::log(self::NAME, Logger::INFO,  "MIN cleared {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] ");
+					$this->datasource->insertNotification($sensor->device_id, $sensor->id, -2, $sensor->warn_min_text, $value_out, $data_ts);
+					Logger::log(self::NAME, Logger::INFO,  "MIN cleared {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] ");
 				}
 			}
 		}
@@ -218,18 +219,20 @@ final class CrontaskPresenter extends BasePresenter
 
 			$zapisWarningy = 0;
 
-			$value_out = isset($sensor['last_out_value']) ? $sensor['last_out_value'] : null;
+			$value_out = isset($sensor->last_out_value) ? $sensor->last_out_value : null;
+			dumpe($sensor->toArray());
 			if ($value_out != null) {
-				$zapisWarningy += $this->checkMinMaxLimits($sensor, $value_out, $sensor['last_data_time']);
+				$zapisWarningy += $this->checkMinMaxLimits($sensor, $value_out, $sensor->last_data_time);
 			}
-
-			if ($sensor['last_data_time'] && $sensor['monitoring']) {
-				$zapisWarningy += $this->checkLastDataTs($sensor);
+			
+			if ($sensor->last_data_time && $sensor->device->monitoring) {
+				$zapisWarningy += $this->checkLastDataTs($sensor->toArray());
 			}
 
 			if ($zapisWarningy) {
-				$this->datasource->updateSensorsWarnings($sensor);
+				$this->datasource->updateSensorsWarnings($sensor->toArray());
 			}
+
 		}
 	}
 
@@ -671,7 +674,7 @@ final class CrontaskPresenter extends BasePresenter
 	private function checkIp(): bool
 	{
 		$remoteIp = $this->getHttpRequest()->getRemoteAddress();
-		foreach ($this->config->cronAllowedIPs as $ip) {
+		foreach ($this->datasource->getCronAllowed() as $ip) {
 			if (strcmp($ip, $remoteIp) == 0) {
 				$this->template->ip_not_allowed = false;
 				return true;

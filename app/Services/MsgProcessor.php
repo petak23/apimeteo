@@ -143,8 +143,10 @@ public function testSetUpTime($device_id, $d)
 
 		$values = [];
 		$values['last_data_time'] = $messageTime;
-		if ($sensor->device_class == 1 || $sensor->device_class == 2 || $sensor->device_class == 4) {
+		if ($sensor->device_class == 1 || $sensor->device_class == 2) {
 			$values['last_out_value'] = $value_out;
+		} elseif ($sensor->device_class == 4) {
+			$values['last_out_value'] = $value_out + $sensor->last_out_value; // kumulativný súčet pre RAIN_SUM
 		}
 		if ($dataSession != '') {
 			$values['imp_count'] = $impCount;

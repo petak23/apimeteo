@@ -104,7 +104,7 @@ abstract class BasePresenter extends Presenter
 
 	public function beforeRender(): void
 	{
-		$this->template->appName = $this->config->getConfig('title');
-		$this->template->links = $this->config->getConfig('links');
+		//$this->template->appName = $this->config->getConfig('title');
+		//$this->template->links = $this->config->getConfig('links');
 	}
 }

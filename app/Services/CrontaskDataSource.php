@@ -5,18 +5,22 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Nette;
+use Nette\Database\Table;
 use Nette\Utils\DateTime;
 
 class CrontaskDataSource
 {
 	use Nette\SmartObject;
 
-	/** @var Nette\Database\Context */
+	/** @var Nette\Database\Explorer */
 	private $database;
 
-	public function __construct(Nette\Database\Explorer $database)
+	private array $cronAllowed = [];
+
+	public function __construct(array $cronAllowed, Nette\Database\Explorer $database)
 	{
 		$this->database = $database;
+		$this->cronAllowed = $cronAllowed;
 	}
 
 
@@ -42,6 +46,10 @@ class CrontaskDataSource
 			");
 	}
 
+	public function getCronAllowed()
+	{
+		return $this->cronAllowed;
+	}
 
 	public function getImagesForProcessing()
 	{
@@ -245,15 +253,13 @@ class CrontaskDataSource
 		$this->database->query('DELETE from prelogin WHERE id = ? ', $id);
 	}
 
-	public function getSensors()
+	public function getSensors(): Table\Selection
 	{
-		return $this->database->fetchAll("
-			select s.* , d.monitoring, d.name as dev_name
-			from sensors s 
-			left outer join devices d
-			on s.device_id = d.id
-			where last_out_value is not null
-			");
+		return $this->database->table('sensors')
+			//->select('sensors.*, devices.monitoring, devices.name AS dev_name')
+			//->join('devices', 'sensors.device_id = devices.id')
+			->where('last_out_value IS NOT NULL');
+			//->fetchAll();
 	}
 
 
