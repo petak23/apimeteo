@@ -100,6 +100,9 @@ final class CrontaskPresenter extends BasePresenter
 	/** @var Model\PV_Sensors @inject */
 	public $sensors;
 
+	/** @var Model\PV_Notifications @inject */
+	public $notifications;
+
 	public function __construct(
 		Services\CrontaskDataSource $datasource,
 		Services\MailService $mailsv,
@@ -114,38 +117,43 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Zkontroluje prekroceni min/max limitu
 	 */
-	private function checkMinMaxLimits(Table\ActiveRow $sensor, float $value_out, $data_ts): int
+	private function checkMinMaxLimits(Table\ActiveRow $sensor, float $value_out): array
 	{
-		$zapisWarningy = 0;
+		$out = [
+			'warn_max_fired' 	=> null,
+			'warn_max_send'		=> 0,
+			'warn_min_fired' 	=> null,
+			'warn_min_send'		=> 0,
+			'store_warnings'	=> 0,
+		];
 
 		if (isset($sensor->warn_max) && $sensor->warn_max) { // mame hlidat maximum
 			if ($value_out >= $sensor->warn_max_val) { // prekrocene maximum
-
 				// zacatek udalosti
 				if (!$sensor->warn_max_fired) { // pokud to nemame zapsane
-					$sensor->warn_max_fired = $data_ts;
-					$sensor->warn_max_sent = 0;
-					$zapisWarningy = 1;
-					Logger::log(self::NAME,  Logger::INFO,  "MAX reached: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val}");
+					$out['warn_max_fired'] = $sensor->last_data_time;
+					$out['warn_max_send'] = 0;
+					$out['store_warnings'] = 1;
+					Logger::log(self::NAME,  Logger::INFO,  "MAX reached: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val}");
 				}
 
 				// poslani notifikace
-				if ($sensor->warn_max_fired && $sensor->warn_max_sent == 0) {
+				if ($out['warn_max_fired'] && $out['warn_max_send'] == 0) {
 					// casova vzdalenost!
-					$utime = (DateTime::from($sensor->warn_max_fired))->getTimestamp();
+					$utime = (DateTime::from($out['warn_max_fired']))->getTimestamp();
 					if (time() - $utime > $sensor->warn_max_after) {
-						$sensor->warn_max_sent = 1;
-						$zapisWarningy = 1;
-						$this->datasource->insertNotification($sensor->device_id, $sensor->id, 1, $sensor->warn_max_text, $value_out, $sensor->warn_max_fired);
-						Logger::log(self::NAME,  Logger::INFO,  "MAX notification: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val} delay={$sensor->warn_max_after} s");
+						$out['warn_max_send'] = 1;
+						$out['store_warnings'] = 1;
+						$this->notifications->insert($sensor->device_id, $sensor->id, 1, $sensor->warn_max_text, $value_out, $out['warn_max_fired']);
+						Logger::log(self::NAME,  Logger::INFO,  "MAX notification: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val} delay={$sensor->warn_max_after} s");
 					}
 				}
 			} else if ($value_out < $sensor->warn_max_val_off) { // jsme OK pod vypinacim limitem
 				if ($sensor->warn_max_fired) { // ale mame znacku, ze jsme nad => smazat
-					$sensor->warn_max_fired = null;
-					$zapisWarningy = 1;
-					$this->datasource->insertNotification($sensor->device_id, $sensor->id, -1, $sensor->warn_max_text, $value_out, $data_ts);
-					Logger::log(self::NAME,  Logger::INFO,  "MAX cleared {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] ");
+					$out['warn_max_fired'] = null;
+					$out['store_warnings'] = 1;
+					$this->notifications->insert($sensor->device_id, $sensor->id, -1, $sensor->warn_max_text, $value_out, $sensor->last_data_time);
+					Logger::log(self::NAME,  Logger::INFO,  "MAX cleared {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 				}
 			}
 		}
@@ -155,85 +163,96 @@ final class CrontaskPresenter extends BasePresenter
 
 				// zacatek udalosti
 				if (!$sensor->warn_min_fired) { // pokud to nemame zapsane
-					$sensor->warn_min_fired = $data_ts;
-					$sensor->warn_min_sent = 0;
-					$zapisWarningy = 1;
-					Logger::log(self::NAME, Logger::INFO,  "MIN reached: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val}");
+					$out['warn_min_fired'] = $sensor->last_data_time;
+					$out['warn_min_send'] = 0;
+					$out['store_warnings'] = 1;
+					Logger::log(self::NAME, Logger::INFO,  "MIN reached: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val}");
 				}
 
 				// poslani notifikace
-				if ($sensor->warn_min_fired && $sensor->warn_min_sent == 0) {
+				if ($out['warn_min_fired'] && $out['warn_min_send'] == 0) {
 					// casova vzdalenost!
-					$utime = (DateTime::from($sensor->warn_min_fired))->getTimestamp();
+					$utime = (DateTime::from($out['warn_min_fired']))->getTimestamp();
 					if (time() - $utime > $sensor->warn_min_after) {
-						$sensor->warn_min_sent = 1;
-						$zapisWarningy = 1;
-						$this->datasource->insertNotification($sensor->device_id, $sensor->id, 2, $sensor->warn_min_text, $value_out, $sensor->warn_min_fired);
-						Logger::log(self::NAME,  Logger::INFO,  "MIN notification: {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val} delay={$sensor->warn_min_after} s");
+						$out['warn_min_send'] = 1;
+						$out['store_warnings'] = 1;
+						$this->notifications->insert($sensor->device_id, $sensor->id, 2, $sensor->warn_min_text, $value_out, $out['warn_min_fired']);
+						Logger::log(self::NAME,  Logger::INFO,  "MIN notification: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val} delay={$sensor->warn_min_after} s");
 					}
 				}
 			} else if ($value_out > $sensor->warn_min_val_off) { // jsme OK nad limitem
 				if ($sensor->warn_min_fired) { // ale mame znacku, ze jsme pod => smazat
-					$sensor->warn_min_fired = null;
-					$zapisWarningy = 1;
-					$this->datasource->insertNotification($sensor->device_id, $sensor->id, -2, $sensor->warn_min_text, $value_out, $data_ts);
-					Logger::log(self::NAME, Logger::INFO,  "MIN cleared {$sensor->id} [{$sensor->dev_name}:{$sensor->name}] ");
+					$out['warn_min_fired'] = null;
+					$out['store_warnings'] = 1;
+					$this->notifications->insert($sensor->device_id, $sensor->id, -2, $sensor->warn_min_text, $value_out, $sensor->last_data_time);
+					Logger::log(self::NAME, Logger::INFO,  "MIN cleared {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 				}
 			}
 		}
 
-		return $zapisWarningy;
+		return $out;
 	}
 
 	/**
 	 * Zkontroluje neaktivitu
 	 */
-	private function checkLastDataTs(array $sensor): int
+	private function checkLastDataTs(Table\ActiveRow $sensor): array
 	{
-		$zapisWarningy = 0;
+		$out = [
+			'warn_noaction_fired' 	=> null,
+			'warn_max_send'		=> 0,
+			'warn_min_fired' 	=> null,
+			'warn_min_send'		=> 0,
+			'store_warnings'	=> 0,
+		];
 
-		$utime = (DateTime::from($sensor['last_data_time']))->getTimestamp();
-		if (time() - $utime > $sensor['msg_rate']) { // nechodi zpravy
-			if (!$sensor['warn_noaction_fired']) { // nemame to zapsane
-				$sensor['warn_noaction_fired'] = new DateTime();
-				$zapisWarningy = 1;
-				$this->datasource->insertNotification($sensor['device_id'], $sensor['id'], 4, "{$sensor['last_data_time']}", 0, new DateTime());
-				Logger::log(self::NAME,  Logger::INFO,  "Notification NO_DATA: {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] ");
+		$utime = (DateTime::from($sensor->last_data_time))->getTimestamp();
+		if (time() - $utime > $sensor->msg_rate) { // nechodi zpravy
+			if (!$sensor->warn_noaction_fired) { // nemame to zapsane
+				$out['warn_noaction_fired'] = new DateTime();
+				$out['store_warnings'] = 1;
+				$this->notifications->insert($sensor->device_id, $sensor->id, 4, "{$sensor->last_data_time}", 0, new DateTime());
+				Logger::log(self::NAME,  Logger::INFO,  "Notification NO_DATA: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 			}
 		} else { // zpravy chodi
-			if ($sensor['warn_noaction_fired']) { // ale mame znacku, ze nechodi => smazat
-				$sensor['warn_noaction_fired'] = null;
-				$zapisWarningy = 1;
-				$this->datasource->insertNotification($sensor['device_id'], $sensor['id'], -4, "{$sensor['last_data_time']}", 0, new DateTime());
-				Logger::log(self::NAME,  Logger::INFO,  "Notification NO_DATA cleared {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] ");
+			if ($sensor->warn_noaction_fired) { // ale mame znacku, ze nechodi => smazat
+				$out['warn_noaction_fired'] = null;
+				$out['store_warnings'] = 1;
+				$this->notifications->insert($sensor->device_id, $sensor->id, -4, "{$sensor->last_data_time}", 0, new DateTime());
+				Logger::log(self::NAME,  Logger::INFO,  "Notification NO_DATA cleared {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 			}
 		}
 
-		return $zapisWarningy;
+		return $out;
 	}
 
 	/**
 	 * Zkontroluje stav senzoru a pripravi notifikace, pokud jsou nejake ve spatnem stavu
 	 */
-	private function checkSensors(Logger $logger)
+	private function checkSensors()
 	{
 		$rows = $this->datasource->getSensors();
 		foreach ($rows as $sensor) {
 
 			$zapisWarningy = 0;
-
+			$out = [];
 			$value_out = isset($sensor->last_out_value) ? $sensor->last_out_value : null;
-			dumpe($sensor->toArray());
+			
 			if ($value_out != null) {
-				$zapisWarningy += $this->checkMinMaxLimits($sensor, $value_out, $sensor->last_data_time);
+				$out = array_merge($out, $this->checkMinMaxLimits($sensor, $value_out));
+				$zapisWarningy += $out['store_warnings'];
+				unset($out['store_warnings']);
 			}
 			
 			if ($sensor->last_data_time && $sensor->device->monitoring) {
-				$zapisWarningy += $this->checkLastDataTs($sensor->toArray());
+				$out = array_merge($out, $this->checkLastDataTs($sensor));
+				$zapisWarningy += $out['store_warnings'];
+				unset($out['store_warnings']);
 			}
 
 			if ($zapisWarningy) {
-				$this->datasource->updateSensorsWarnings($sensor->toArray());
+				
+				$this->datasource->updateSensorsWarnings($out);
 			}
 
 		}
@@ -244,65 +263,53 @@ final class CrontaskPresenter extends BasePresenter
 	 */
 	private function sendNotificationMails(Logger $logger)
 	{
-		// id	rauser_id	device_id	sensor_id	event_type	event_ts	status	custom_text	out_value	
-		// user_id	last_login	dev_name	dev_desc	s_name	s_desc	u1_name	u1_email
-		$rows = $this->datasource->getNotifications();
+		$rows = $this->notifications->getNotifications();
 		foreach ($rows as $row) {
-			$type = abs($row['event_type']);
-			$eventStart = $row['event_type'] > 0;
-			if ($eventStart) {
-				$prefix = "VAROVANIE: ";
-			} else {
-				$prefix = "Koniec poplachu: ";
-			}
-			$subject = " - {$row['dev_name']}:{$row['s_name']}";
-			$text = "";
+			$type = abs($row->event_type);
+			$prefix = $row->event_type > 0 ? "VAROVANIE: " : "Koniec poplachu: ";
+			$subject = " - {$row->devices->name}:{$row->sensor->name}";
+			$text = "Zariadenie: <b>{$row->devices->name}</b> ({$row->devices->desc})
+								<br>Senzor: <b>{$row->sensor->name}</b> ({$row->sensor->desc})";
+			$ps = $prefix . " " . $subject;
 			if ($type == 1) {
 				$subject = "Hodnota príliš vysoká" . $subject;
 				$text =
-					"<p>{$prefix} {$subject}</p>
-					<p><b>{$row['custom_text']}<b></p>
+					"<p>{$ps}</p>
+					<p><b>{$row->custom_text}<b></p>
 					<p>
-					Hodnota: <b>{$row['out_value']} {$row['unit']}</b>
-					<br>Zariadenie: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
-					<br>Senzor: <b>{$row['s_name']}</b> ({$row['s_desc']})
-					<br>Čas: <b>{$row['event_ts']}</b>
+						Hodnota: <b>{$row->out_value} {$row->unit}</b>
+						<br>{$text}
+						<br>Čas: <b>{$row->event_ts}</b>
 					</p>
 					";
 			} else if ($type == 2) {
 				$subject = "Hodnota príliš nízka" . $subject;
 				$text =
-					"<p>{$prefix} {$subject}</p>
-					<p><b>{$row['custom_text']}<b></p>
+					"<p>{$ps}</p>
+					<p><b>{$row->custom_text}<b></p>
 					<p>
-					Hodnota: <b>{$row['out_value']} {$row['unit']}</b>
-					<br>Zariadenie: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
-					<br>Senzor: <b>{$row['s_name']}</b> ({$row['s_desc']})
-					<br>Čas: <b>{$row['event_ts']}</b>
+						Hodnota: <b>{$row->out_value} {$row->unit}</b>
+						<br>{$text}
+						<br>Čas: <b>{$row->event_ts}</b>
 					</p>
 					";
 			} else if ($type == 4) {
 				$subject = "Zo senzora neprichádzajú dáta" . $subject;
 				$text =
-					"<p>{$prefix} {$subject}</p>
+					"<p>{$ps}</p>
 					<p>
-					Zariadenie: <b>{$row['dev_name']}</b> ({$row['dev_desc']})
-					<br>Senzor: <b>{$row['s_name']}</b> ({$row['s_desc']})
-					<br>Posledné dáta: <b>{$row['custom_text']}<b>
-					<br>Aktuálny čas: <b>{$row['event_ts']}</b>
+						{$text}
+						<br>Posledné dáta: <b>{$row->custom_text}<b>
+						<br>Aktuálny čas: <b>{$row->event_ts}</b>
 					</p>
 					";
 			}
 
-			$logger->write(Logger::INFO, "Notifikace #{$row['id']} '{$prefix} {$subject}' pre {$row['u1_email']}");
+			$logger->write(Logger::INFO, "Notifikace #{$row->id} '{$ps}' pre {$row->user_main->email}");
 
-			$this->mailService->sendMail(
-				$row['u1_email'],
-				"{$prefix} {$subject}",
-				$text
-			);
+			$this->mailService->sendMail(	$row->user_main->email,	$ps, $text);
 
-			$this->datasource->closeNotification($row['id']);
+			$this->notifications->close($row->id);
 		}
 	}
 
@@ -715,12 +722,12 @@ final class CrontaskPresenter extends BasePresenter
 			$this->startTime = time();
 			$this->endTime = time() + $this->maxRunTime1;
 
-			$this->checkSensors($logger);
+			$this->checkSensors();
 			$this->sendNotificationMails($logger);
-			dumpe($this->template);
+			
 			$this->processPrelogin($logger);
-
 			$this->processMeasures($logger);
+			dumpe($this->template);
 
 			$this->startTime = time();
 			$this->endTime = time() + $this->maxRunTime2;
@@ -835,7 +842,7 @@ final class CrontaskPresenter extends BasePresenter
 
 			$logger = new Logger("cron", "daily");
 
-			$this->datasource->deleteNotifications();
+			$this->notifications->deleteNotifications();
 			$this->deleteData($logger);
 			$this->deleteLogs($logger);
 

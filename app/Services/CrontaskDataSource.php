@@ -96,7 +96,12 @@ class CrontaskDataSource
 		$dateFrom = $date . " " . $hour . ":00:00";
 		$dateTo = $date . " " . $hour . ":59:59";
 
-		return $this->database->fetchAll(
+		return $this->database->table('measures')
+								->where('sensor_id', $sensorId)
+								->where('data_time >=', $dateFrom)
+								->where('data_time <=', $dateTo)->fetchAll();
+
+		/*return $this->database->fetchAll(
 			'
 			select * from measures
 			where sensor_id = ?
@@ -106,7 +111,7 @@ class CrontaskDataSource
 			$sensorId,
 			$dateFrom,
 			$dateTo
-		);
+		);*/
 	}
 
 	public function updateMeasure($id)
@@ -162,75 +167,6 @@ class CrontaskDataSource
 			'status' => 1
 		], 'WHERE id = ?', $id);
 	}
-
-
-	public function deleteNotifications()
-	{
-		$dt = new DateTime();
-		$dt->modify('-14 day');
-
-		$this->database->query('
-			select n.* 
-			from notifications n
-			where status<>0
-			and event_ts < ?     
-		', $dt);
-	}
-
-	public function getNotifications()
-	{
-		return $this->database->fetchAll("
-			select  
-			n.*, 
-			d.user_id, d.last_login, d.name as dev_name, d.desc as dev_desc, 
-			s.name as s_name, s.desc as s_desc, 
-			u1.username as u1_name, u1.email as u1_email,
-			vt.unit
-			from notifications n
-			
-			left outer join devices d 
-			on n.device_id = d.id
-			
-			left outer join sensors s
-			on n.sensor_id = s.id
-			
-			left outer join rausers u1
-			on d.user_id = u1.id
-
-			left outer join value_types vt
-			on s.id_value_types = vt.id
-			
-			where status=0
-			order by id asc
-			");
-		//$tmp = $this->database->table("notifications")->where("status = ?", 0)-
-	}
-
-	/**
-	 * Ukonceni notifikace
-	 */
-	public function closeNotification($id)
-	{
-		$this->database->query('UPDATE notifications SET ', [
-			'status' => 1
-		], 'WHERE id = ?', $id);
-	}
-
-	/**
-	 * Zalozeni notifikace
-	 */
-	public function insertNotification($deviceId, $sensorId, $notificationType, $customText, $value, $eventTime)
-	{
-		$this->database->query('INSERT INTO notifications ', [
-			'device_id' =>  $deviceId,
-			'sensor_id' => $sensorId,
-			'event_type' => $notificationType,
-			'event_ts' => $eventTime,
-			'custom_text' => $customText,
-			'out_value' => $value,
-		]);
-	}
-
 
 	/**
 	 *  id	hash	device_id	started	remote_ip	session_key
@@ -313,10 +249,6 @@ class CrontaskDataSource
 			$date
 		);
 	}
-
-
-
-
 
 	/**
 	 *  id, username, measures_retention, sumdata_retention, blob_retention

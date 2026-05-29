@@ -113,3 +113,15 @@ WHERE ur.name = 'Crontask'
 			WHERE up.id_user_roles = 1
 				AND up.id_user_resource = ur.id
 	);
+
+-- 2026-05-29
+
+TRUNCATE TABLE `notifications`;
+
+ALTER TABLE `notifications`
+CHANGE `rauser_id` `id_user_main` smallint(6) NULL COMMENT 'Id užívateľa' AFTER `id`,
+CHANGE `device_id` `id_devices` smallint(6) NULL COMMENT 'Id zariadenia' AFTER `id_user_main`,
+CHANGE `sensor_id` `id_sensor` smallint(6) NULL COMMENT 'Id senzora' AFTER `id_devices`,
+ADD FOREIGN KEY (`id_user_main`) REFERENCES `user_main` (`id`),
+ADD FOREIGN KEY (`id_devices`) REFERENCES `devices` (`id`),
+ADD FOREIGN KEY (`id_sensor`) REFERENCES `sensors` (`id`);
