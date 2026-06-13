@@ -1,9 +1,8 @@
 {layout '../@layoutCron.latte'}
 
-{define content}
+{block content}
 {if ! $ip_not_allowed }
-{$result}
+	{$result}
 {else}
-IP address not allowed.
+	IP address not allowed.
 {/if}
-{/define}

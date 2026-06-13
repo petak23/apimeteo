@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 /**
- * Last change 29.04.2026
+ * Last change 12.06.2026
  * 
  * @github     Forked from petrbrouzda/RatatoskrIoT
  * 
@@ -8,46 +9,9 @@
  * @copyright  Copyright (c) 2021 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.1
+ * @version    1.0.2
  *
- *----------------------------------------------------
- * 
- * Dostupné public metódy (tasky):
- * 
- * 
- * public function renderDefault()
- * Task spúšťaný každú hodinu; beží maximálne minútu.
- * 
- * Vykonáva akcie:
- * - zkontroluje stav senzorov a nafrontuje požiadavky na notifikačné maily:
- *      - prekročenie min/max limitu
- *      - neprichádzajúce dáta
- * 			- odošle notifikačné maily, ak sú k dispozícii
- * 			- vymaže staré záznamy v 'prelogin' a ak sú k dispozícii, aktualizuje zodpovedajúce záznamy v 'devices'
- * 			- spracuje 'measures' 
- *      - vygeneruje z nových záznamov hodinové 'sumdata' 
- *      - vygeneruje zo zmenených hodinových 'sumdata' denné 'sumdata'
- * 			- prejde nové obrázky (bloby s typom 'jpg' a názvom 'camera' a otaguje tie, čo sú čierne)
- * 
- *----------------------------------------------------
- * public function renderDaily()
- * Task spúšťaný raz denne; dĺžka behu neomedzená.
- * 
- * Denné tasky:
- * - zmaže odoslané notifikácie z tabulky notifications (staršie ako 14 dní)
- * - zmaže staré data
- *      - measures
- *      - sumdata
- *      - bloby (db aj súbory)
- * - zmaže staré logy
- * 
- * ----------------------------------------------------
- * public function renderExport()
- * Export nových measures do externého systému.
- * Pozri popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
  */
-declare(strict_types=1);
-
 namespace App\Presenters;
 
 use App\Model;
@@ -64,12 +28,12 @@ final class CrontaskPresenter extends BasePresenter
 {
 	use Nette\SmartObject;
 
-	const NAME = 'cron';
+	public const NAME = 'cron';
 
 	/** Doba drzeni beznych logu, dny  */
-	const LOG_RETENTION_BASE = 7;
+	public const LOG_RETENTION_BASE = 7;
 	/** Doba drzeni audit logu, dny */
-	const LOG_RETENTION_AUDIT = 31;
+	public const LOG_RETENTION_AUDIT = 31;
 
 	/** Kolik radku se nacte z DB pro zacatek zpracovani  */
 	public $batchSize = 4000;
@@ -93,7 +57,7 @@ final class CrontaskPresenter extends BasePresenter
 	/** @var Services\CrontaskDataSource */
 	private $datasource;
 
-	private $mailService;
+	private Services\MailService $mailService;
 
 	public $config;
 
@@ -103,6 +67,11 @@ final class CrontaskPresenter extends BasePresenter
 	/** @var Model\PV_Notifications @inject */
 	public $notifications;
 
+	/**
+	 * @param Services\CrontaskDataSource $datasource
+	 * @param Services\MailService $mailsv
+	 * @param Services\Config $cfg
+	 */
 	public function __construct(
 		Services\CrontaskDataSource $datasource,
 		Services\MailService $mailsv,
@@ -113,6 +82,171 @@ final class CrontaskPresenter extends BasePresenter
 		$this->config = $cfg;
 	}
 
+	/**
+	 * Task spúšťaný každú hodinu; beží maximálne minútu.
+	 * 
+	 * Provadi akce:
+	 * - zkontroluje stav senzoru a nafrontuje pozadavky na notifikacni maily:
+	 *      - prekroceni min/max limitu
+	 *      - neprichazejici data
+	 * - odesle notifikacni maily, pokud nejake jsou
+	 * - smaze stare zaznamy v 'prelogin' a pokud jsou, aktualizuje odpovidajici zaznamy v 'devices'
+	 * - zpracuje 'measures' 
+	 *      - vygeneruje z novych zaznamu hodinova 'sumdata' 
+	 *      - vygeneruje ze zmenenych hodinovych 'sumdata' denni 'sumdata'
+	 * - projde nove obrazky (bloby s typem 'jpg' a nazvem 'camera' a otaguje ty, co jsou cerne)
+	 * 
+	 * O 0-tej hodine sa spúšťa task raz denne; beží neobmezene.
+	 * 
+	 * Denné tasky:
+	 * - zmaže odoslané notifikácie z tabuľky notifications (staršie ako 14 dní)
+	 * - zmaže staré data
+	 *      - measures
+	 *      - sumdata
+	 *      - bloby (db aj súbory)
+	 * - zmaže staré logy
+	 */
+	public function renderDefault(): void
+	{
+		
+		if (!$this->checkIp()) {
+			$this->setView('notvalidip');
+			return;
+		}
+
+		$this->template->ip_not_allowed = false;
+		$this->template->batches = 0;
+		$this->template->records = 0;
+		$this->template->time = 0;
+
+		$logger = new Logger("cron");
+		$resultMsg = "-> ";
+		$hourNow = (new DateTime())->format('H');
+
+		try {
+			$totalEnde = time() + $this->maxRunTime2  + $this->maxRunTime1;
+			$this->startTime = time();
+			$this->endTime = time() + $this->maxRunTime1;
+
+			$this->checkSensors();
+			$this->sendNotificationMails($logger);
+			
+			//$this->processPrelogin($logger);
+			//$this->processMeasures($logger); // Dopĺňa do template batches, records, time
+			//dumpe($this->template);
+
+			$this->startTime = time();
+			$this->endTime = time() + $this->maxRunTime2;
+			//$this->processSumdata($logger);
+
+			// Necháme na obrázky zbytok do celkového maxima dĺžky behu
+			$this->endTime = time() + $this->maxRunTime3;
+			if ($this->endTime >  $totalEnde) {
+				$this->endTime = $totalEnde;
+			}
+			//$this->processImages($logger); // TODO: ešte som nepozrel, či to bude fungovať...
+			$resultMsg = $resultMsg . "Hour {$hourNow} OK";
+		} catch (\Exception $e) {
+			$logger->write(Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
+			$resultMsg = $resultMsg . "Hour {$hourNow} ERROR: " . get_class($e) . ": " . $e->getMessage();
+		}
+
+		if ($hourNow == '00') { // denný tasky spúšťame o 0-tej hodine
+			$logger->setContext("daily");
+			try {
+				$this->notifications->deleteNotifications();
+				$this->deleteData($logger);
+				$this->deleteLogs($logger);
+
+				$resultMsg = $resultMsg . "Daily OK";
+				$logger->write(Logger::INFO, "Done.");
+			} catch (\Exception $e) {
+				Logger::log(self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
+			}
+			$logger->setContext();
+		}
+
+		$this->template->resultMsg = $resultMsg;
+	}
+
+	public $maxRunTimeExport = 55;
+
+	/**
+	 * Export novych measures do externiho systemu.
+	 * Viz popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
+	 * 
+	 */
+	// TODO - skontrolovať
+	public function renderExport()
+	{
+
+		if (!$this->checkIp()) {
+			$this->setView('notvalidip');
+			return;
+		}
+
+		$this->template->ip_not_allowed = false;
+		$this->template->batches = 0;
+		$this->template->records = 0;
+		$this->template->time = 0;
+
+		$timeLimit = time() + $this->maxRunTimeExport;
+
+		$logger = new Logger("cron");
+		$logger->setContext("exp");
+
+		try {
+
+			$ct = 0;
+
+			$exporter = $this->context->getService('exportPlugin');
+
+			while (true) {
+				$rows = $this->datasource->getExportData();
+				if (count($rows) < 1) {
+					break;
+				}
+				foreach ($rows as $row) {
+					$rc = $exporter->exportRecord(
+						$row->id,
+						$row->data_time,
+						$row->server_time,
+						$row->value,
+						$row->sensor_id,
+						$row->sensor_name,
+						$row->device_id,
+						$row->device_name,
+						$row->user_id
+					);
+					if ($rc == 0) {
+						$this->datasource->rowExported($row->id);
+						$ct++;
+					} else {
+						$logger->write(Logger::DEBUG,  "#{$row->id} time={$row->data_time} value={$row->value} sensor={$row->sensor_id}={$row->sensor_name} device={$row->device_id}={$row->device_name} user={$row->user_id}");
+						$logger->write(Logger::WARNING, "Chyba exportu #{$rc}.");
+						$logger->write(Logger::INFO, "Stopping, {$ct} records done.");
+						$this->template->result = "ERROR #{$rc}";
+						return;
+					}
+					if (time() > $timeLimit) {
+						// prekrocena maximalni delka behu
+						break;
+					}
+				}
+				if (time() > $timeLimit) {
+					// prekrocena maximalni delka behu
+					break;
+				}
+			}
+
+			$this->template->result = "OK";
+			$logger->write(Logger::INFO, "Done, {$ct} records.");
+		} catch (\Exception $e) {
+			$logger->write(Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
+		}
+	}
+
+/* ----------------------------------------------------------------- */
 
 	/**
 	 * Zkontroluje prekroceni min/max limitu
@@ -229,7 +363,7 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Zkontroluje stav senzoru a pripravi notifikace, pokud jsou nejake ve spatnem stavu
 	 */
-	private function checkSensors()
+	private function checkSensors(): void
 	{
 		$rows = $this->datasource->getSensors();
 		foreach ($rows as $sensor) {
@@ -250,11 +384,9 @@ final class CrontaskPresenter extends BasePresenter
 				unset($out['store_warnings']);
 			}
 
-			if ($zapisWarningy) {
-				
+			if ($zapisWarningy) {	
 				$this->datasource->updateSensorsWarnings($out);
 			}
-
 		}
 	}
 
@@ -342,11 +474,12 @@ final class CrontaskPresenter extends BasePresenter
 			$logger->write(Logger::ERROR, "Nenájdený senzor {$sensorId}!");
 			return;
 		}
+		$device_classes = $sensor->id_device_classes;
 		$rows = $this->datasource->getRecordsForSensorHour($sensorId, $date, $hour);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  $rec );
 
-			if ($sensor->id_device_classes == 1) {
+			if ($device_classes == 1 || $device_classes == 4) {
 				// maji se pocitat prumery hodnot
 				if ($min === NULL) {
 					// prvni zaznam
@@ -354,6 +487,9 @@ final class CrontaskPresenter extends BasePresenter
 					$min_time = $rec->data_time;
 					$max = $rec->out_value;
 					$max_time = $rec->data_time;
+					if ($device_classes == 4) {
+						$sum = $rec->out_value;
+					}
 				} else {
 					if ($min > $rec->out_value) {
 						$min = $rec->out_value;
@@ -363,8 +499,11 @@ final class CrontaskPresenter extends BasePresenter
 						$max = $rec->out_value;
 						$max_time = $rec->data_time;
 					}
+					if ($device_classes == 4) {
+						$sum += $rec->out_value;
+					}
 				}
-			} else if ($sensor->id_device_classes == 3) {
+			} else if ($device_classes == 3) {
 				// ma se pocitat sumarizace hodnot
 				$sum += $rec->out_value;
 			}
@@ -377,12 +516,12 @@ final class CrontaskPresenter extends BasePresenter
 		}
 
 		// spocten min,max -> udelame si stred (to se tyka jen hodinovych zaznamu, u dennich se pocita jinak!)
-		if ($sensor->id_device_classes == 1) {
+		if ($device_classes == 1) {
 			$avg = ($min + $max) / 2;
 		}
 
 		// pokud se nejedna o class 2, kde se nepocitaji sumarizace
-		if ($sensor->id_device_classes != 2) {
+		if ($device_classes != 2) {
 			// vsechny zaznamy zpracovany, je treba vytvorit sumarni zaznam
 			$this->datasource->createSummary(
 				$sensorId,
@@ -404,13 +543,13 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Zpracovava zdrojova data a pocita z nich hodinove sumarizace
 	 */
-	private function processMeasures($logger)
+	private function processMeasures(Logger $logger)
 	{
 		$records = $this->datasource->getRecordsForProcessing($this->batchSize);
 
-		$currentSensor = FALSE;
-		$currentDate = FALSE;
-		$currentHour = FALSE;
+		$currentSensor = false;
+		$currentDate = false;
+		$currentHour = false;
 
 		foreach ($records as $rec) {
 
@@ -467,6 +606,7 @@ final class CrontaskPresenter extends BasePresenter
 
 
 		$sensor = $this->sensors->getSensor($sensorId);
+		$device_classes = $sensor->id_device_classes;
 		$rows = $this->datasource->getSumsForSensorDay($sensorId, $date);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  (array)$rec );
@@ -474,7 +614,7 @@ final class CrontaskPresenter extends BasePresenter
 			$count++;
 
 			//  id	sensor_id	sum_type	rec_date	rec_hour	min_val	min_time	max_val	max_time	avg_val	sum_val	status
-			if ($sensor->id_device_classes == 1) {
+			if ($device_classes == 1 || $device_classes == 4) {
 				// maji se pocitat prumery hodnot
 				if ($min === NULL) {
 					// prvni zaznam
@@ -482,6 +622,9 @@ final class CrontaskPresenter extends BasePresenter
 					$min_time = $rec->min_time;
 					$max = $rec->max_val;
 					$max_time = $rec->max_time;
+					if ($device_classes == 4) {
+						$sum = $rec->sum_val;
+					}
 				} else {
 					if ($min > $rec->min_val) {
 						$min = $rec->min_val;
@@ -490,6 +633,9 @@ final class CrontaskPresenter extends BasePresenter
 					if ($max < $rec->max_val) {
 						$max = $rec->max_val;
 						$max_time = $rec->max_time;
+					}
+					if ($device_classes == 4) {
+						$sum += $rec->sum_val;
 					}
 				}
 
@@ -502,7 +648,7 @@ final class CrontaskPresenter extends BasePresenter
 				} else if ($rec->rec_hour == 18) {
 					$val18 = $rec->avg_val;
 				}
-			} else if ($sensor->id_device_classes == 3) {
+			} else if ($device_classes == 3) {
 				// ma se pocitat sumarizace hodnot
 				$sum += $rec->sum_val;
 			}
@@ -515,13 +661,13 @@ final class CrontaskPresenter extends BasePresenter
 		}
 
 		// spocist prumer, pokud mame data
-		if ($sensor->id_device_classes == 1) {
+		if ($device_classes == 1) {
 			if ($val0 != NULL && $val6 != NULL && $val12 != NULL && $val18 != NULL) {
 				$avg = ($val0 + $val6 + $val12 + $val18) / 4;
 			}
 		}
 
-		// vsechny zaznamy zpracovany, je treba vytvorit sumarni zaznam
+		// Všetky záznamy sú spracované, je treba vytvoriť sumárny záznam
 		$this->datasource->createSummary(
 			$sensorId,
 			$date,
@@ -536,24 +682,24 @@ final class CrontaskPresenter extends BasePresenter
 			$count
 		);
 
-		if ($sensor->id_device_classes == 3) {
-			// pro impulzni senzory da celkovou denni sumu do sensor['last_out_value']
+		if ($device_classes == 3 || $device_classes == 4) {
+			// Pre impulzné senzory dá celkovú dennú sumu do sensor['last_out_value']
 			$this->datasource->updateSensorValue($sensorId, $sum);
 		}
 	}
 
 	/**
-	 * Zpracovava hodinove sumarizace a pocita z nich denni sumy
+	 * Spracúvava hodinové sumarizácie a počíta z nich denné sumy
 	 */
-	private function processSumdata($logger)
+	private function processSumdata(Logger $logger): void
 	{
 		$this->processedBatches = 0;
 		$this->processedRecords = 0;
 
 		$records = $this->datasource->getSumsForProcessing($this->batchSize);
 
-		$currentSensor = FALSE;
-		$currentDate = FALSE;
+		$currentSensor = false;
+		$currentDate = false;
 
 		foreach ($records as $rec) {
 
@@ -567,12 +713,12 @@ final class CrontaskPresenter extends BasePresenter
 				$currentSensor = $rec->sensor_id;
 				$currentDate = $date;
 
-				// zpracujeme danou hodinu a dany senzor 
+				// Spracujeme danú hodinu a daný senzor 
 				$this->processSensorSummary($currentSensor, $currentDate, $logger);
 
 				$this->processedBatches++;
 			}
-			// vsechny ostatni zaznamy ze stejne hodiny a senzoru v poli preskocime, protoze ty uz jsme zpracovali
+			// Všetky ostatné záznamy z rovnakej hodiny a senzoru v poli preskočíme, pretože tie už sme spracovali
 		}
 
 		$this->template->batches = $this->processedBatches;
@@ -694,62 +840,7 @@ final class CrontaskPresenter extends BasePresenter
 		return false;
 	}
 
-
-
-	/**
-	 * Task spúšťaný každú hodinu; beží maximálne minútu.
-	 * 
-	 * Provadi akce:
-	 * - zkontroluje stav senzoru a nafrontuje pozadavky na notifikacni maily:
-	 *      - prekroceni min/max limitu
-	 *      - neprichazejici data
-	 * - odesle notifikacni maily, pokud nejake jsou
-	 * - smaze stare zaznamy v 'prelogin' a pokud jsou, aktualizuje odpovidajici zaznamy v 'devices'
-	 * - zpracuje 'measures' 
-	 *      - vygeneruje z novych zaznamu hodinova 'sumdata' 
-	 *      - vygeneruje ze zmenenych hodinovych 'sumdata' denni 'sumdata'
-	 * - projde nove obrazky (bloby s typem 'jpg' a nazvem 'camera' a otaguje ty, co jsou cerne)
-	 */
-	public function renderDefault()
-	{
-		if (!$this->checkIp()) return;
-
-		try {
-
-			$logger = new Logger("cron");
-
-			$totalEnde = time() + $this->maxRunTime2  + $this->maxRunTime1;
-			$this->startTime = time();
-			$this->endTime = time() + $this->maxRunTime1;
-
-			$this->checkSensors();
-			$this->sendNotificationMails($logger);
-			
-			$this->processPrelogin($logger);
-			$this->processMeasures($logger);
-			dumpe($this->template);
-
-			$this->startTime = time();
-			$this->endTime = time() + $this->maxRunTime2;
-			$this->processSumdata($logger);
-
-			// nechame na obrazky zbytek do celkoveho maxima delky behu
-			$this->endTime = time() + $this->maxRunTime3;
-			if ($this->endTime >  $totalEnde) {
-				$this->endTime = $totalEnde;
-			}
-			$this->processImages($logger);
-		} catch (\Exception $e) {
-			$logger->write(Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
-		}
-	}
-
-
-
-
-
-
-	private function deleteData($logger)
+	private function deleteData(Logger $logger): void
 	{
 		$users = $this->datasource->getAllUserSettings();
 		foreach ($users as $user) {
@@ -796,7 +887,7 @@ final class CrontaskPresenter extends BasePresenter
 		}
 	}
 
-	private function deleteLogs($logger)
+	private function deleteLogs(Logger $logger)
 	{
 		$dir = FileSystem::normalizePath(__DIR__ . "/../../log/");
 
@@ -820,104 +911,5 @@ final class CrontaskPresenter extends BasePresenter
 		}
 
 		$logger->write(Logger::INFO, 'Logs done.');
-	}
-
-
-	/**
-	 * Task spúšťaný jednou denne; delka behu neomezena.
-	 * 
-	 * Denni tasky:
-	 * - smaze odeslane notifikace z tabulky notifications (starsi nez 14 dni)
-	 * - smaze stara data
-	 *      - measures
-	 *      - sumdata
-	 *      - bloby (db i soubory)
-	 * - smaze stare logy
-	 */
-	public function renderDaily()
-	{
-		if (!$this->checkIp()) return;
-
-		try {
-
-			$logger = new Logger("cron", "daily");
-
-			$this->notifications->deleteNotifications();
-			$this->deleteData($logger);
-			$this->deleteLogs($logger);
-
-			$this->template->result = "OK";
-			$logger->write(Logger::INFO, "Done.");
-		} catch (\Exception $e) {
-			Logger::log(self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
-		}
-	}
-
-
-
-	public $maxRunTimeExport = 55;
-
-	/**
-	 * Export novych measures do externiho systemu.
-	 * Viz popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
-	 */
-	public function renderExport()
-	{
-		if (!$this->checkIp()) return;
-
-		$timeLimit = time() + $this->maxRunTimeExport;
-
-		$logger = new Logger("cron");
-		$logger->setContext("exp");
-
-		try {
-
-			$ct = 0;
-
-			$exporter = $this->context->getService('exportPlugin');
-
-			while (true) {
-				$rows = $this->datasource->getExportData();
-				if (count($rows) < 1) {
-					break;
-				}
-				foreach ($rows as $row) {
-					$rc = $exporter->exportRecord(
-						$row->id,
-						$row->data_time,
-						$row->server_time,
-						$row->value,
-						$row->sensor_id,
-						$row->sensor_name,
-						$row->device_id,
-						$row->device_name,
-						$row->user_id
-					);
-					if ($rc == 0) {
-						$this->datasource->rowExported($row->id);
-						$ct++;
-					} else {
-						$logger->write(Logger::DEBUG,  "#{$row->id} time={$row->data_time} value={$row->value} sensor={$row->sensor_id}={$row->sensor_name} device={$row->device_id}={$row->device_name} user={$row->user_id}");
-						$logger->write(Logger::WARNING, "Chyba exportu #{$rc}.");
-						$logger->write(Logger::INFO, "Stopping, {$ct} records done.");
-						$this->template->result = "ERROR #{$rc}";
-						return;
-					}
-					if (time() > $timeLimit) {
-						// prekrocena maximalni delka behu
-						break;
-					}
-				}
-				if (time() > $timeLimit) {
-					// prekrocena maximalni delka behu
-					break;
-				}
-			}
-
-			$this->template->result = "OK";
-			$logger->write(Logger::INFO, "Done, {$ct} records.");
-		} catch (\Exception $e) {
-			$logger->write(Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
-		}
 	}
 }

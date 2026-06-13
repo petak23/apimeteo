@@ -4,31 +4,32 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 	<meta name="robots" content="noindex, nofollow">
-	<link href="./css/bootstrap.min.css" rel="stylesheet">
 	<title>{ifset title}{include title|stripHtml} | {/ifset}APIMeteo</title>
+	<style>
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: flex-start;
+			background-color: #74b7fb;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+			color: #333;
+		}
+		.page-column {
+			width: 100%;
+			max-width: 40em;
+			height: 100%;
+			margin-top: 2rem;
+			padding: 2rem;
+			background: #fff;
+			border: 2px solid #2e2687;
+		}
+	</style>
 </head>
 <body>
-{foreach $flashes as $flash}
-	{first}
-		Informace:
-		<ul>
-	{/first}
-	<li><div class="alert flash alert-{$flash->type} {$flash->type}"><b>{$flash->message}</b></div>
-	{last}
-		</ul>
-	{/last}
-{/foreach}
-
-{include content}
-
-{block scripts}
-	<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
-	<script src="./css/bootstrap.bundle.min.js"></script>
-	
-	<script type="text/javascript">
-		const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-		const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-	</script>
-{/block}
-
-</body></html>
+	<div class="page-column">
+		{include content}
+	</div>
+</body>
+</html>

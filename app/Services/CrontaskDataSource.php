@@ -91,52 +91,53 @@ class CrontaskDataSource
 	}
 
 	/** */
-	public function getRecordsForSensorHour(int $sensorId, string $date, string $hour): array
+	public function getRecordsForSensorHour(int $sensorId, string $date, string $hour): Table\Selection
 	{
 		$dateFrom = $date . " " . $hour . ":00:00";
 		$dateTo = $date . " " . $hour . ":59:59";
 
 		return $this->database->table('measures')
-								->where('sensor_id', $sensorId)
-								->where('data_time >=', $dateFrom)
-								->where('data_time <=', $dateTo)->fetchAll();
-
-		/*return $this->database->fetchAll(
-			'
-			select * from measures
-			where sensor_id = ?
-			and data_time >= ? 
-			and data_time <= ?
-			',
-			$sensorId,
-			$dateFrom,
-			$dateTo
-		);*/
+								->whereOr([
+									'sensor_id' => $sensorId,
+									'data_time >= ' => $dateFrom,
+									'data_time <= ' => $dateTo
+								]);
 	}
 
-	public function updateMeasure($id)
+	/**
+	 * Nastaví status merania s id na 1
+	 * @param int $id Id merania, ktoré se má aktualizovať
+	 * @return void
+	 */
+	public function updateMeasure(int $id): void
 	{
-		$this->database->query('UPDATE measures SET ', [
+		$this->database->table('measures')->where('id', $id)->update([
 			'status' => 1
-		], 'WHERE id = ?', $id);
+		]);
 	}
 
 	public function createSummary(
-		$sensorId,
-		$date,
-		$hour,
-		$min,
-		$min_time,
-		$max,
-		$max_time,
-		$avg,
-		$sum,
-		$sum_type,
-		$count
+		int $sensorId,
+		string $date,
+		string|int $hour,
+		float|null $min,
+		string|null $min_time,
+		float|null $max,
+		string|null $max_time,
+		float|null $avg,
+		float|null $sum,
+		int $sum_type,
+		int $count
 	) {
-		$this->database->query('DELETE FROM sumdata WHERE sensor_id=? AND rec_date=? AND sum_type=? AND rec_hour=?', $sensorId, $date, $sum_type, $hour);
 
-		$this->database->query('INSERT INTO sumdata ', [
+		$this->database->table('sumdata')->where([
+			'sensor_id' => $sensorId,
+			'rec_date' => $date,
+			'sum_type' => $sum_type,
+			'rec_hour' => $hour
+		])->delete();
+
+		$this->database->table('sumdata')->insert([
 			'sensor_id' => $sensorId,
 			'sum_type' => $sum_type,
 			'rec_date' => $date,
@@ -153,19 +154,29 @@ class CrontaskDataSource
 	}
 
 
-	// pro impulzni senzory da celkovou denni sumu do sensor['last_out_value']
-	public function updateSensorValue($sensorId, $sum)
+	/** 
+	 * Pre impulzné senzory dá celkovú dennú sumu do sensor['last_out_value']
+	 * @param int $sensorId Id senzoru, ktorému sa má aktualizovať hodnota
+	 * @param float $sum Celková denná suma
+	 * @return void
+	 */
+	public function updateSensorValue(int $sensorId, float $sum): void
 	{
-		$this->database->query('UPDATE sensors SET ', [
+		$this->database->table('sensors')->where('id', $sensorId)->update([
 			'last_out_value' => $sum
-		], 'WHERE id = ?', $sensorId);
+		]);
 	}
 
-	public function updateSumdata($id)
+	/**
+	 * Nastaví status pre záznam sumy s id na 1
+	 * @param int $id Id sumy, které se má aktualizovat
+	 * @return void
+	 */
+	public function updateSumdata(int $id): void
 	{
-		$this->database->query('UPDATE sumdata SET ', [
+		$this->database->table('sumdata')->where('id', $id)->update([
 			'status' => 1
-		], 'WHERE id = ?', $id);
+		]);
 	}
 
 	/**
@@ -234,20 +245,16 @@ class CrontaskDataSource
 	}
 
 	/**
-	 * vraci: id	sensor_id	sum_type	rec_date	rec_hour	min_val	min_time	max_val	max_time	avg_val	sum_val	status
+	 * vracia: id	sensor_id	sum_type	rec_date	rec_hour	min_val	min_time	max_val	max_time	avg_val	sum_val	status
 	 */
-	public function getSumsForSensorDay($sensorId, $date)
+	public function getSumsForSensorDay(int $sensorId, string $date): Table\Selection
 	{
-		return $this->database->fetchAll(
-			'
-			select * from sumdata
-			where sensor_id = ?
-			and rec_date = ? 
-			and sum_type = 1
-			',
-			$sensorId,
-			$date
-		);
+		return $this->database->table('sumdata')
+			->where([
+				'sensor_id' => $sensorId,
+				'rec_date' => $date,
+				'sum_type' => 1
+			]);
 	}
 
 	/**
