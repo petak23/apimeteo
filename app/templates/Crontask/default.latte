@@ -2,12 +2,8 @@
 
 {block content}
 
-{dump $ip_not_allowed}
-{dump $resultMsg}
-
 {if ! $ip_not_allowed }
-	Processed: {$batches} batches and {$records} records in {$time} sec.<br />
-	Message: {$resultMsg}
+	{$resultMsg|breakLines}
 {else}
 	IP address not allowed.
 {/if}

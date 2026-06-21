@@ -39,7 +39,7 @@ class PV_Notifications extends Table {
 
 	public function getNotifications(): Database\Table\Selection
 	{
-		return $this->findBy(["status" => 0])->order("id asc");
+		return $this->findBy(["status" => 0])->order("id");
 	}
 
 	/**

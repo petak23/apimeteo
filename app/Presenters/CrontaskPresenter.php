@@ -120,7 +120,7 @@ final class CrontaskPresenter extends BasePresenter
 		$this->template->time = 0;
 
 		$logger = new Logger("cron");
-		$resultMsg = "-> ";
+		$resultMsg = "";
 		$hourNow = (new DateTime())->format('H');
 
 		try {
@@ -128,16 +128,15 @@ final class CrontaskPresenter extends BasePresenter
 			$this->startTime = time();
 			$this->endTime = time() + $this->maxRunTime1;
 
-			$this->checkSensors();
-			$this->sendNotificationMails($logger);
+			$resultMsg .= $this->checkSensors();
+			$resultMsg .= $this->sendNotificationMails($logger);
 			
-			//$this->processPrelogin($logger);
-			//$this->processMeasures($logger); // Dopĺňa do template batches, records, time
-			//dumpe($this->template);
+			$resultMsg .= $this->processPrelogin($logger);
+			$resultMsg .= $this->processMeasures($logger);
 
 			$this->startTime = time();
 			$this->endTime = time() + $this->maxRunTime2;
-			//$this->processSumdata($logger);
+			$this->processSumdata($logger);
 
 			// Necháme na obrázky zbytok do celkového maxima dĺžky behu
 			$this->endTime = time() + $this->maxRunTime3;
@@ -145,10 +144,10 @@ final class CrontaskPresenter extends BasePresenter
 				$this->endTime = $totalEnde;
 			}
 			//$this->processImages($logger); // TODO: ešte som nepozrel, či to bude fungovať...
-			$resultMsg = $resultMsg . "Hour {$hourNow} OK";
+			$resultMsg = $resultMsg . "\n✅  Hour {$hourNow} OK\n";
 		} catch (\Exception $e) {
 			$logger->write(Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
-			$resultMsg = $resultMsg . "Hour {$hourNow} ERROR: " . get_class($e) . ": " . $e->getMessage();
+			$resultMsg = $resultMsg . "\n❌  Hour {$hourNow} ERROR: " . get_class($e) . ": " . $e->getMessage(). "\n";
 		}
 
 		if ($hourNow == '00') { // denný tasky spúšťame o 0-tej hodine
@@ -158,10 +157,11 @@ final class CrontaskPresenter extends BasePresenter
 				$this->deleteData($logger);
 				$this->deleteLogs($logger);
 
-				$resultMsg = $resultMsg . "Daily OK";
+				$resultMsg = $resultMsg . "\n✅  Daily OK";
 				$logger->write(Logger::INFO, "Done.");
 			} catch (\Exception $e) {
 				Logger::log(self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage());
+				$resultMsg = $resultMsg . "\n❌  Daily ERROR: " . get_class($e) . ": " . $e->getMessage(). "\n";
 			}
 			$logger->setContext();
 		}
@@ -363,7 +363,7 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Zkontroluje stav senzoru a pripravi notifikace, pokud jsou nejake ve spatnem stavu
 	 */
-	private function checkSensors(): void
+	private function checkSensors(): string
 	{
 		$rows = $this->datasource->getSensors();
 		foreach ($rows as $sensor) {
@@ -388,12 +388,13 @@ final class CrontaskPresenter extends BasePresenter
 				$this->datasource->updateSensorsWarnings($out);
 			}
 		}
+		return "✅  Checked " . count($rows) . " sensors with " . $zapisWarningy . " warnings.\n";
 	}
 
 	/**
 	 * Zpracuje cekajici notifikace
 	 */
-	private function sendNotificationMails(Logger $logger)
+	private function sendNotificationMails(Logger $logger): string
 	{
 		$rows = $this->notifications->getNotifications();
 		foreach ($rows as $row) {
@@ -443,6 +444,7 @@ final class CrontaskPresenter extends BasePresenter
 
 			$this->notifications->close($row->id);
 		}
+		return "✅  Poslaných " . count($rows) . " notifikácií.\n";
 	}
 
 
@@ -543,7 +545,7 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Zpracovava zdrojova data a pocita z nich hodinove sumarizace
 	 */
-	private function processMeasures(Logger $logger)
+	private function processMeasures(Logger $logger): string
 	{
 		$records = $this->datasource->getRecordsForProcessing($this->batchSize);
 
@@ -573,11 +575,10 @@ final class CrontaskPresenter extends BasePresenter
 			// vsechny ostatni zaznamy ze stejne hodiny a senzoru v poli preskocime, protoze ty uz jsme zpracovali
 		}
 
-		$this->template->batches = $this->processedBatches;
-		$this->template->records = $this->processedRecords;
-		$this->template->time = time() - $this->startTime;
+		$time = time() - $this->startTime;
 
-		$logger->write(Logger::INFO,  "Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$this->template->time} sec");
+		$logger->write(Logger::INFO,  "Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$time} sec");
+		return "✅  Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$time} sec.\n";
 	}
 
 
@@ -814,7 +815,7 @@ final class CrontaskPresenter extends BasePresenter
 	}
 
 
-	private function processPrelogin($logger)
+	private function processPrelogin(Logger $logger): string
 	{
 		$limit = (new DateTime())->modify('-3 min');
 		$rows = $this->datasource->getOldPrelogins($limit);
@@ -823,6 +824,7 @@ final class CrontaskPresenter extends BasePresenter
 			$this->datasource->markDeviceLoginProblem($row['device_id'], $row['started']);
 			$this->datasource->deletePrelogin($row['id']);
 		}
+		return "✅  Prelogin cleanup completed. (" . count($rows) . ") \n";
 	}
 
 
