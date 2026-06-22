@@ -3,7 +3,7 @@
 	"description": "Nette: Standard Web Project",
 	"keywords": ["nette"],
 	"type": "project",
-	"license": ["MIT", "BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
+	"license": ["MIT", "BSD-3-Clause", "GPL-2.0-or-later", "GPL-3.0-or-later"],
 	"require": {
 		"php": ">= 8.2",
 		"nette/application": "^3.2",
