@@ -10,17 +10,16 @@ use Nette\Utils\DateTime;
 /**
  * Model starajuci sa o tabulku notifications
  * 
- * Posledna zmena 29.05.2026
+ * Posledna zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.0
+ * @version    1.0.1
  */
 class PV_Notifications extends Table {
-  /** @var string */
-  protected $tableName = 'notifications';
+  protected string $tableName = 'notifications';
   
   public function deleteNotifications(): void
 	{

@@ -4,6 +4,7 @@ namespace App\Presenters;
 
 use App\Model;
 use App\Services;
+use Nette\Database;
 
 /**
  * Prezenter pre pristup k api senzorov.
@@ -233,7 +234,7 @@ class SensorsPresenter extends BasePresenter
 		
 		$_post = json_decode(file_get_contents("php://input"), true);
 		
-		/*if ($_post == null) {
+		if ($_post == null) {
 			$out = ["status" => 404, "message" => "Nekorektné alebo chýbajúce data z formuláru"];
 		} else {
 			$values = $_post;
@@ -276,6 +277,30 @@ class SensorsPresenter extends BasePresenter
 			}
 		}
 		
-		$this->sendJson($out);*/
+		$this->sendJson($out);
+	}
+
+	public function actionSensoredit(int $id) : void {
+		
+		$_post = json_decode(file_get_contents("php://input"), true);
+		
+		if ($_post == null) {
+			$out = ["status" => 404, "message" => "Nekorektné alebo chýbajúce data z formuláru"];
+		} else {
+			$values = $_post;
+			$sensor = $this->sensors->getSensor($id);
+			if (!$sensor) {
+				$out = ["status" => 404, "message" => "Senzor sa nenašiel"];
+			} else if( $this->user->id != $sensor->device_id->user_id ) {
+				Services\Logger::log( 'audit', Services\Logger::ERROR , 
+					sprintf("Užívateľ #%s (%s) zkúsil editovať senzor patriaci zariadeniu užívateľa #%s", $this->user->id, $this->user->getIdentity()->email, $sensor->device->user_id));
+				$this->user->logout(true);
+				$out = ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
+			} else {
+				$up = $this->sensors->save($id, $values);
+				$out = ["status" => 200, "message" => "Údaje senzora aktualizované.", "sensor" => $up->toArray()];
+			}
+		}
+		$this->sendJson($out);
 	}
 }

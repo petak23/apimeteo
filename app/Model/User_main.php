@@ -8,6 +8,7 @@ use App\Exceptions;
 
 use Nette;
 use Nette\Database;
+use Nette\Database\Table\ActiveRow;
 //use Nette\Http\Url;
 use Nette\Security;
 use Nette\Utils\ArrayHash;
@@ -17,24 +18,23 @@ use Nette\Utils\Random;
 /**
  * Model, ktory sa stara o tabulku user_main
  * 
- * Posledna zmena 23.10.2025
+ * Posledna zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.4
+ * @version    1.1.5
  */
 class User_main extends Table
 {
 
 	use Nette\SmartObject;
 
-	/** @var string */
-	protected $tableName = 'user_main';//'rausers'; 
+	protected string $tableName = 'user_main';//'rausers'; 
 
-	private $passwords;
-	private $baseUrl;
+	private Security\Passwords $passwords;
+	private string $baseUrl;
 
 	/**
 	 * @param Database\Context $db
@@ -51,11 +51,8 @@ class User_main extends Table
 	}
 
 	/** 
-	 * Opravy v tabulke zaznam s danym id
-	 * @param mixed $id primary key
-	 * @param iterable (column => value)
-	 * @return Database\Table\ActiveRow|null */
-	public function save($id, $data, bool $return_as_array = false): ?Database\Table\ActiveRow
+	 * Opravý v tabulke záznam s daným id. Ak je 0 tak pridá */
+	public function save(mixed $id, iterable $data, bool $return_as_array = false): ActiveRow|null
 	{
 		$this->find($id)->update($data);
 		return $return_as_array ? $this->getUser($id, $id, $this->baseUrl, true) : $this->find($id);

@@ -7,19 +7,18 @@ use Nette\Database;
 /**
  * Model, ktory sa stara o tabulku blobs
  * 
- * Posledna zmena 14.07.2022
+ * Posledna zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2022 - 2022 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.0
+ * @version    1.0.1
  */
 class PV_Blobs extends Table
 {
 
-  /** @var string */
-  protected $tableName = 'blobs';
+  protected string $tableName = 'blobs';
 
   public function getBlobCount(int $deviceId): int
   {

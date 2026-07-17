@@ -19,6 +19,7 @@ final class RouterFactory
 		$router->addRoute('sensor/last/<id>', 'Sensors:measureslast');
 		$router->addRoute('sensor/<id>', 'Sensors:sensor');
 		$router->addRoute('sensorstat/<id>', 'Sensors:sensorstat');
+		$router->addRoute('sensor/edit/<id>', 'Sensors:sensoredit');
 		$router->addRoute('chart[/<action>[/<id>]]', 'Chart:sensor');
 		$router->addRoute('devices[/<action>[/<id>]]', 'Devices:default');
 		$router->addRoute('units[/<action>[/<id>]]', 'Units:default');

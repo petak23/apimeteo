@@ -13,13 +13,13 @@ use Nette\Utils\Strings;
 /**
  * Reprezentuje repozitar pre databázovu tabulku
  * 
- * Posledna zmena(last change): 23.09.2023
+ * Posledna zmena(last change): 17.07.2026
  * 
  * @author Ing. Peter VOJTECH ml <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.4
+ * @version 1.0.5
  *
  */
 abstract class Table
@@ -30,11 +30,8 @@ abstract class Table
 	/** @var Nette\Database\Explorer */
 	protected $connection;
 
-	/** @var string */
-	protected $tableName;
-
-	/** @var Nette\Security\User */
-	protected $user;
+	protected string $tableName;
+	protected Nette\Security\User $user;
 
 	/**
 	 * @param Nette\Database\Context $db
@@ -192,14 +189,11 @@ abstract class Table
 		return $this->find($id);
 	}
 
-	/** 
-	 * Funkcia pridava alebo aktualizuje v DB podla toho, ci je zadané ID
-	 * @param mixed $id primary key
-	 * @param iterable $data
-	 * @return ActiveRow|int|bool */
-	public function save($id, $data)
+	/** Funkcia pridava alebo aktualizuje v DB podla toho, ci je zadané ID */
+	public function save(mixed $id, iterable $data, bool $return_as_array = false): ActiveRow|null
 	{
-		return (isset($id) && $id) ? $this->oprav($id, $data) : $this->add($data);
+		$_tmp = (isset($id) && $id) ? $this->oprav($id, $data) : $this->add($data);
+		return ($return_as_array && $_tmp !== null) ? $_tmp->toArray() : $_tmp;
 	}
 
 	/** @deprecated use function save but change order of params data, id to id, data */

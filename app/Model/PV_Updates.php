@@ -9,19 +9,17 @@ use Nette\Database\Table\Selection;
 /**
  * Model, ktory sa stara o tabulku updates
  * 
- * Posledna zmena 24.04.2025
+ * Posledna zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2022 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.2
+ * @version    1.0.3
  */
 class PV_Updates extends Table
 {
-
-  /** @var string */
-  protected $tableName = 'updates';
+  protected string $tableName = 'updates';
 
   public function getOtaUpdates(int $id): Selection|null
   {
@@ -43,7 +41,7 @@ class PV_Updates extends Table
     if ($rs1 != 0) {
       return -1;
     } else {
-      return $this->pridaj([
+      return $this->add([
         'device_id' => $id,
         'fromVersion' => $fromVersion,
         'fileHash' => $fileHash,
