@@ -82,7 +82,9 @@ class PV_Devices
 	public function createDevice(iterable|Database\Table\Selection $values, bool $return_as_array = false): Database\Table\ActiveRow|array
 	{
 		$d = $this->devices->insert($values);
-		$d = $return_as_array ? $d->toArray() : $d;
+		if ($return_as_array && $d instanceof Database\Table\ActiveRow) {
+			$d = $d->toArray();
+		}
 		return $d;
 	}
 

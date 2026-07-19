@@ -6,7 +6,7 @@ use Nette;
 use Nette\Database;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
-use Nette\Security;
+use Nette\Security\User;
 use Nette\Utils\DateTime;
 use App\Services\Logger;
 
@@ -28,7 +28,7 @@ class PV_Sensors extends Table
 	/**
 	 * @param Database\Context $db
 	 * @throws Nette\InvalidStateException */
-	public function __construct(Database\Explorer $db, Security\User $user)
+	public function __construct(Database\Explorer $db, User $user)
 	{
 		$this->connection = $db;
 		if ($this->tableName === NULL) {

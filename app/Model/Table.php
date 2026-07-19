@@ -7,6 +7,7 @@ namespace App\Model;
 use Nette;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
+use Nette\Security\User;
 use Nette\Utils\Strings;
 
 
