@@ -4,39 +4,36 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-use Nette;
+use Nette\Database;
 
 /**
  * Model, ktorý sa stará o tabuľku views
  * 
- * Posledná zmena 23.10.2025
+ * Posledná zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.0
+ * @version    1.0.1
  */
 class Views extends Table
 {
+	protected string $tableName = 'views';
 
-	/** @var string */
-	protected $tableName = 'views';
-
-	public $view_detail;
+	public Database\Table\Selection $view_detail;
 
 	/**
-	 * @param Nette\Database\Explorer $db
-	 * @param Nette\Security\User $user */
-	public function __construct(Nette\Database\Explorer $db)
+	 * @param Database\Explorer $db */
+	public function __construct(Database\Explorer $db)
 	{
 		parent::__construct($db);
 		$this->view_detail = $db->table("view_detail");
 	}
 
-	public $views;
-	public $tokens;
-	public $tokenView;
+	//public $views;
+	//public $tokens;
+	//public $tokenView;
 
 	public function readViews(int $userId): array
 	{
@@ -88,7 +85,7 @@ class Views extends Table
 		];
 	}
 
-	public function toArray() : array {
+	/*public function toArray() : array {
 		$out = [];
 		foreach ($this->views as $k => $v) {
 			$out[$k] = [
@@ -104,7 +101,7 @@ class Views extends Table
 			];
 		}
 		return $out; 
-	}
+	}*/
 
 	public function getAllForForm(): array
 	{

@@ -170,14 +170,6 @@ abstract class Table
 		return $this->getTable()->insert($data);
 	}
 
-	/**
-	 * @deprecated Use function 'add'
-	 */
-	public function pridaj($data)
-	{
-		return $this->add($data);
-	}
-
 	/** 
 	 * Opravy v tabulke zaznam s danym id
 	 * @param mixed $id primary key
@@ -194,12 +186,6 @@ abstract class Table
 	{
 		$_tmp = (isset($id) && $id) ? $this->oprav($id, $data) : $this->add($data);
 		return ($return_as_array && $_tmp !== null) ? $_tmp->toArray() : $_tmp;
-	}
-
-	/** @deprecated use function save but change order of params data, id to id, data */
-	public function uloz($data, $id)
-	{
-		return $this->save($id, $data);
 	}
 
 	/**

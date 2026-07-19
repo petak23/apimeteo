@@ -11,19 +11,17 @@ use Nette\Utils\DateTime;
 /**
  * Model, ktory sa stara o tabulku sensors
  * 
- * Posledna zmena 13.09.2023
+ * Posledna zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2022 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.1
+ * @version    1.0.2
  */
 class Sensors extends Table
 {
-
-	/** @var string */
-	protected $tableName = 'sensors';
+	protected string $tableName = 'sensors';
 
 	public function getDeviceSensors(int $deviceId, int $monitoring = 0): Selection
 	{

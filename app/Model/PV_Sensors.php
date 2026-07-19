@@ -13,19 +13,17 @@ use App\Services\Logger;
 /**
  * Model, ktorý sa stará o tabuľku sensors
  * 
- * Posledna zmena 23.03.2026
+ * Posledna zmena 19.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.4
+ * @version    1.0.5
  */
 class PV_Sensors extends Table
 {
-
-	/** @var string */
-	protected $tableName = 'sensors';
+	protected string $tableName = 'sensors';
 
 	/**
 	 * @param Database\Context $db
@@ -87,7 +85,7 @@ class PV_Sensors extends Table
 	/**
 	 * sensor_id	pocet	name	desc
 	 */
-	public function getDataStatsMeasures($id)
+	public function getDataStatsMeasures(int $id): array
 	{
 		return $this->connection->fetchAll('
 			select d.*, s.name, s.desc
@@ -107,7 +105,7 @@ class PV_Sensors extends Table
 	/**
 	 * sensor_id	pocet	name	desc
 	 */
-	public function getDataStatsSumdata($id)
+	public function getDataStatsSumdata(int $id): array
 	{
 		return $this->connection->fetchAll('
 						select 
@@ -128,7 +126,7 @@ class PV_Sensors extends Table
 				', $id);
 	}
 
-	public function updateSensor($id, $values)
+	public function updateSensor(int $id, array $values): void
 	{
 		$outvalues = [];
 		$outvalues['desc'] = $values['desc'];
@@ -164,21 +162,6 @@ class PV_Sensors extends Table
 	{
 		$sensors = [];
 		$result = $this->findBy(["device.user_id" => $userId]);
-		/*$result = $this->connection->query('
-						select 
-								s.*, 
-								d.name as dev_name, d.desc as dev_desc, d.user_id,
-								vt.unit
-						from sensors s
-						left outer join devices d
-						on s.device_id = d.id
-						left outer join value_types vt
-						on s.id_value_types = vt.id
-						where d.user_id = ?
-						order by vt.unit asc, d.name asc, s.name asc
-				', $userId);*/
-
-		//dumpe($result);
 
 		foreach ($result as $row) {
 			$sensors[$row->id] = array_merge( $row->toArray(), [
@@ -194,20 +177,24 @@ class PV_Sensors extends Table
 		return $sensors;
 	}
 
-	
+	/**
+	 * @param int $id
+	 * @return array{status: int, message: string, sensor: array|null}
+	 */
 	public function getAndCheckSensorAccess(int $id): array {
 		$sensor = $this->getSensor($id, true);
 		if (!$sensor) {
-			return ["status" => 404, "message" => "Senzor sa nenašiel"];
+			return ["status" => 404, "message" => "Senzor sa nenašiel", 'sensor' => null];
 		} elseif (!$this->user->isLoggedIn()) {
-			return ["status" => 401, "message" => "Pre prístup k tomuto senzoru sa musíte prihlásiť!"];
+			return ["status" => 401, "message" => "Pre prístup k tomuto senzoru sa musíte prihlásiť!", 'sensor' => null];
 		} elseif ($this->user->id != $sensor['user_id']) {
 			Logger::log('audit', Logger::ERROR,
 				sprintf("Užívateľ #%s (%s) sa pokúšal o prístup k senzoru #%s, ktorý patrí užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $id, $sensor['user_id']));
 			$this->user->logout(true);
-			return ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
+			return ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!", 'sensor' => null];
 		} else {
-			return array_merge($sensor, ['status' => 200, 'message' => 'OK']);
+			unset($sensor['status']);
+			return ['status' => 200, 'message' => 'OK', 'sensor' => $sensor];
 		}
 	}
 }

@@ -1528,11 +1528,12 @@ final class ChartPresenter extends BasePresenter
 
 		//$sensor = $this->datasource->getSensor($id);
 		//$this->checkSensorAccess($sensor != NULL ? $sensor->user_id : NULL, $id);
-		$sensor = $this->sensors->getAndCheckSensorAccess($id);
-		if ($sensor['status'] != 200) {
-			$this->sendJson($sensor);
+		$sensor_data = $this->sensors->getAndCheckSensorAccess($id);
+		if ($sensor_data['status'] != 200) {
+			$this->sendJson($sensor_data);
 			return;
 		}
+		$sensor = $sensor_data['sensor'];
 
 		$viewitem = new Model\ViewItem();
 		$viewitem->pushSensor($sensor);
@@ -1634,7 +1635,7 @@ final class ChartPresenter extends BasePresenter
 		);
 
 		$view = $this->datasource->getView($id, $token);
-		$params->allowCompare($view->allowCompare);
+		$params->allowCompare((bool)$view->allowCompare);
 
 		if ($view->render === "coverage") {
 			$this->template->renderControls = false;
@@ -1731,11 +1732,12 @@ final class ChartPresenter extends BasePresenter
 	) {
 		// Debugger::log( "view:{$id} from:{$dateFrom} alt:{$altYear} len:{$lenDays}"  );
 
-		$sensor = $this->sensors->getAndCheckSensorAccess($id);
-		if ($sensor['status'] != 200) {
-			$this->sendJson($sensor);
+		$sensor_data = $this->sensors->getAndCheckSensorAccess($id);
+		if ($sensor_data['status'] != 200) {
+			$this->sendJson($sensor_data);
 			return;
 		}
+		$sensor = $sensor_data['sensor'];
 
 		$params = new ChartParameters(
 			$dateFrom,

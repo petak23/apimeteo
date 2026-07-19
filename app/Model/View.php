@@ -7,54 +7,41 @@ namespace App\Model;
 use Nette;
 
 /**
- * Definice pohledu
+ * Definícia pohľadu
  * Prevzaté z RatatoskrIoT
+ * Posledna zmena 19.07.2026
+ * 
+ * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
+ * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
+ * @license
+ * @link       http://petak23.echo-msz.eu
+ * @version    1.0.1
  */
 class View
 {
 	use Nette\SmartObject;
 
-	/*
-	 * Popis pohledu
-	 */
-	/** @var string */
-	public $name = "";
-	/** @var string */
-	public $appName = "";
-	/** @var string */
-	public $desc = "";
+	/** Popis pohledu */
+	public string $name = "";
+	public string $appName = "";
+	public string $desc = "";
 
-	/**
-	 * Povoluje porovnavani, tj. vyber alternativniho roku?
-	 */
-	public $allowCompare = 0;
-
-	/**
-	 * Jednotlive polozky pohledu.
-	 * Pole objektu ViewItem.
-	 * @var array
-	 */
-	public $items = [];
-
-	/*
-	 * Dalsi vlastnosti pohledu potrebne v Inventory
-	 */
-	/** @var string */
-	public $token = "";
-	
-	public $vorder = null;
-	
-	public $render = null;
-	
-	/** @var int */
-	public $id = 0;
+	/** Povoluje porovnavani, tj. vyber alternativniho roku? */
+	public int $allowCompare = 0;
+	/** Jednotlive polozky pohledu. Pole objektu ViewItem. */
+	public array $items = [];
+	/** Dalsi vlastnosti pohledu potrebne v Inventory */
+	public string $token = "";
+	public ?int $vorder = null;
+	public ?string $render = null;
+	public int $id = 0;
 
 	public function __construct(
 		string $name = "",
 		string $desc = "",
 		int $allowCompare = 0,
 		string $appName = "",
-		$render = null)
+		?string $render = null)
 	{
 		$this->appName = $appName;
 		$this->name = $name;

@@ -9,18 +9,17 @@ use Nette\Database\Table\Selection;
 /**
  * Model starajuci sa o tabulku user_roles
  * 
- * Posledna zmena 28.09.2023
+ * Posledna zmena 17.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.1
+ * @version    1.0.2
  */
 class User_roles extends Table
 {
-	/** @var string */
-	protected $tableName = 'user_roles';
+	protected string $tableName = 'user_roles';
 
 	/** 
 	 * Hlada urovne registracie uzivatela v rozsahu od do */

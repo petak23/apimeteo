@@ -9,40 +9,32 @@ use App\Services\Logger;
 use Nette;
 use Nette\Database;
 use Nette\Utils\DateTime;
+use function is_array, array_merge;
 
 /**
  * Model, ktory sa stara o tabulku devices
  * 
- * Posledna zmena 31.10.2025
+ * Posledna zmena 19.07.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.1
+ * @version    1.1.2
  */
 class PV_Devices
 {
 	use Nette\SmartObject;
 
-	/** @var Database\Table\Selection */
-	private $devices;
+	private Database\Table\Selection $devices;
+	private Model\PV_Sessions $pv_sessions;
+	private Database\Table\Selection $measures;
+	private Database\Table\Selection $sumdata;
 
-	/** @var PV_Sessions */
-	private $pv_sessions;
-
-	/** @var Database\Table\Selection */
-	private $measures;
-	/** @var Database\Table\Selection */
-	private $sumdata;
-
-	/** @var PV_Sensors */
-	private $sensors;
-
-	private $pv_sensors;
+	private Model\PV_Sensors $pv_sensors;
 
 	public function __construct(
-		Nette\Database\Explorer $database,
+		Database\Explorer $database,
 		Model\PV_Sensors $pv_sensors,
 		Model\PV_Sessions $sessions
 	) {
@@ -87,7 +79,7 @@ class PV_Devices
 	/** 
 	 * Pridanie zariadenia
 	 *    */
-	public function createDevice($values, bool $return_as_array = false): Database\Table\ActiveRow|array
+	public function createDevice(iterable|Database\Table\Selection $values, bool $return_as_array = false): Database\Table\ActiveRow|array
 	{
 		$d = $this->devices->insert($values);
 		$d = $return_as_array ? $d->toArray() : $d;
@@ -97,7 +89,7 @@ class PV_Devices
 	public function getDeviceSimple(int $deviceId): Database\Table\ActiveRow|array
 	{
 		if (($_device = $this->devices->get($deviceId)) == null) {
-			return ['status' => 404, 'message' => "Požadované zariadenie s id='". $deviceId."' som nenašiel.", 'error_n' => 1, 'device_id' => $deviceId];
+			return ['status' => 404, 'message' => "Požadované zariadenie s id='{$deviceId}' som nenašiel.", 'error_n' => 1, 'device_id' => $deviceId];
 		}
 
 		return $_device;
@@ -123,7 +115,7 @@ class PV_Devices
 		bool $return_as_array = false): VDevice|array
   {
 		if (($_device = $this->devices->where($by)->limit(1)->fetch()) == null) {
-			return ['status' => 404, 'message' => "Hľadané zariadenie podľa: '" . $by . "' som nenašiel.", 'error_n' => 2, 'by' => $by];
+			return ['status' => 404, 'message' => "Hľadané zariadenie som nenašiel.", 'error_n' => 2, 'by' => $by];
 		}
 
     return $this->_deviceInfo($_device, $with_sensors, $return_as_array);
@@ -131,13 +123,13 @@ class PV_Devices
 
 	/**
 	 * Vráti inpo o zariadení v definovanom formáte
-	 * @param \Nette\Database\Table\ActiveRow $device
+	 * @param Database\Table\ActiveRow $device
 	 * @param bool $with_sensors
 	 * @param bool $return_as_array
 	 * @return array{data: array, status: int|Model\VDevice}
 	 */
 	private function _deviceInfo(
-		Nette\Database\Table\ActiveRow $device,
+		Database\Table\ActiveRow $device,
 		bool $with_sensors = false,
 		bool $return_as_array = false
 	)	: VDevice|array {
@@ -189,31 +181,19 @@ class PV_Devices
 
 		$sens = $this->pv_sensors->getDeviceSensors($id);
 
-		// smazat data
+		// zmazať data
 		if ($sens->count()) {
 			Logger::log('webapp', Logger::DEBUG,  "Delete measures device {$id}");
 			$this->measures->where("sensor_id", $sens)->delete();
-			/*$this->database->query('
-							DELETE from measures  
-							WHERE sensor_id in (select id from sensors where device_id = ?)
-					', $id);*/
 
 			Logger::log('webapp', Logger::DEBUG,  "Delete sumdata device {$id}");
 
 			$this->sumdata->where("sensor_id in ?", $sens)->delete();
-			/*$this->database->query('
-							DELETE from sumdata
-							WHERE sensor_id in (select id from sensors where device_id = ?)
-					', $id);*/
-
+			
 			Logger::log('webapp', Logger::DEBUG,  "Delete device {$id}");
 
-			// smazat senzory a zarizeni
+			// zmazať senzory a zariadenia
 			$sens->delete();
-			/*$this->database->query('
-							DELETE from sensors
-							WHERE device_id = ?
-					', $id);*/
 		}
 
 		$this->devices->get($id)->delete();
@@ -222,7 +202,7 @@ class PV_Devices
 	}
 
 	
-	private function secondsToTime($inputSeconds)
+	private function secondsToTime(int $inputSeconds)
 	{
 		$secondsInAMinute = 60;
 		$secondsInAnHour = 3600;
@@ -275,7 +255,8 @@ class VDevices
 
 	public function add(VDevice $device): void
 	{
-		$this->devices[$device->attrs['id']] = $device;
+		$id = is_array($device->attrs) ? $device->attrs['id'] : $device->attrs->id;
+		$this->devices[$id] = $device;
 	}
 
 	public function get(int $id): VDevice
@@ -286,13 +267,14 @@ class VDevices
 	/** Pridanie zariadenia aj so senzormi */
 	public function addWithSensors(
 		VDevice $device,
-		Nette\Database\Table\Selection $sensors,
+		Database\Table\Selection $sensors,
 		bool $return_sensors_as_array = false
 	): void {
-		$this->devices[$device->attrs['id']] = $device;
+		$id = is_array($device->attrs) ? $device->attrs['id'] : $device->attrs->id;
+		$this->devices[$id] = $device;
 		if ($sensors != null && $sensors->count()) {
 			foreach ($sensors as $s) {
-				$this->devices[$device->attrs['id']]->addSensor($s, $return_sensors_as_array);
+				$this->devices[$id]->addSensor($s, $return_sensors_as_array);
 			}
 		}
 	}
@@ -316,22 +298,23 @@ class VDevice
 {
 	use Nette\SmartObject;
 
-	/** @var Nette\Database\Table\ActiveRow|null Kompletné data o zariadení */
-	public $attrs;
+	/** Kompletné data o zariadení */
+	public Database\Table\ActiveRow|null $attrs;
 
-	/** @var bool Príznak problému */
-	public $problem_mark = false;
+	/** Príznak problému */
+	public bool $problem_mark = false;
 
-	/** @var array Pole senzorov zariadenia */
-	public $sensors = [];
+	/** Pole senzorov zariadenia */
+	public array $sensors = [];
 
-	public function __construct(Nette\Database\Table\ActiveRow|null $attrs = null, bool $return_as_array = false)
+	public function __construct(Database\Table\ActiveRow|null $attrs = null, bool $return_as_array = false)
 	{
 		$this->attrs = $return_as_array ? $attrs->toArray() : $attrs;
 	}
 
-	public function addSensor(Nette\Database\Table\ActiveRow $sensorAttrs, bool $return_as_array = false): void
+	public function addSensor(Database\Table\ActiveRow $sensorAttrs, bool $return_as_array = false): void
 	{
+		$out = [];
 		if ($return_as_array) {
 			$out = array_merge(
 				['value_unit' => $sensorAttrs->value_types->unit],

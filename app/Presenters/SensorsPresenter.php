@@ -5,6 +5,7 @@ namespace App\Presenters;
 use App\Model;
 use App\Services;
 use Nette\Database;
+use function sprintf;
 
 /**
  * Prezenter pre pristup k api senzorov.
@@ -46,7 +47,7 @@ class SensorsPresenter extends BasePresenter
 		$this->sendJson($d["sensors"]);
 	}
 
-	public function actionSensor(int $id, int $detail = 0): void
+	public function actionSensor(int $id): void
 	{
 		$sensor = $this->sensors->getAndCheckSensorAccess($id);
 		$this->sendJson($sensor);
@@ -107,11 +108,12 @@ class SensorsPresenter extends BasePresenter
 		$currentday = ""
 	) {
 
-		$sensor = $this->sensors->getAndCheckSensorAccess($id);
-		if ($sensor['status'] != 200) {
-			$this->sendJson($sensor);
+		$sensor_data = $this->sensors->getAndCheckSensorAccess($id);
+		if ($sensor_data['status'] != 200) {
+			$this->sendJson($sensor_data);
 			return;
 		}
+		$sensor = $sensor_data['sensor'];
 
 		$params = new Model\ChartParameters(
 			$dateFrom,
@@ -291,14 +293,14 @@ class SensorsPresenter extends BasePresenter
 			$sensor = $this->sensors->getSensor($id);
 			if (!$sensor) {
 				$out = ["status" => 404, "message" => "Senzor sa nenašiel"];
-			} else if( $this->user->id != $sensor->device_id->user_id ) {
+			} else if( $this->user->id != $sensor->device->user_id ) {
 				Services\Logger::log( 'audit', Services\Logger::ERROR , 
 					sprintf("Užívateľ #%s (%s) zkúsil editovať senzor patriaci zariadeniu užívateľa #%s", $this->user->id, $this->user->getIdentity()->email, $sensor->device->user_id));
 				$this->user->logout(true);
 				$out = ["status" => 500, "message" => "K tomuto senzoru nemáte oprávnený prístup!"];
 			} else {
-				$up = $this->sensors->save($id, $values);
-				$out = ["status" => 200, "message" => "Údaje senzora aktualizované.", "sensor" => $up->toArray()];
+				unset($values['dev_name'], $values['dev_desc'], $values['user_id'], $values['unit']); 
+				$out = ($this->sensors->save($id, $values) === null) ? ["status" => 500, "message" => "Chyba pri ukladaní údajov senzora."] : $this->sensors->getAndCheckSensorAccess($id);
 			}
 		}
 		$this->sendJson($out);
