@@ -6,6 +6,8 @@ namespace App\Model;
 
 use Nette;
 
+use function sizeof, strlen;
+
 /**
  * Položka pohledu
  * Prevzaté z RatatoskrIoT
@@ -17,38 +19,38 @@ class ViewItem
 	use Nette\SmartObject;
 
 	/**
-	 * Pole senzorov. Každý senzor má vlastnosti:
+	 * Pole senzorov (Nette\Database\Row). Každý senzor má vlastnosti:
 	 * 
 	 * id	device_id	channel_id	name	device_class	value_type	msg_rate	desc	display_nodata_interval	
 	 * preprocess_data	preprocess_factor	
 	 * dev_name	dev_desc dev_id
 	 * unit
 	 */
-	public $sensors;
+	public array $sensors;
 
-	public $axisY;
-	public $source;
-	public $sourceDesc;
-	public $colors;
+	public int $axisY;
+	public int $source;
+	public string $sourceDesc;
+	public array $colors;
 
 	// len pre editáciu
-	public $id;
-	public $vorder;
+	public int $id;
+	public int $vorder;
 
 	//Len pre inventory
-	public $sensorIds;
+	public array $sensorIds;
 
 	public function isKompozit()
 	{
 		return sizeof($this->sensors)>1;
 	}
 
-	public function getSensorName( $i )
+	public function getSensorName(): string
 	{
 		return "{$this->sensors[0]['dev_name']}:{$this->sensors[0]['name']}";
 	}
 
-	public function getSensorsName()
+	public function getSensorsName(): string
 	{
 		$out = "";
 		foreach( $this->sensors as $sensor ) {
@@ -60,7 +62,7 @@ class ViewItem
 		return $out;
 	}
 
-	public function getSensorsDesc()
+	public function getSensorsDesc(): string
 	{
 		$out = "";
 		foreach( $this->sensors as $sensor ) {
@@ -70,12 +72,12 @@ class ViewItem
 			$out .= $sensor['desc'];
 		}
 		if( $this->isKompozit() ) {
-			$out = "Kompozit: " . $out;
+			$out = "Kompozit: {$out}";
 		}
 		return $out;
 	}
 
-	public function pushSensor( $sensor )
+	public function pushSensor(array $sensor)
 	{
 		$this->sensors[] = $sensor;
 	}
@@ -101,16 +103,17 @@ class ViewItem
 		return $vi;
 	}
 
-	public function getUnit() {
+	public function getUnit(): ?string 
+	{
 		return isset($this->sensors[0]) ? $this->sensors[0]->unit : null;
 	}
 
-	public function setColor( $nr, $colorText, bool $return_as_array = false )
+	public function setColor( int $nr, string $colorText, bool $return_as_array = false )
 	{
 		$this->colors[$nr] = Color::parseColor( $colorText, $return_as_array );
 	}
 
-	public function getColor( $nr )
+	public function getColor( int $nr )
 	{
 		if( ! isset($this->colors[$nr]) ) {
 			throw new \Exception( "Color #{$nr} has not been defined.");
@@ -124,7 +127,7 @@ class ViewItem
 		$this->sensors=[];
 	}
 
-	public function toString()
+	public function toString(): string
 	{
 		return "Y:{$this->axisY} src:{$this->source}";
 	}

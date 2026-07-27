@@ -6,6 +6,8 @@ namespace App\Model;
 
 use Nette;
 
+use function sizeof;
+
 /**
  * SensorDataSeries
  */
@@ -18,39 +20,39 @@ class SensorDataSeries
 	 * 
 	 * Properties: id	device_id	channel_id	name	device_class	id_value_types	msg_rate	desc	display_nodata_interval	 preprocess_data	preprocess_factor dev_name	dev_desc
 	 */
-	public $firstSensor;
+	public array $firstSensor;
 
 	/**
 	 * Pole objektu ChartPoint.
 	 * Objekty vkladat pres pushPoint() !
 	 */
-	public $points;
+	public array $points;
 
 
 	/**
 	 * Max hodnota pre škálovanie grafu
 	 */
-	public $maxVal;
+	public ?float $maxVal;
 
 	/**
 	 * Min hodnota pre škálovanie grafu
 	 */
-	public $minVal;
+	public ?float $minVal;
 
 
 	/**
 	 * Relatívny čas predchádzajúceho bodu. Pre pushPoint.
 	 */
-	private $prevPointTime;
+	private ?int $prevPointTime;
 
 	/**
 	 * Vlozi bod do pole. 
 	 * Vyplní, či je prepojený s predchádzajúcim alebo nie.
 	 * Nastavuje max/min hodnoty v serii.
 	 */
-	public function pushPoint(ChartPoint $point, $dailySum = FALSE)
+	public function pushPoint(ChartPoint $point, bool $dailySum = FALSE)
 	{
-		if (is_null($point->value)) {
+		if ($point->value === null) {
 			return;
 		}
 
@@ -79,9 +81,7 @@ class SensorDataSeries
 		// Debugger::log( ' + ' . $point->toString() );
 	}
 
-
-
-	public function __construct($sensor = null)
+	public function __construct(?array $sensor = null)
 	{
 		$this->firstSensor = $sensor;
 		$this->points = [];

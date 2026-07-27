@@ -18,18 +18,18 @@ class ChartPoint
 	/**
 	 * Time from start of interval, sec
 	 */
-	public $relativeTime;
+	public int $relativeTime;
 
 	/**
 	 * Value at this time
 	 */
-	public $value;
+	public float $value;
 
 	/**
 	 * true = ma byt spojeno s predeslym;
 	 * false = nema
 	 */
-	public $connectedFromPrevious = true;
+	public bool $connectedFromPrevious = true;
 
 	public function __construct( int $relativeTime = 0, float $value = 0.0 )
 	{

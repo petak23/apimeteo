@@ -18,6 +18,8 @@ use Nette\Utils\DateTime;
 use Nette\Utils\Image;
 use Nette\Utils\ImageColor;
 
+use function intval, strlen, sizeof, number_format;
+
 final class ChartPresenter extends BasePresenter
 {
 	use Nette\SmartObject;
@@ -29,12 +31,12 @@ final class ChartPresenter extends BasePresenter
 	public $sensors;
 
 	// hodnoty z konfigurace
-	private $fontName;
-	private $fontNameBold;
+	private string $fontName;
+	private string $fontNameBold;
 
 	//public $old_config;
 
-	private $dbRows;
+	private int $dbRows;
 
 	public function __construct(
 		Services\ChartDataSource $datasource,
@@ -56,13 +58,13 @@ final class ChartPresenter extends BasePresenter
 	}*/
 
 
-	private $image;
-	private $axisX;
-	private $axisY1;
-	private $axisY2;
-	private $chart;
+	private Image $image;
+	private ChartAxisX $axisX;
+	private ChartAxisY $axisY1;
+	private ChartAxisY $axisY2;
+	private Model\Chart $chart;
 
-	private function drawSeries(ChartAxisY $axisY, ChartSeries $chartSerie, $poradi)
+	private function drawSeries(ChartAxisY $axisY, ChartSeries $chartSerie, int $poradi)
 	{
 		/** \App\Model\SensorDataSeries */
 		$serie = $chartSerie->data;
@@ -146,7 +148,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * vykresleni serie v modu 'vorodovne cary'
 	 */
-	private function drawSeriesLine(ChartAxisY $axisY, ChartSeries $chartSerie, $poradi)
+	private function drawSeriesLine(ChartAxisY $axisY, ChartSeries $chartSerie, int $poradi)
 	{
 		/** \App\Model\SensorDataSeries */
 		$serie = $chartSerie->data;
@@ -223,7 +225,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * vykresleni serie v modu 'bargrafu'
 	 */
-	private function drawSeriesBar(ChartAxisY $axisY, ChartSeries $chartSerie, $poradi)
+	private function drawSeriesBar(ChartAxisY $axisY, ChartSeries $chartSerie, int $poradi)
 	{
 		/** \App\Model\SensorDataSeries */
 		$serie = $chartSerie->data;
@@ -331,7 +333,7 @@ final class ChartPresenter extends BasePresenter
 		);
 	}
 
-	private function popiskaX($x,  $text)
+	private function popiskaX(int $x, string $text)
 	{
 		$yPosOffset = 10;
 		$xPosOffset = -4;
@@ -342,9 +344,9 @@ final class ChartPresenter extends BasePresenter
 		$y = $this->chart->marginYT + $this->chart->sizeY + $yPosOffset;
 		$sirkaZnaku = $fontSize * 3 / 4;
 		$delkaTextu = intval(strlen($text) * $sirkaZnaku);
-		$y = $y + $delkaTextu;
+		$y += $delkaTextu;
 
-		$x = $x + intval($fontSize / 2);
+		$x += intval($fontSize / 2);
 		$x = $x - intval($delkaTextu / 2) + $xPosOffset;
 
 		$this->image->ttfText(
@@ -359,7 +361,7 @@ final class ChartPresenter extends BasePresenter
 	}
 
 
-	private function decorateAxisXdays($tickerSizeSec, $timeSkip)
+	private function decorateAxisXdays(int $tickerSizeSec, string $timeSkip)
 	{
 		$carkaPresah = 3;
 
@@ -404,7 +406,7 @@ final class ChartPresenter extends BasePresenter
 	}
 
 
-	private function decorateAxisXhours($tickerSizeSec, $timeSkip)
+	private function decorateAxisXhours(int $tickerSizeSec, string $timeSkip)
 	{
 		$carkaPresah = 3;
 
@@ -508,7 +510,7 @@ final class ChartPresenter extends BasePresenter
 		}
 	}
 
-	private function popiskaY($y, $levaOsa, $text, $bold = FALSE)
+	private function popiskaY(int $y, bool $levaOsa, string $text, bool $bold = FALSE)
 	{
 		$xposOffset = 8;
 		$fontSize = $bold ? 14.0 : 10.0;
@@ -518,13 +520,13 @@ final class ChartPresenter extends BasePresenter
 		if ($levaOsa) {
 			$x = $this->chart->marginXL - $xposOffset;
 			$sirkaZnaku = $fontSize * 3 / 4;
-			$x = $x - intval(strlen($text) * $sirkaZnaku);
+			$x -= intval(strlen($text) * $sirkaZnaku);
 		} else {
 			$x = $this->chart->marginXL + $this->chart->sizeX + $xposOffset;
 			if ($bold) $x += $xposOffset;
 		}
 
-		$y = $y + intval($fontSize / 2);
+		$y += intval($fontSize / 2);
 
 		$this->image->ttfText(
 			$fontSize,
@@ -542,7 +544,7 @@ final class ChartPresenter extends BasePresenter
 	 * V tento okamzik nepocitame s osou Y mensi nez 0.1
 	 * Viz implementace ChartAxisY->processSeries()
 	 */
-	private function computeTickerSize($maxVal, $minVal, $numTickers)
+	private function computeTickerSize(int $maxVal, int $minVal, int $numTickers)
 	{
 		//D/ Logger::log( 'webapp', Logger::DEBUG ,  "ticker <- $maxVal, $minVal, $numTickers" ); 
 		$tickerSize = intval(($maxVal - $minVal) / $numTickers);
@@ -566,7 +568,7 @@ final class ChartPresenter extends BasePresenter
 		return $tickerSize;
 	}
 
-	private function getDecimals($tickerSize)
+	private function getDecimals(float $tickerSize): int
 	{
 		//D/ Logger::log( 'webapp', Logger::DEBUG ,  "decimals <- $tickerSize" ); 
 		$decimals = 0;
@@ -598,7 +600,7 @@ final class ChartPresenter extends BasePresenter
 				$y0,
 				ImageColor::rgb(150, 150, 150)
 			);
-			$this->popiskaY($y0, true, 0);
+			$this->popiskaY($y0, true, "0");
 		}
 
 		// dodelat tickery na levou osu
@@ -635,7 +637,7 @@ final class ChartPresenter extends BasePresenter
 						$y,
 						$this->chart->marginXL + $this->chart->sizeX - 1,
 						$y,
-						Image::rgb(200, 200, 200)
+						ImageColor::rgb(200, 200, 200)
 					);
 				}
 			}
@@ -649,7 +651,7 @@ final class ChartPresenter extends BasePresenter
 	}
 
 
-	private function decorateAxisY2($unit)
+	private function decorateAxisY2(string $unit)
 	{
 		$carkaPresah = 3;
 
@@ -696,7 +698,7 @@ final class ChartPresenter extends BasePresenter
 	 * 1 - jen vodorovne linky (smer vetru)
 	 * 2 - bargraf
 	 */
-	private function drawChart($src, $intervalLenDays, $mode)
+	private function drawChart(string $src, int $intervalLenDays, int $mode)
 	{
 		// spocteme rozsah jednotlivych os
 		$this->axisY1 = ChartAxisY::prepareAxisY($this->chart->series1, $this->chart->sizeY, $this->chart->marginYT);
@@ -864,7 +866,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Nacita data serii podle zvolene strategie.
 	 */
-	private function loadSeries($view, $startDateTime, $lenDays, $nr)
+	private function loadSeries(Model\View $view, DateTime $startDateTime, int $lenDays, int $nr)
 	{
 		foreach ($view->items as $item) {
 			$this->loadSerie($item, $startDateTime, $lenDays, $nr, $item->getColor($nr));
@@ -879,7 +881,7 @@ final class ChartPresenter extends BasePresenter
 	 * 1 = jen vodorovne cary
 	 * 2 = sloupcovy graf
 	 */
-	public function intRenderChart($id, $token, $dateFrom, $lenDays, $altYear = NULL, $mode = 0)
+	public function intRenderChart(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL, int $mode = 0)
 	{
 		if (intval($lenDays) == 0) {
 			$lenDays = 3;
@@ -913,7 +915,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek - carovy graf
 	 */
-	public function renderChart($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderChart(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$this->intRenderChart($id, $token, $dateFrom, $lenDays, $altYear, 0);
 	}
@@ -921,7 +923,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek - graf pro smer vetru
 	 */
-	public function renderLine($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderLine(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$this->intRenderChart($id, $token, $dateFrom, $lenDays, $altYear, 1);
 	}
@@ -930,7 +932,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek - sloupcovy graf
 	 */
-	public function renderBar($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderBar(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$this->intRenderChart($id, $token, $dateFrom, $lenDays, $altYear, 2);
 	}
@@ -941,13 +943,13 @@ final class ChartPresenter extends BasePresenter
 	 * vrati pole [12][31] pro data jednotlivych dni; v kazde polozce bude klasifikace daneho pole
 	 *  1 nejvyssi, 4 nejnizsi
 	 */
-	private function loadCoverageSeries($sensor, $year)
+	private function loadCoverageSeries(Model\ViewItem $sensor, int $year)
 	{
 		$rc = [];
 
 		$ct = 0;
 
-		$data = $this->datasource->getSensorCoverageData($sensor, $year);
+		$data = $this->datasource->getSensorCoverageData($sensor->id, $year);
 
 		foreach ($data as $row) {
 			$dts = DateTime::from($row->rec_date);
@@ -957,25 +959,19 @@ final class ChartPresenter extends BasePresenter
 			$out = 0;
 
 			if ($sensor->device_class == 1) {
+				// Pre teplotný senzor máme priemer!
+				// 1 = najvyššia kvalita, 2 = ešte mám priemer, 3 = nejaké dáta, 4 = minimum dát
 				if ($row['ct_val'] > 21 && $row['avg_val'] !== null) {
 					$out = 1; // nejvyssi kvalita
 				} else if ($row['ct_val'] > 11 && $row['avg_val'] !== null) {
 					$out = 2; // jeste mam prumer
-				} else if ($row['ct_val'] > 11) {
-					$out = 3; // nejaka data
 				} else {
-					$out = 4; // minimum dat
-				}
+					$out = ($row['ct_val'] > 11) ? 3 : 4;
+				} 
 			} else if ($sensor->device_class == 3) {
-				// pro impulzni senzor nemame prumer!
-
-				if ($row['ct_val'] > 22) {
-					$out = 1; // nejvyssi kvalita
-				} else if ($row['ct_val'] > 10) {
-					$out = 2; // jeste mam prumer
-				} else {
-					$out = 4; // minimum dat
-				}
+				// Pre impulzný senzor nemáme priemer!
+				// 1 = najvyššia kvalita, 2 = ešte mám priemer, 4 = minimum dát
+				$out = ($row['ct_val'] > 22) ? 1 : (($row['ct_val'] > 10) ? 2 : 4);
 			}
 
 			$rc[$m][$d] = $out;
@@ -986,13 +982,13 @@ final class ChartPresenter extends BasePresenter
 	}
 
 
-	const COVERAGE_PIXEL = 10;
-	const COVERAGE_MARGIN_H = 20;
-	const COVERAGE_MARGIN_V = 40;
-	const COVERAGE_COL_SIZE = 330;     // MARGIN_H + 31*PIXEL
-	const COVERAGE_ROW_SIZE = 160;     // MARGIN_V + 12*PIXEL
+	private const COVERAGE_PIXEL = 10;
+	private const COVERAGE_MARGIN_H = 20;
+	private const COVERAGE_MARGIN_V = 40;
+	private const COVERAGE_COL_SIZE = 330;     // MARGIN_H + 31*PIXEL
+	private const COVERAGE_ROW_SIZE = 160;     // MARGIN_V + 12*PIXEL
 
-	private function drawCoverageSeries($col, $row, $serie, $year, $sensor, $colors)
+	private function drawCoverageSeries(int $col, int $row, array $serie, int $year, Model\ViewItem $sensor, array $colors)
 	{
 		//D/Logger::log( 'webapp', Logger::DEBUG ,  "Coverage: renderCoverageSeries c={$col} r={$row} sensor={$sensor->id}" ); 
 
@@ -1062,7 +1058,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek - coverage
 	 */
-	public function renderCoverage($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderCoverage(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$view = $this->datasource->getView($id, $token);
 
@@ -1091,7 +1087,7 @@ final class ChartPresenter extends BasePresenter
 		$this->image = Image::fromBlank(
 			$imgWidth,
 			$imgHeight,
-			Image::rgb(242, 242, 242)
+			ImageColor::rgb(242, 242, 242)
 		);
 
 		$colors = [];
@@ -1123,17 +1119,17 @@ final class ChartPresenter extends BasePresenter
 
 
 	/** objekt Avg */
-	private $avg;
+	private Model\Avg $avg;
 
 	/** pole [year][month][day] s hodnotou pro dany den*/
-	private $avgSeries;
+	private array $avgSeries;
 
 
 	/**
 	 * Pokud je vice polozek, vybere tu, ktera ma nejvic ct_val
 	 * a posle hodnotu do objektu Avg a pole avgSeries
 	 */
-	private function processAvgs($values, $counts, $date)
+	private function processAvgs(array $values, array $counts, string $date)
 	{
 		$ct = count($values);
 		//D/Logger::log( 'webapp', Logger::DEBUG ,  "Avg: {$date} ct={$ct}" ); 
@@ -1167,7 +1163,7 @@ final class ChartPresenter extends BasePresenter
 	 * mode = 0 ... denni prumer
 	 * mode = 1 ... denni minimum
 	 */
-	private function prepareAvgData($sensors, $yearFrom, $years, $mode)
+	private function prepareAvgData(array $sensors, int $yearFrom, int $years, int $mode)
 	{
 		$this->avg = new Model\Avg();
 		$this->avgSeries = [];
@@ -1207,7 +1203,7 @@ final class ChartPresenter extends BasePresenter
 	}
 
 
-	private function generateColors($colorsText)
+	private function generateColors(array $colorsText): array
 	{
 		$rc  = [];
 		foreach ($colorsText as $color) {
@@ -1217,10 +1213,10 @@ final class ChartPresenter extends BasePresenter
 		return $rc;
 	}
 
-	private $colorsPlus;
-	private $colorsMinus;
-	private $colorZero;
-	private $colorNoData;
+	private array $colorsPlus;
+	private array $colorsMinus;
+	private int $colorZero;
+	private int $colorNoData;
 
 	/**
 	 * Naplni promenne
@@ -1244,7 +1240,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek AVGTEMP
 	 */
-	public function renderAvgtemp($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderAvgtemp(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$view = $this->datasource->getView($id, $token);
 
@@ -1274,7 +1270,7 @@ final class ChartPresenter extends BasePresenter
 		$this->image = Image::fromBlank(
 			$imgWidth,
 			$imgHeight,
-			Image::rgb(242, 242, 242)
+			ImageColor::rgb(242, 242, 242)
 		);
 
 		// vyplni $this->avg a $this->avgSeries
@@ -1360,12 +1356,12 @@ final class ChartPresenter extends BasePresenter
 		$this->image->send(Image::PNG);
 	}
 
-	public function renderAvgyears0($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderAvgyears0(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$this->render_Avgyears($id, $token, $dateFrom, $lenDays, $altYear, 0);
 	}
 
-	public function renderAvgyears1($id, $token, $dateFrom, $lenDays, $altYear = NULL)
+	public function renderAvgyears1(int $id, string $token, string $dateFrom, int $lenDays, ?int $altYear = NULL)
 	{
 		$this->render_Avgyears($id, $token, $dateFrom, $lenDays, $altYear, 1);
 	}
@@ -1375,7 +1371,7 @@ final class ChartPresenter extends BasePresenter
 	 * mode = 0 ... denni prumer
 	 * mode = 1 ... denni minimum
 	 */
-	public function render_Avgyears($id, $token, $dateFrom, $lenDays, $altYear = NULL, $mode = 0)
+	public function render_Avgyears(int $id, string $token, string $dateFrom, int $lenDays, ?string $altYear = NULL, int $mode = 0)
 	{
 		$view = $this->datasource->getView($id, $token);
 
@@ -1405,7 +1401,7 @@ final class ChartPresenter extends BasePresenter
 		$this->image = Image::fromBlank(
 			$imgWidth,
 			$imgHeight,
-			Image::rgb(242, 242, 242)
+			ImageColor::rgb(242, 242, 242)
 		);
 
 		// vyplni $this->avg a $this->avgSeries
@@ -1521,7 +1517,7 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Generuje obrazek - carovy graf pro jeden senzor, autorizovany (z administrace)
 	 */
-	public function renderSensorchart(int $id, $dateFrom, int $lenDays, $altYear = null)
+	public function renderSensorchart(int $id, string $dateFrom, int $lenDays, ?int $altYear = null)
 	{
 		// vypocet datumu
 		$dateTimeFrom = DateTime::from($dateFrom);
@@ -1559,10 +1555,10 @@ final class ChartPresenter extends BasePresenter
 	}
 
 
-	private $devices;
+	private array $devices = [];
 
 
-	private function addViewItems($outView, $view, $dateFrom, $nr)
+	private function addViewItems(array $outView, Model\View $view, DateTime $dateFrom, int $nr): array	
 	{
 		foreach ($view->items as $item) {
 			if ($item->source == 1) {
@@ -1592,24 +1588,24 @@ final class ChartPresenter extends BasePresenter
 	// http://lovecka.info/ra/chart/view/aaabbb/2/?dateFrom=2020-01-02&lenDays=10
 	// http://lovecka.info/ra/chart/view/aaabbb/2/?dateFrom=2020-01-02&lenDays=10&altYear=2016
 	public function renderView(
-		$id,
-		$token,
-		$dateFrom = "",
-		$lenDays = 7,
-		$altYear = "",
-		$plus = "",
-		$minus = "",
-		$altplus = "",
-		$altminus = "",
-		$current = "",
-		$currentweek = "",
-		$currentmonth = "",
-		$currentyear = "",
-		$plusMon = "",
-		$minusMon = "",
-		$plusYear = "",
-		$minusYear = "",
-		$currentday = ""
+		int $id,
+		string $token,
+		string $dateFrom = "",
+		int $lenDays = 7,
+		string $altYear = "",
+		string $plus = "",
+		string $minus = "",
+		string $altplus = "",
+		string $altminus = "",
+		string $current = "",
+		string $currentweek = "",
+		string $currentmonth = "",
+		string $currentyear = "",
+		string $plusMon = "",
+		string $minusMon = "",
+		string $plusYear = "",
+		string $minusYear = "",
+		string $currentday = ""
 	) {
 		// Debugger::log( "view:{$id} from:{$dateFrom} alt:{$altYear} len:{$lenDays}"  );
 

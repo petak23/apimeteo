@@ -2,7 +2,7 @@
 <div class="pb-3 pt-3 px-2 d-flex justify-content-between">
 	<h1 n:block=title>Základná stránka pre API</h1>
 	<div class="pt-2"> 
-		<div class="badge text-primary text-bg-warning p-2">API Verzia 2026-02-24 | &copy; petak23</div>
+		<div class="badge text-primary text-bg-warning p-2">API Verzia {$api_version} | &copy; petak23</div>
 	</div>
 	<div n:if="$user->isLoggedIn()" class="pt-2">
 		<p class="mb-0 text-success-emphasis">Prihlásený ako: <strong>{$user->identity->prefix}</strong></p>	

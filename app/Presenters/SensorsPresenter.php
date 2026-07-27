@@ -9,7 +9,7 @@ use function sprintf;
 
 /**
  * Prezenter pre pristup k api senzorov.
- * Posledna zmena(last change): 23.03.2026
+ * Posledna zmena(last change): 20.07.2026
  *
  * Modul: API
  *
@@ -17,7 +17,7 @@ use function sprintf;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.8
+ * @version 1.0.9
  */
 class SensorsPresenter extends BasePresenter
 {
@@ -33,7 +33,7 @@ class SensorsPresenter extends BasePresenter
 	/** @var Services\Config */
 	public $config;
 
-	private $datasource;
+	private Services\ChartDataSource $datasource;
 
 	public function __construct(Services\Config $config, Services\ChartDataSource $datasource) {
 		$this->config = $config;
@@ -66,7 +66,7 @@ class SensorsPresenter extends BasePresenter
 	/**
 	 * Používa sa len na vykreslenie automaticky pripraveného grafu volaného z detailu zariadenia.
 	 */
-	private function getViewSourceId($device_class, $lenDays)
+	private function getViewSourceId(int $device_class, int $lenDays): int
 	{
 		if ($device_class == 1) {
 			// CONTINUOUS_MINMAXAVG
@@ -89,23 +89,23 @@ class SensorsPresenter extends BasePresenter
 	 * Vykresľovanie štatistík pre senzor - volané z administrácie, autentizovaný používateľ.
 	 */
 	public function actionSensorstat(
-		$id,
-		$dateFrom = '',
-		$lenDays = 7,
-		$altYear = null,
-		$plus = "",
-		$minus = "",
-		$altplus = "",
-		$altminus = "",
-		$current = "",
-		$currentweek = "",
-		$currentmonth = "",
-		$currentyear = "",
-		$plusMon = "",
-		$minusMon = "",
-		$plusYear = "",
-		$minusYear = "",
-		$currentday = ""
+		int $id,
+		string $dateFrom = '',
+		int $lenDays = 7,
+		?int $altYear = null,
+		string $plus = "",
+		string $minus = "",
+		string $altplus = "",
+		string $altminus = "",
+		string $current = "",
+		string $currentweek = "",
+		string $currentmonth = "",
+		string $currentyear = "",
+		string $plusMon = "",
+		string $minusMon = "",
+		string $plusYear = "",
+		string $minusYear = "",
+		string $currentday = ""
 	) {
 
 		$sensor_data = $this->sensors->getAndCheckSensorAccess($id);

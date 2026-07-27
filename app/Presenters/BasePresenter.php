@@ -10,19 +10,21 @@ use Nette;
 use Nette\Application\UI\Presenter;
 use Nette\Http\IResponse;
 
+use function in_array;
+
 
 /**
  * Zakladny presenter pre vsetky presentery v module API
  * 
- * Posledna zmena(last change): 29.07.2025
+ * Posledna zmena(last change): 27.07.2026
  *
  * Modul: API
  *
  * @author Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.1
+ * @version 1.0.2
  */
 abstract class BasePresenter extends Presenter
 {
@@ -40,8 +42,10 @@ abstract class BasePresenter extends Presenter
 	//#[Persistent]
 	//public $language = 'sk';
 
-	/** @var array - pole s chybami pri uploade */
-	public $upload_error = [
+	public string $api_version = "2026-07-27";
+
+	/** Pole s chybami pri uploade */
+	public array $upload_error = [
 		0 => "Bez chyby. Súbor úspešne nahraný.",
 		1 => "Nahrávaný súbor je väčší ako systémom povolená hodnota!",
 		2 => "Nahrávaný súbor je väčší ako je formulárom povolená hodnota!",
@@ -85,7 +89,7 @@ abstract class BasePresenter extends Presenter
 		$user = $this->getUser(); //Nacitanie uzivatela
 
 		// Kontrola ACL
-		if (!($user->isAllowed($this->name, $this->action))) {
+		if (!($user->isAllowed($this->getName(), $this->action))) {
 			if (!$this->getUser()->isLoggedIn()) {
 				$this->sendJson([
 						'status' => 401,
@@ -104,7 +108,6 @@ abstract class BasePresenter extends Presenter
 
 	public function beforeRender(): void
 	{
-		//$this->template->appName = $this->config->getConfig('title');
-		//$this->template->links = $this->config->getConfig('links');
+		$this->template->api_version = $this->api_version;
 	}
 }

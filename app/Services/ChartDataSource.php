@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Model;
 use Nette;
 use Nette\Utils\DateTime;
 use Tracy\Debugger;
@@ -13,19 +14,25 @@ use \App\Model\ChartPoint;
 use \App\Model\View;
 use \App\Model\ViewItem;
 use \App\Services\Logger;
+use DateInterval;
+
+use function intval, strlen ;
 
 class ChartDataSource 
 {
 	use Nette\SmartObject;
+
+	/** @var Model\PV_Sensors */
+	public $pv_sensors;
 	
-	private $database;
+	private Nette\Database\Explorer $database;
 	
 	public function __construct(Nette\Database\Explorer $database)
 	{
 		$this->database = $database;
 	}
 
-	private function computeOffset( $date, $time, $startTs ) : int
+	private function computeOffset(DateTime $date, DateInterval $time, int $startTs ) : int
 	{
 		$rc = $date->getTimestamp();
 		$rc += $time->h * 3600 + $time->i * 60 + $time->s;
@@ -33,13 +40,10 @@ class ChartDataSource
 		return $rc;
 	}
 
-
-
-
 	/**
 	 * Dáta pre graf pokrytia
 	 */
-	public function getSensorCoverageData( $sensor, $year ) 
+	public function getSensorCoverageData( int $sensor_id, int $year ) 
 	{
 		$startTs = "{$year}-01-01";
 		$endTs = ($year+1) . '-01-01';
@@ -53,7 +57,7 @@ class ChartDataSource
 			and rec_date >= ?
 			and rec_date < ?
 			order by rec_date asc
-		', $sensor['id'], $startTs, $endTs  );
+		', $sensor_id, $startTs, $endTs );
 
 		return $result;
 	}
@@ -62,7 +66,7 @@ class ChartDataSource
 	/**
 	 * Dáta pre priemer - z dennej sumarizácie
 	 */
-	public function getAvgData( $sensors, $year , $years ) 
+	public function getAvgData(array $sensors, int $year , int $years ) 
 	{
 		$startTs = "{$year}-01-01";
 		$endTs = ($year+$years) . '-01-01';  // 
@@ -96,7 +100,7 @@ class ChartDataSource
 	 * 
 	 * Vracia objekt SensorDataSeries
 	 */
-	public function getSensorData_temperature_detail( $sensor, $dateTimeFrom, $intervalLenDays ) : SensorDataSeries
+	public function getSensorData_temperature_detail(array $sensor, Nette\Utils\DateTime $dateTimeFrom, int $intervalLenDays ) : SensorDataSeries
 	{
 		$startTs = $dateTimeFrom->getTimestamp();
 		$dateTimeTo = $dateTimeFrom->modifyClone('+' . $intervalLenDays . ' day');   
@@ -130,7 +134,7 @@ class ChartDataSource
 	 * 
 	 * Vracia objekt SensorDataSeries
 	 */
-	public function getSensorData_temperature_summary( $sensors, $dateTimeFrom, $intervalLenDays ) : SensorDataSeries
+	public function getSensorData_temperature_summary( $sensors, DateTime $dateTimeFrom, int $intervalLenDays ) : SensorDataSeries
 	{
 		$startTs = $dateTimeFrom->getTimestamp();
 		$dateTimeTo = $dateTimeFrom->modifyClone('+' . $intervalLenDays . ' day');   
@@ -194,7 +198,7 @@ class ChartDataSource
 	}
 
 
-	private function computeOffset1200( $date, $startTs ) : int
+	private function computeOffset1200(DateTime $date, int $startTs ) : int
 	{
 		$rc = $date->getTimestamp();
 		$rc += 12 * 3600;
@@ -202,7 +206,7 @@ class ChartDataSource
 		return $rc;
 	}
 
-	private function computeOffsetWeeksum( $date, $startTs ) : int
+	private function computeOffsetWeeksum(DateTime $date, int $startTs ) : int
 	{
 		$rc = $date->getTimestamp();
 		$rc += 1*86400 + 12*3600;
@@ -225,7 +229,7 @@ class ChartDataSource
 	 * 
 	 * Vraci objekt SensorDataSeries
 	 */
-	public function getSensorData_minmaxavg_daysummary( $sensors, $dateTimeFrom, $intervalLenDays, $mode ) : SensorDataSeries
+	public function getSensorData_minmaxavg_daysummary( array $sensors, DateTime $dateTimeFrom, int $intervalLenDays, int $mode ) : SensorDataSeries
 	{
 		$startTs = $dateTimeFrom->getTimestamp();
 		$dateTimeTo = $dateTimeFrom->modifyClone('+' . $intervalLenDays . ' day');   
@@ -338,7 +342,7 @@ class ChartDataSource
 
 
 
-	public function getSensorData_weeksummary( $sensors, $dateTimeFrom, $intervalLenDays ) : SensorDataSeries
+	public function getSensorData_weeksummary(array $sensors, DateTime $dateTimeFrom, int $intervalLenDays ) : SensorDataSeries
 	{
 		Logger::log( 'webapp', Logger::DEBUG ,  "weeksumary < $dateTimeFrom, $intervalLenDays" ); 
 
@@ -419,7 +423,7 @@ class ChartDataSource
 	/**
 	 * id	desc	short_desc
 	 */
-	public function getViewSource( $id )
+	public function getViewSource(int $id )
 	{
 		return $this->database->fetch('
 
@@ -430,36 +434,7 @@ class ChartDataSource
 		', $id );
 	}
 
-
-	/**
-	 * id	device_id	channel_id	name	device_class	value_type	msg_rate	desc	display_nodata_interval	
-	 * preprocess_data	preprocess_factor	
-	 * dev_name	dev_desc
-	 * unit
-	 */
-	public function getSensor( $sensorId )
-	{
-		return $this->database->fetch('
-
-			SELECT s.*, 
-			d.name as dev_name, d.desc as dev_desc, d.user_id , d.first_login, 
-			vt.unit
-			
-			FROM sensors s 
-
-			left outer join devices d
-			on d.id = s.device_id
-
-			left outer join value_types vt
-			on s.id_value_types = vt.id
-
-			WHERE s.id = ?
-
-		', $sensorId );
-	}
-
-
-	public function getView( $id, $token ) : View
+	public function getView(int $id, string $token): View
 	{
 		$viewMeta = $this->database->fetch('
 			select vdesc, name, render, allow_compare, app_name from views
@@ -494,7 +469,7 @@ class ChartDataSource
 
 			$sids = explode( ',' , $row->sensor_ids );
 			foreach( $sids as $sid ) {
-				$vi->pushSensor( $this->getSensor($sid) );
+				$vi->pushSensor( $this->pv_sensors->getSensor((int)$sid, true));
 			}
 
 			$vi->axisY = $row->y_axis;
