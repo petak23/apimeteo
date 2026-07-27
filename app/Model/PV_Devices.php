@@ -301,7 +301,7 @@ class VDevice
 	use Nette\SmartObject;
 
 	/** Kompletné data o zariadení */
-	public Database\Table\ActiveRow|null $attrs;
+	public Database\Table\ActiveRow|array|null $attrs;
 
 	/** Príznak problému */
 	public bool $problem_mark = false;
@@ -309,12 +309,12 @@ class VDevice
 	/** Pole senzorov zariadenia */
 	public array $sensors = [];
 
-	public function __construct(Database\Table\ActiveRow|null $attrs = null, bool $return_as_array = false)
+	public function __construct(Database\Table\ActiveRow|array|null $attrs = null, bool $return_as_array = false)
 	{
 		$this->attrs = $return_as_array ? $attrs->toArray() : $attrs;
 	}
 
-	public function addSensor(Database\Table\ActiveRow $sensorAttrs, bool $return_as_array = false): void
+	public function addSensor(Database\Table\ActiveRow|array $sensorAttrs, bool $return_as_array = false): void
 	{
 		$out = [];
 		if ($return_as_array) {
