@@ -544,7 +544,7 @@ final class ChartPresenter extends BasePresenter
 	 * V tento okamzik nepocitame s osou Y mensi nez 0.1
 	 * Viz implementace ChartAxisY->processSeries()
 	 */
-	private function computeTickerSize(int $maxVal, int $minVal, int $numTickers)
+	private function computeTickerSize(?int $maxVal, ?int $minVal, int $numTickers)
 	{
 		//D/ Logger::log( 'webapp', Logger::DEBUG ,  "ticker <- $maxVal, $minVal, $numTickers" ); 
 		$tickerSize = intval(($maxVal - $minVal) / $numTickers);
