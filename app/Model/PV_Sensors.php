@@ -197,4 +197,28 @@ class PV_Sensors extends Table
 			return ['status' => 200, 'message' => 'OK', 'sensor' => $sensor];
 		}
 	}
+
+	public function deleteSensor(int $id): void {
+		$this->connection->query('DELETE FROM measures WHERE sensor_id = ?', $id);
+		$this->connection->query('DELETE FROM sumdata WHERE sensor_id = ?', $id);
+
+		// Nájde všetky views, ktoré obsahujú daný senzor
+		$viewIds = $this->connection->table('view_detail')
+			->where('FIND_IN_SET(?, sensor_ids)', $id)
+			->select('id_view')
+			->fetchPairs(null, 'id_view');
+
+		if ($viewIds) {
+			// Najprv detaily
+			$this->connection->table('view_detail')
+					->where('id_view', $viewIds)
+					->delete();
+
+			// Potom samotné views
+			$this->connection->table('views')
+					->where('id', $viewIds)
+					->delete();
+		}
+		$this->connection->query('DELETE FROM sensors WHERE id = ?', $id);
+	}
 }

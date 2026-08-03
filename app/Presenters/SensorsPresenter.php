@@ -5,11 +5,11 @@ namespace App\Presenters;
 use App\Model;
 use App\Services;
 use Nette\Database;
-use function sprintf;
+use function sprintf, intval;
 
 /**
  * Prezenter pre pristup k api senzorov.
- * Posledna zmena(last change): 20.07.2026
+ * Posledna zmena(last change): 02.08.2026
  *
  * Modul: API
  *
@@ -17,7 +17,7 @@ use function sprintf;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.9
+ * @version 1.1.0
  */
 class SensorsPresenter extends BasePresenter
 {
@@ -303,6 +303,24 @@ class SensorsPresenter extends BasePresenter
 				$out = ($this->sensors->save($id, $values) === null) ? ["status" => 500, "message" => "Chyba pri ukladaní údajov senzora."] : $this->sensors->getAndCheckSensorAccess($id);
 			}
 		}
+		$this->sendJson($out);
+	}
+
+	public function actionSensordelete(int $id) : void {
+		
+		$sensor = $this->sensors->getAndCheckSensorAccess($id);
+		if ($sensor['status'] != 200) {
+			$out = $sensor;
+		} else {
+			try {
+
+				$this->sensors->deleteSensor($id);
+				$out = ["status" => 200, "message" => "Senzor bol vymazaný."];
+			} catch (\Exception $e) {
+				$out = ["status" => 500, "message" => "Chyba pri mazaní senzora: " . $e->getMessage()];
+			}
+		}
+		
 		$this->sendJson($out);
 	}
 }
