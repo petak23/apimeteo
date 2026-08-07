@@ -23,9 +23,9 @@ class UnitsPresenter extends BasePresenter
 	/** @var Model\Units @inject */
 	public $units;
 
-	public function actionDefault(): void
+	public function actionDefault(int $id = 0): void
 	{
-		$this->sendJson($this->units->getUnits());
+		$this->sendJson($this->units->getUnits((bool)$id));
 	}
 
 	public function actionSave(int $id = 0): void
@@ -54,6 +54,26 @@ class UnitsPresenter extends BasePresenter
 						$this->sendJson(["status" => 500, "message" => "Nepodarilo sa aktualizovať jednotku s id $id."]);
 					}
 				}
+			}
+		}
+	}
+
+	public function actionDelete(int $id): void
+	{
+		if (!$this->user->isLoggedIn()) {
+			$this->sendJson(["status" => 401, "message" => "Nie ste prihlásený!"]);
+		} else if (!$this->user->isInRole('admin')) {
+			$this->sendJson(["status" => 403, "message" => "Nemáte oprávnenie na túto akciu!"]);
+		} else {
+			if ($this->units->zmaz($id)) {
+				$_tmp = $this->units->findAll();
+				$out = [];
+				foreach ($_tmp as $unit) {
+					$out[$unit->id] = $unit->unit;
+				}
+				$this->sendJson(["status" => 200, "message" => "Jednotka s id $id bola úspešne vymazaná.", "units" => $out]);
+			} else {
+				$this->sendJson(["status" => 500, "message" => "Nepodarilo sa vymazať jednotku s id $id."]);
 			}
 		}
 	}

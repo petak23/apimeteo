@@ -24,7 +24,7 @@ final class RouterFactory
 		$router->addRoute('chart[/<action>[/<id>]]', 'Chart:sensor');
 		$router->addRoute('devices[/<action>[/<id>]]', 'Devices:default');
 		$router->addRoute('units[/<action>[/<id>]]', 'Units:default');
-		$router->addRoute('unit/save[/<id>]', 'Units:save');
+		$router->addRoute('unit/<action>[/<id>]', 'Units:default');
 		$router->addRoute('comm[/<action>[/<id>]]', 'Comm:default');
 		$router->addRoute('login', 'Users:logIn');
 		$router->addRoute('logout', 'Users:logOut');

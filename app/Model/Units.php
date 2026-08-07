@@ -21,10 +21,19 @@ class Units extends Table
 {
 	protected string $tableName = 'value_types';
 
-	public function getUnits(): array
+	public function getUnits(bool $full_info = false): array
 	{
 		try {
-			$_tmp = $this->findAll()->order('id ASC')->fetchPairs("id", "unit");
+			$_tmp = $this->findAll()->order('id ASC');
+			if ($full_info) {
+				$ou = [];
+				foreach ($_tmp as $v) {
+					$ou[$v->id] = $v->toArray();
+				}
+				$_tmp = $ou;
+			} else {
+				$_tmp = $_tmp->fetchPairs("id", "unit");
+			}
 			return ['status' => 200, 'data' => $_tmp];
 		} catch (Nette\Database\DriverException $e) {
 			return [

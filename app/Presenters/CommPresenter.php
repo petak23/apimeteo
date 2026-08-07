@@ -13,17 +13,19 @@ use Nette\Utils\Strings;
 use Throwable;
 use Tracy\Debugger;
 
+use function is_array, strlen;
+
 /**
  * Presenter pre komunikáciu api s perifériami.
- * Posledná zmena(last change): 28.08.2025
+ * Posledná zmena(last change): 06.08.2026
  *
  * Modul: API
  *
  * @author Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2025 - 2025 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2025 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.2
+ * @version 1.0.3
  */
 class CommPresenter extends BasePresenter
 {
@@ -122,7 +124,7 @@ class CommPresenter extends BasePresenter
 	 *          "session_hash": "<hash session>",
 	 *          "last_measure": "<dátum a čas odoslania>",
 	 *          "data_length": <dĺžka dát>,
-	 *          "data_message": "<last_measure>;<data_length>;<data_string>",
+	 *          // "data_message": "<last_measure>;<data_length>;<data_string>",
 	 *          "payload_hash": "<SHA256 z data_message>"
 	 *      }
 	 * Result:
@@ -142,7 +144,7 @@ class CommPresenter extends BasePresenter
 	 * 	"last_measure":"25.11.2025 11:41:00",
 	 * 	"priority":1,
 	 * 	"data_length":5,
-	 * 	"data_message":";5;:::::xxxxxxxxx",
+	 * 	// "data_message": ";5;:::::xxxxxxxxx",
 	 * 	"payload_hash":"e6c2117a5593b89ba3f2a0573f644693e43a1ad86c85b5e4de4c6bb3ac42237d",
 	 * 	"session_id":887,
 	 * 	"session_hash":"6UN7lOmD",
@@ -169,13 +171,12 @@ class CommPresenter extends BasePresenter
 			$postSize = strlen( $postMessage );
 			$logger->write( Logger::INFO, "Begin of Datajson: data+ {$postSize}b {$remoteIp}");
 
-			try {
+			try { // Dekóduj do json-u
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
 			} catch (Utils\JsonException $e) {
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
 			}
 			
-			//$session = Strings::trim($msg_parts[0]); 
 			if( !isset($json_msg["session_id"]) || 
 					!isset($json_msg["session_hash"]) || 
 					Strings::length( $json_msg["session_hash"] ) == 0  
@@ -191,18 +192,19 @@ class CommPresenter extends BasePresenter
 				"priority" => $json_msg["priority"]
 			]);
 			
-			$str_message = $json_msg["last_measure"] .";". (string)$json_msg["data_length"] .";".$data_string . $this->config->getConfig('masterPassword');
+			$str_message = (string)$json_msg["data_length"] .";".$data_string . $this->config->getConfig('masterPassword');
 
 			$control_hash = hash('sha256', $str_message);
 
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
-				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Not valid sha256 of message! " . $control_hash . " != " . $json_msg["payload_hash"] );
-				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: " . $str_message );
-				throw new \Exception("Not valid sha256 of message! " . $control_hash . " != " . $json_msg["payload_hash"]);
+				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}" );
+				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: {$str_message}" );
+				throw new \Exception("Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}");
 			}
 
 			if( strlen($data_string) !== (int)$json_msg["data_length"]  ) {
 				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"] );
+				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: {$str_message}" );
 				throw new \Exception("Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"]);
 			}
 			
