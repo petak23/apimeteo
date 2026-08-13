@@ -48,9 +48,9 @@ public function testSetUpTime($device_id, $d)
 
 	/**
 	 * Spracuje jeden request; ten ale môže obsahovať viacej správ.
-	 * @var array $msgTotal = [<dátum a čas odoslania>, <dĺžka dát>, <data>, <uptime>]
+	 * @var array $msgTotal = [<last_measure>, <data_length>, <sensors>, <uptime>]
 	 * Formát dát ako pole:
-	 * 	[<označenie senzora>, <formátovaná hodnota>, <raw hodnota>, <warning> ...]
+	 *  ["id", "raw_value", "id_device_classes", "id_value_types", "preprocess_factor"]
 	 */
 	public function process_pv(Table\ActiveRow $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
 	{
@@ -60,14 +60,17 @@ public function testSetUpTime($device_id, $d)
 		$this->pv_devices->setUptime( $sessionDevice->device_id, (int)$msgTotal[3]); 
 		
 		foreach ($msgTotal[2] as $ds) {						// Spracujem data z jednotlivých senzorov
-			$sensor = $this->pv_sensors->findOneBy(['device_id'=>$sessionDevice->device_id, 'name' => $ds['id']]); // Nájdenie príslušného senzora
-					if ($sensor == null) { // Senzor neexistuje, vytvorenie nového
-				$logger->write( Logger::INFO,  "MsgProcessor:process_pv => New channel definition" );
-				$sensor = $this->processChannelDefinitionPV($sessionDevice, $ds);
-			} 
-			if ($sensor != null) { // Zapíšem dáta do kanála
-				$logger->write( Logger::INFO,  "MsgProcessor:process_pv => dataof chanel={$ds['id']}" );
-				$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $sensor, $msgTotal[0], $logger);
+			if ($ds != null) {
+				$sensor = $this->pv_sensors->findOneBy(['device_id'=>$sessionDevice->device_id, 'name' => $ds['id']]); // Nájdenie príslušného senzora
+				if ($sensor == null) { // Senzor neexistuje, vytvorenie nového
+					$logger->write( Logger::INFO,  "MsgProcessor:process_pv => New channel definition" );
+					$logger->write( Logger::INFO,  "MsgProcessor:process_pv => data: {$ds['id']}, raw_value: {$ds['raw_value']}" );
+					$sensor = $this->processChannelDefinitionPV($sessionDevice, $ds);
+				} 
+				if ($sensor != null) { // Zapíšem dáta do kanála
+					$logger->write( Logger::INFO,  "MsgProcessor:process_pv => dataof chanel={$ds['id']}" );
+					$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $sensor, $msgTotal[0], $logger);
+				}
 			}
 		}
 	}

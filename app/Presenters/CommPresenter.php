@@ -201,6 +201,7 @@ class CommPresenter extends BasePresenter
 				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: {$str_message}" );
 				throw new \Exception("Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}");
 			}
+			$logger->write( Logger::INFO,  "CommPresenter:str_message: {$str_message}");
 
 			if( strlen($data_string) !== (int)$json_msg["data_length"]  ) {
 				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"] );

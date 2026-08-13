@@ -6,15 +6,15 @@ use App\Model;
 
 /**
  * Prezenter pre pristup k api jednotiek.
- * Posledna zmena(last change): 20.11.2023
+ * Posledna zmena(last change): 08.08.2026
  *
  * Modul: API
  *
  * @author Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2012 - 2023 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.0
+ * @version 1.0.1
  */
 class UnitsPresenter extends BasePresenter
 {
@@ -44,12 +44,10 @@ class UnitsPresenter extends BasePresenter
 				}	else {
 					$updateResult = $this->units->save($id, $_post);
 					if ($updateResult) {
-						$_tmp = $this->units->findAll();
-						$out = [];
-						foreach ($_tmp as $unit) {
-							$out[$unit->id] = $unit->unit;
-						}
-						$this->sendJson(["status" => 200, "message" => "Jednotka s id $id bola úspešne aktualizovaná.", "units" => $out]);
+						$this->sendJson([
+							"message" => "Jednotka s id $id bola úspešne aktualizovaná.", 
+							...$this->units->getUnits(true)
+						]);
 					} else {
 						$this->sendJson(["status" => 500, "message" => "Nepodarilo sa aktualizovať jednotku s id $id."]);
 					}
@@ -66,12 +64,10 @@ class UnitsPresenter extends BasePresenter
 			$this->sendJson(["status" => 403, "message" => "Nemáte oprávnenie na túto akciu!"]);
 		} else {
 			if ($this->units->zmaz($id)) {
-				$_tmp = $this->units->findAll();
-				$out = [];
-				foreach ($_tmp as $unit) {
-					$out[$unit->id] = $unit->unit;
-				}
-				$this->sendJson(["status" => 200, "message" => "Jednotka s id $id bola úspešne vymazaná.", "units" => $out]);
+				$this->sendJson([
+							"message" => "Jednotka s id $id bola úspešne vymazaná.",
+							...$this->units->getUnits(true),
+				]);
 			} else {
 				$this->sendJson(["status" => 500, "message" => "Nepodarilo sa vymazať jednotku s id $id."]);
 			}
