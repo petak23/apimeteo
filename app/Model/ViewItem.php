@@ -21,7 +21,7 @@ class ViewItem
 	/**
 	 * Pole senzorov (Nette\Database\Row). Každý senzor má vlastnosti:
 	 * 
-	 * id	device_id	channel_id	name	device_class	value_type	msg_rate	desc	display_nodata_interval	
+	 * id	device_id	channel_id	name	sensor_classes	value_type	msg_rate	desc	display_nodata_interval	
 	 * preprocess_data	preprocess_factor	
 	 * dev_name	dev_desc dev_id
 	 * unit

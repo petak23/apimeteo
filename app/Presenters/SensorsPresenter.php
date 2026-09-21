@@ -66,12 +66,12 @@ class SensorsPresenter extends BasePresenter
 	/**
 	 * Používa sa len na vykreslenie automaticky pripraveného grafu volaného z detailu zariadenia.
 	 */
-	private function getViewSourceId(int $device_class, int $lenDays): int
+	private function getViewSourceId(int $id_sensor_classes, int $lenDays): int
 	{
-		if ($device_class == 1) {
+		if ($id_sensor_classes == 1) {
 			// CONTINUOUS_MINMAXAVG
 			$vsId = 1; // Automatická data
-		} else if ($device_class == 2) {
+		} else if ($id_sensor_classes == 2) {
 			// CONTINUOUS
 			$vsId = 5; // Detailní data
 		} else {
@@ -177,7 +177,7 @@ class SensorsPresenter extends BasePresenter
 			'years' => $params->getAltYearsList(),
 		];
 
-		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['device_class'], $params->lenDays));
+		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['id_sensor_classes'], $params->lenDays));
 		
 		$outView = [];
 		$vi = [
@@ -199,7 +199,7 @@ class SensorsPresenter extends BasePresenter
 		//$this->populateChartMenu($id, $sensor->name, 100, $sensor->device_id, $sensor->dev_name);
 
 
-		if ($sensor['device_class'] == 3) {
+		if ($sensor['id_sensor_classes'] == 3) {
 			// len pre impulzné senzory - vytiahneme mesačné sumy
 			$rs = $this->datasource->getMonthSummaryImp($id);
 			$mesicniSumarizace = [];
@@ -213,7 +213,7 @@ class SensorsPresenter extends BasePresenter
 				$mesicniSumarizace[$rok]['celkem'] = $prev + $row->suma;
 			}
 			$out['mesicniSumarizace'] = $mesicniSumarizace;
-		} else if ($sensor['device_class'] == 1) {
+		} else if ($sensor['id_sensor_classes'] == 1) {
 			// len pre spojité senzory - vytiahneme mesačné min/max/avg
 			$rs = $this->datasource->getMonthSummaryCont($id);
 			$mesicniSumarizace = [];

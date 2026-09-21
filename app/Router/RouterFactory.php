@@ -15,7 +15,6 @@ final class RouterFactory
 	public static function createRouter(): RouteList
 	{
 		$router = new RouteList;
-		$router->addRoute('device[/<id>[/<action>]]', 'Devices:device');
 		$router->addRoute('sensor/last/<id>', 'Sensors:measureslast');
 		$router->addRoute('sensor/<id>', 'Sensors:sensor');
 		$router->addRoute('sensorstat/<id>', 'Sensors:sensorstat');
@@ -23,6 +22,7 @@ final class RouterFactory
 		$router->addRoute('sensor/delete/<id>', 'Sensors:sensordelete');
 		$router->addRoute('chart[/<action>[/<id>]]', 'Chart:sensor');
 		$router->addRoute('devices[/<action>[/<id>]]', 'Devices:default');
+		$router->addRoute('device/<id>[/<action>]', 'Devices:device');
 		$router->addRoute('units[/<action>[/<id>]]', 'Units:default');
 		$router->addRoute('unit/<action>[/<id>]', 'Units:default');
 		$router->addRoute('comm[/<action>[/<id>]]', 'Comm:default');

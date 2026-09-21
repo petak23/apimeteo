@@ -83,14 +83,14 @@ SET time_zone = '+00:00';
 SET foreign_key_checks = 0;
 SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
-DROP TABLE IF EXISTS `device_classes`;
-CREATE TABLE `device_classes` (
+DROP TABLE IF EXISTS `sensor_classeses`;
+CREATE TABLE `sensor_classeses` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Index',
   `desc` varchar(50) NOT NULL COMMENT 'Popis',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='Druh merania senzora';
 
-INSERT INTO `device_classes` (`id`, `desc`) VALUES
+INSERT INTO `sensor_classeses` (`id`, `desc`) VALUES
 (1,	'CONTINUOUS_MINMAXAVG'),
 (2,	'CONTINUOUS'),
 (3,	'IMPULSE_SUM'),
@@ -125,3 +125,33 @@ CHANGE `sensor_id` `id_sensor` smallint(6) NULL COMMENT 'Id senzora' AFTER `id_d
 ADD FOREIGN KEY (`id_user_main`) REFERENCES `user_main` (`id`),
 ADD FOREIGN KEY (`id_devices`) REFERENCES `devices` (`id`),
 ADD FOREIGN KEY (`id_sensor`) REFERENCES `sensors` (`id`);
+
+-- 2026-09-21
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+SET foreign_key_checks = 0;
+SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+DROP TABLE IF EXISTS `sensor_classeses`;
+CREATE TABLE `sensor_classeses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Index',
+  `desc` varchar(50) NOT NULL COMMENT 'Popis',
+  `description` varchar(100) DEFAULT NULL COMMENT 'Dlhší popis hodnoty',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='Druh merania senzora';
+
+INSERT INTO `sensor_classeses` (`id`, `desc`, `description`) VALUES
+(1,	'CONTINUOUS_MINMAXAVG',	'Meranie spojitej hodnoty (typicky teplota, ...). Z nameraných hodnôt sa počítajú sumárne data.'),
+(2,	'CONTINUOUS',	'Meranie spojitej hodnoty (typicky teplota, ...).'),
+(3,	'IMPULSE_SUM',	'Impulzné meranie (typicky impulzný výstup plynomeru, zrážkomer). Meria počet impulzov.'),
+(4,	'RAIN_SUM',	'Súhrn zrážok (typicky zrážkomer). Meria celkové množstvo zrážok.');
+
+-- OK - done
+
+ALTER TABLE `device_classes`
+RENAME TO `sensor_classes`;
+
+ALTER TABLE `sensors`
+CHANGE `device_class` `id_sensor_classes` int(11) NOT NULL DEFAULT '1' COMMENT 'Druh merania senzora' AFTER `name`,
+ADD FOREIGN KEY (`id_sensor_classes`) REFERENCES `sensor_classes` (`id`);

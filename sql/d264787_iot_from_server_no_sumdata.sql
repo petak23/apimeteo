@@ -48,13 +48,13 @@ INSERT INTO `devices` (`id`, `passphrase`, `name`, `desc`, `first_login`, `last_
 (1,	'3a3a53cdc87d69ce5fa0dc3c838d4d53',	'PV:meteozahradka',	'Meteorologická stanica na záhradke',	'2023-09-12 15:11:37',	'2024-05-24 10:12:12',	NULL,	1,	'a746p2vo4pikwb1a2euvo1ofeaj6ypr20wqpvs64',	'zhaq8xz0amigbxblmflcbpssp8esv9hw7hwub2p5',	1,	'[Zmeteo_50a_02]; /home/petak23/arduino/arduino/v50a-BME280-meteozahradka/v50a-BME280-meteozahradka.ino, Nov 16 2023 06:31:58; RA 5.4.1; LS Y; OTA Y; ESP32-C3',	1675,	-59,	NULL,	NULL),
 (3,	'2bc0775814adefe3af97f10a83e6ecb4',	'PV:meteobalkon',	'Testovacia meteostanička na balkóne.',	'2023-11-02 14:11:02',	'2024-09-13 22:14:40',	'2025-07-25 12:59:35',	1,	'k5iuq1o5gq94sy44qnew64b9atxffuc5d1dgrsh8',	'09yrd07uo0gjwnewyjpfmg0vxgnze1ts5ihla4bu',	1,	'[Bmeteo_50a_02]; /home/petak23/arduino/arduino/v50a-BME280-meteobalkon/v50a-BME280-meteobalkon.ino, Nov 10 2023 10:22:19; RA 5.4.1; LS Y; OTA Y; ESP32',	15049765,	-95,	NULL,	NULL);
 
-DROP TABLE IF EXISTS `device_classes`;
-CREATE TABLE `device_classes` (
+DROP TABLE IF EXISTS `sensor_classeses`;
+CREATE TABLE `sensor_classeses` (
   `id` int(11) NOT NULL,
   `desc` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin;
 
-INSERT INTO `device_classes` (`id`, `desc`) VALUES
+INSERT INTO `sensor_classeses` (`id`, `desc`) VALUES
 (1,	'CONTINUOUS_MINMAXAVG'),
 (2,	'CONTINUOUS'),
 (3,	'IMPULSE_SUM');
@@ -50121,7 +50121,7 @@ CREATE TABLE `sensors` (
   `device_id` smallint(6) NOT NULL,
   `channel_id` smallint(6) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
-  `device_class` tinyint(4) NOT NULL,
+  `sensor_classes` tinyint(4) NOT NULL,
   `id_value_types` int(11) NOT NULL COMMENT 'Typ jednotky',
   `msg_rate` int(11) NOT NULL COMMENT 'expected delay between messages',
   `desc` varchar(256) DEFAULT NULL,
@@ -50156,7 +50156,7 @@ CREATE TABLE `sensors` (
   CONSTRAINT `sensors_ibfk_2` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf32 COLLATE=utf32_bin COMMENT='List of sensors. Each sensor is a part of one DEVICE.';
 
-INSERT INTO `sensors` (`id`, `device_id`, `channel_id`, `name`, `device_class`, `id_value_types`, `msg_rate`, `desc`, `display_nodata_interval`, `preprocess_data`, `preprocess_factor`, `last_data_time`, `last_out_value`, `data_session`, `imp_count`, `warn_max`, `warn_max_after`, `warn_max_val`, `warn_max_val_off`, `warn_max_text`, `warn_max_fired`, `warn_max_sent`, `warn_min`, `warn_min_after`, `warn_min_val`, `warn_min_val_off`, `warn_min_text`, `warn_min_fired`, `warn_min_sent`, `warn_noaction_fired`, `warning_icon`) VALUES
+INSERT INTO `sensors` (`id`, `device_id`, `channel_id`, `name`, `sensor_classes`, `id_value_types`, `msg_rate`, `desc`, `display_nodata_interval`, `preprocess_data`, `preprocess_factor`, `last_data_time`, `last_out_value`, `data_session`, `imp_count`, `warn_max`, `warn_max_after`, `warn_max_val`, `warn_max_val_off`, `warn_max_text`, `warn_max_fired`, `warn_max_sent`, `warn_min`, `warn_min_after`, `warn_min_val`, `warn_min_val_off`, `warn_min_text`, `warn_min_fired`, `warn_min_sent`, `warn_noaction_fired`, `warning_icon`) VALUES
 (4,	1,	NULL,	'ztemp',	1,	1,	3600,	'ztemp',	7200,	0,	NULL,	'2024-05-23 18:54:02',	181.64,	NULL,	NULL,	0,	0,	NULL,	NULL,	NULL,	NULL,	0,	0,	0,	NULL,	NULL,	NULL,	NULL,	0,	'2024-05-23 20:01:29',	1),
 (5,	1,	2,	'zhumi',	1,	2,	3600,	'zhumi',	7200,	0,	NULL,	'2024-05-23 18:54:02',	100,	NULL,	NULL,	0,	0,	NULL,	NULL,	NULL,	NULL,	0,	0,	0,	NULL,	NULL,	NULL,	NULL,	0,	'2024-05-23 20:01:29',	1),
 (6,	1,	3,	'zpres',	1,	3,	3600,	'zpres',	7200,	0,	NULL,	'2024-05-23 14:54:00',	1023.02,	NULL,	NULL,	0,	0,	NULL,	NULL,	NULL,	NULL,	0,	0,	0,	NULL,	NULL,	NULL,	NULL,	0,	'2024-05-23 16:01:18',	1),

@@ -18,7 +18,7 @@ class SensorDataSeries
 	/**
 	 * Data sensoru
 	 * 
-	 * Properties: id	device_id	channel_id	name	device_class	id_value_types	msg_rate	desc	display_nodata_interval	 preprocess_data	preprocess_factor dev_name	dev_desc
+	 * Properties: id	device_id	channel_id	name	sensor_classes	id_value_types	msg_rate	desc	display_nodata_interval	 preprocess_data	preprocess_factor dev_name	dev_desc
 	 */
 	public array $firstSensor;
 

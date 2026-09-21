@@ -8,9 +8,11 @@ use Nette\Database;
 use Nette\Utils\DateTime;
 use Nette\Utils\Strings;
 
+use function strlen;
+
 /**
  * Prezenter pre pristup k api zariadení.
- * Posledna zmena(last change): 24.02.2026
+ * Posledna zmena(last change): 21.09.2026
  *
  * Modul: API
  *
@@ -18,7 +20,7 @@ use Nette\Utils\Strings;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.6
+ * @version 1.0.7
  */
 class DevicesPresenter extends BasePresenter
 {

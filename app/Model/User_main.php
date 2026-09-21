@@ -68,10 +68,11 @@ class User_main extends Table
 			$_cols = $this->getTableColsInfo();
 			$_tmp = [];
 			foreach ($out as $o) {
+				//dumpe($o, $_cols);
 				$_user = [];
 				foreach ($_cols as $k => $v) {
 					if ($v['type'] == "datetime") {
-						$_user[$v['field']] = $o->{$v['field']}->format('d.m.Y H:i:s');
+						$_user[$v['field']] = $o->{$v['field']} !== null ? $o->{$v['field']}->format('d.m.Y H:i:s') : null;
 					} else {
 						$_user[$v['field']] = $o->{$v['field']};
 					}

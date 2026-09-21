@@ -476,12 +476,12 @@ final class CrontaskPresenter extends BasePresenter
 			$logger->write(Logger::ERROR, "Nenájdený senzor {$sensorId}!");
 			return;
 		}
-		$device_classes = $sensor->id_device_classes;
+		$sensor_classes = $sensor->id_sensor_classes;
 		$rows = $this->datasource->getRecordsForSensorHour($sensorId, $date, $hour);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  $rec );
 
-			if ($device_classes == 1 || $device_classes == 4) {
+			if ($sensor_classes == 1 || $sensor_classes == 4) {
 				// maji se pocitat prumery hodnot
 				if ($min === NULL) {
 					// prvni zaznam
@@ -489,7 +489,7 @@ final class CrontaskPresenter extends BasePresenter
 					$min_time = $rec->data_time;
 					$max = $rec->out_value;
 					$max_time = $rec->data_time;
-					if ($device_classes == 4) {
+					if ($sensor_classes == 4) {
 						$sum = $rec->out_value;
 					}
 				} else {
@@ -501,11 +501,11 @@ final class CrontaskPresenter extends BasePresenter
 						$max = $rec->out_value;
 						$max_time = $rec->data_time;
 					}
-					if ($device_classes == 4) {
+					if ($sensor_classes == 4) {
 						$sum += $rec->out_value;
 					}
 				}
-			} else if ($device_classes == 3) {
+			} else if ($sensor_classes == 3) {
 				// ma se pocitat sumarizace hodnot
 				$sum += $rec->out_value;
 			}
@@ -518,12 +518,12 @@ final class CrontaskPresenter extends BasePresenter
 		}
 
 		// spocten min,max -> udelame si stred (to se tyka jen hodinovych zaznamu, u dennich se pocita jinak!)
-		if ($device_classes == 1) {
+		if ($sensor_classes == 1) {
 			$avg = ($min + $max) / 2;
 		}
 
 		// pokud se nejedna o class 2, kde se nepocitaji sumarizace
-		if ($device_classes != 2) {
+		if ($sensor_classes != 2) {
 			// vsechny zaznamy zpracovany, je treba vytvorit sumarni zaznam
 			$this->datasource->createSummary(
 				$sensorId,
@@ -607,7 +607,7 @@ final class CrontaskPresenter extends BasePresenter
 
 
 		$sensor = $this->sensors->getSensor($sensorId);
-		$device_classes = $sensor->id_device_classes;
+		$sensor_classes = $sensor->id_sensor_classes;
 		$rows = $this->datasource->getSumsForSensorDay($sensorId, $date);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  (array)$rec );
@@ -615,7 +615,7 @@ final class CrontaskPresenter extends BasePresenter
 			$count++;
 
 			//  id	sensor_id	sum_type	rec_date	rec_hour	min_val	min_time	max_val	max_time	avg_val	sum_val	status
-			if ($device_classes == 1 || $device_classes == 4) {
+			if ($sensor_classes == 1 || $sensor_classes == 4) {
 				// maji se pocitat prumery hodnot
 				if ($min === NULL) {
 					// prvni zaznam
@@ -623,7 +623,7 @@ final class CrontaskPresenter extends BasePresenter
 					$min_time = $rec->min_time;
 					$max = $rec->max_val;
 					$max_time = $rec->max_time;
-					if ($device_classes == 4) {
+					if ($sensor_classes == 4) {
 						$sum = $rec->sum_val;
 					}
 				} else {
@@ -635,7 +635,7 @@ final class CrontaskPresenter extends BasePresenter
 						$max = $rec->max_val;
 						$max_time = $rec->max_time;
 					}
-					if ($device_classes == 4) {
+					if ($sensor_classes == 4) {
 						$sum += $rec->sum_val;
 					}
 				}
@@ -649,7 +649,7 @@ final class CrontaskPresenter extends BasePresenter
 				} else if ($rec->rec_hour == 18) {
 					$val18 = $rec->avg_val;
 				}
-			} else if ($device_classes == 3) {
+			} else if ($sensor_classes == 3) {
 				// ma se pocitat sumarizace hodnot
 				$sum += $rec->sum_val;
 			}
@@ -662,7 +662,7 @@ final class CrontaskPresenter extends BasePresenter
 		}
 
 		// spocist prumer, pokud mame data
-		if ($device_classes == 1) {
+		if ($sensor_classes == 1) {
 			if ($val0 != NULL && $val6 != NULL && $val12 != NULL && $val18 != NULL) {
 				$avg = ($val0 + $val6 + $val12 + $val18) / 4;
 			}
@@ -683,7 +683,7 @@ final class CrontaskPresenter extends BasePresenter
 			$count
 		);
 
-		if ($device_classes == 3 || $device_classes == 4) {
+		if ($sensor_classes == 3 || $sensor_classes == 4) {
 			// Pre impulzné senzory dá celkovú dennú sumu do sensor['last_out_value']
 			$this->datasource->updateSensorValue($sensorId, $sum);
 		}

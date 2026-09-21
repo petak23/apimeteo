@@ -26,6 +26,7 @@ class UsersPresenter extends BasePresenter
 	 * Vráti zoznam všetkých užívateľov */
 	public function actionDefault(): void
 	{
+		
 		$this->sendJson($this->user_main->getUsers(true));
 	}
 

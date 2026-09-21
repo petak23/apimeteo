@@ -81,7 +81,7 @@ class CrontaskDataSource
 
 
 	/**
-	 * id	device_id	channel_id	name	device_class	value_type	msg_rate	desc	display_nodata_interval	preprocess_data	preprocess_factor
+	 * id	device_id	channel_id	name	sensor_classes	value_type	msg_rate	desc	display_nodata_interval	preprocess_data	preprocess_factor
 	 * @deprecated - používat getSensor() z Model\PV_Sensors, který vrací i další potřebná pole pro zpracování notifikací
 	 * @return array|false|Nette\Database\IRow
 	 */

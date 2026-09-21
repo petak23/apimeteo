@@ -217,7 +217,7 @@ class RaDataSource
 				'device_id' => $sessionDevice->deviceId,
 				'channel_id' => $channel,
 				'name' => $name,
-				'id_device_classes' => $devClass,
+				'id_sensor_classes' => $devClass,
 				'id_value_types' => $valueType,
 				'msg_rate' => $msgRate,
 				'preprocess_data' => $process,

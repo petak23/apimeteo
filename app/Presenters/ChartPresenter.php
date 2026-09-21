@@ -958,7 +958,7 @@ final class ChartPresenter extends BasePresenter
 
 			$out = 0;
 
-			if ($sensor->device_class == 1) {
+			if ($sensor->id_sensor_classes == 1) {
 				// Pre teplotný senzor máme priemer!
 				// 1 = najvyššia kvalita, 2 = ešte mám priemer, 3 = nejaké dáta, 4 = minimum dát
 				if ($row['ct_val'] > 21 && $row['avg_val'] !== null) {
@@ -968,7 +968,7 @@ final class ChartPresenter extends BasePresenter
 				} else {
 					$out = ($row['ct_val'] > 11) ? 3 : 4;
 				} 
-			} else if ($sensor->device_class == 3) {
+			} else if ($sensor->id_sensor_classes == 3) {
 				// Pre impulzný senzor nemáme priemer!
 				// 1 = najvyššia kvalita, 2 = ešte mám priemer, 4 = minimum dát
 				$out = ($row['ct_val'] > 22) ? 1 : (($row['ct_val'] > 10) ? 2 : 4);
@@ -1533,7 +1533,7 @@ final class ChartPresenter extends BasePresenter
 
 		$viewitem = new Model\ViewItem();
 		$viewitem->pushSensor($sensor);
-		$viewitem->source = $this->getViewSourceId($sensor['device_class'], $lenDays);
+		$viewitem->source = $this->getViewSourceId($sensor['id_sensor_classes'], $lenDays);
 		$viewitem->axisY = 1;
 
 		$this->chart = new Model\Chart($dateTimeFrom);
@@ -1695,10 +1695,10 @@ final class ChartPresenter extends BasePresenter
 	/**
 	 * Pouziva se pro jen vykresleni automaticky pripraveneho grafu volaneho z detailu zarizeni.
 	 */
-	private function getViewSourceId($device_class = 1, $lenDays = 8)
+	private function getViewSourceId($id_sensor_classes = 1, $lenDays = 8)
 	{
-		$vsId = ($device_class == 1) ? 1 /* Automatická data (CONTINUOUS_MINMAXAVG)*/
-			: ($device_class == 2 ? 5 /* Detailní data (CONTINUOUS) */
+		$vsId = ($id_sensor_classes == 1) ? 1 /* Automatická data (CONTINUOUS_MINMAXAVG)*/
+			: ($id_sensor_classes == 2 ? 5 /* Detailní data (CONTINUOUS) */
 			: ($lenDays > 30 ? 6 /*denni suma*/ : 7 /*hodinova suma*/)); 
 		return $vsId;
 	}
@@ -1788,7 +1788,7 @@ final class ChartPresenter extends BasePresenter
 			'isChart' => true,
 		];
 
-		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['device_class'], $params->lenDays));
+		$viewSource = $this->datasource->getViewSource($this->getViewSourceId($sensor['id_sensor_classes'], $params->lenDays));
 
 		$outView = [];
 		$vi = [

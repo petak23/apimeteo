@@ -136,7 +136,7 @@ class CommPresenter extends BasePresenter
 	 * 		"id":"te",
 	 * 		"value":"22.35 °C",
 	 * 		"raw_value":"22.35",
-	 * 		"id_device_classes":1,
+	 * 		"id_sensor_classes":1,
 	 * 		"id_value_types":1,
 	 * 		"preprocess_factor":null,
 	 * 		"warning":"success"

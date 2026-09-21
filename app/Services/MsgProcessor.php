@@ -50,7 +50,7 @@ public function testSetUpTime($device_id, $d)
 	 * Spracuje jeden request; ten ale môže obsahovať viacej správ.
 	 * @var array $msgTotal = [<last_measure>, <data_length>, <sensors>, <uptime>]
 	 * Formát dát ako pole:
-	 *  ["id", "raw_value", "id_device_classes", "id_value_types", "preprocess_factor"]
+	 *  ["id", "raw_value", "id_sensor_classes", "id_value_types", "preprocess_factor"]
 	 */
 	public function process_pv(Table\ActiveRow $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
 	{
@@ -88,13 +88,13 @@ public function testSetUpTime($device_id, $d)
 		Logger $logger): void
 	{
 
-		if ($sensor->device_class == 1 || $sensor->device_class == 2) { 
+		if ($sensor->sensor_classes == 1 || $sensor->sensor_classes == 2) { 
 			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG a DEVCLASS_CONTINUOUS
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
 			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
 			$dataSession = '';
 			$impCount = 0;
-		} elseif ($sensor->device_class == 4) {
+		} elseif ($sensor->sensor_classes == 4) {
 			// senzor RAIN_SUM
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
 			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
@@ -146,9 +146,9 @@ public function testSetUpTime($device_id, $d)
 
 		$values = [];
 		$values['last_data_time'] = $messageTime;
-		if ($sensor->device_class == 1 || $sensor->device_class == 2) {
+		if ($sensor->sensor_classes == 1 || $sensor->sensor_classes == 2) {
 			$values['last_out_value'] = $value_out;
-		} elseif ($sensor->device_class == 4) {
+		} elseif ($sensor->sensor_classes == 4) {
 			$values['last_out_value'] = $value_out + $sensor->last_out_value; // kumulativný súčet pre RAIN_SUM
 		}
 		if ($dataSession != '') {
@@ -176,7 +176,7 @@ public function testSetUpTime($device_id, $d)
 				'device_id' => $sessionDevice->device_id,
 				//'channel_id' => $channel_id,
 				'name' => $msgTotal['id'],
-				'device_class' => $msgTotal['id_device_classes'],
+				'sensor_classes' => $msgTotal['id_sensor_classes'],
 				'id_value_types' => $msgTotal['id_value_types'],
 				'msg_rate' => isset($msgTotal['msg_rate']) ? $msgTotal['msg_rate'] : 3600,	// Ak nie je nastavené nastav predvolenú hodnotu
 				'preprocess_data' => ($msgTotal['preprocess_factor'] === NULL) ? 0 : 1,
@@ -294,7 +294,7 @@ public function testSetUpTime($device_id, $d)
 
 		$data = substr($msg, $i);
 
-		if ($sensor['id_device_classes'] != 3) {
+		if ($sensor['id_sensor_classes'] != 3) {
 			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG a DEVCLASS_CONTINUOUS
 			// s datami nič nerobíme
 			$value_out = filter_var($data, FILTER_VALIDATE_FLOAT); // Zmeň data na float
@@ -348,7 +348,7 @@ public function testSetUpTime($device_id, $d)
 
 		$values = [];
 		$values['last_data_time'] = $messageTime;
-		if ($sensor['device_class'] != 3) {
+		if ($sensor['sensor_classes'] != 3) {
 			$values['last_out_value'] = $value_out;
 		}
 		if ($dataSession != '') {

@@ -319,7 +319,10 @@ class VDevice
 		$out = [];
 		if ($return_as_array) {
 			$out = array_merge(
-				['value_unit' => $sensorAttrs->value_types->unit],
+				[
+					'value_unit' => $sensorAttrs->value_types->unit,
+					'sensor_class' => $sensorAttrs->sensor_classes->desc,
+				],
 				$sensorAttrs->toArray()
 			);
 		}
