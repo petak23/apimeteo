@@ -147,11 +147,11 @@ INSERT INTO `sensor_classeses` (`id`, `desc`, `description`) VALUES
 (3,	'IMPULSE_SUM',	'Impulzné meranie (typicky impulzný výstup plynomeru, zrážkomer). Meria počet impulzov.'),
 (4,	'RAIN_SUM',	'Súhrn zrážok (typicky zrážkomer). Meria celkové množstvo zrážok.');
 
--- OK - done
-
 ALTER TABLE `device_classes`
 RENAME TO `sensor_classes`;
 
 ALTER TABLE `sensors`
 CHANGE `device_class` `id_sensor_classes` int(11) NOT NULL DEFAULT '1' COMMENT 'Druh merania senzora' AFTER `name`,
 ADD FOREIGN KEY (`id_sensor_classes`) REFERENCES `sensor_classes` (`id`);
+
+-- OK - done
