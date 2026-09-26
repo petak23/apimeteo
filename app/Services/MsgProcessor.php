@@ -59,7 +59,9 @@ public function testSetUpTime($device_id, $d)
 		// Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
 		$this->pv_devices->setUptime( $sessionDevice->device_id, (int)$msgTotal[3]); 
 		
+		//TODO oprav podľa nového.
 		foreach ($msgTotal[2] as $ds) {						// Spracujem data z jednotlivých senzorov
+
 			if ($ds != null) {
 				$sensor = $this->pv_sensors->findOneBy(['device_id'=>$sessionDevice->device_id, 'name' => $ds['id']]); // Nájdenie príslušného senzora
 				if ($sensor == null) { // Senzor neexistuje, vytvorenie nového

@@ -90,7 +90,8 @@ class CommPresenter extends BasePresenter
 
 			$device = $this->pv_devices->getDeviceBy(['name' => $json_msg["device_name"]]);
 			if (is_array($device) && isset($device["status"]) && $device["status"] == 404) {
-				throw new \Exception("Device {$json_msg['device_name']} not found!");
+				$logger->write( Logger::INFO, "postMessage: {$postMessage}" );
+				throw new \Exception("Device with name: >{$json_msg['device_name']}< not found!");
 			} else {
 				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id}" );
 			}
@@ -139,7 +140,11 @@ class CommPresenter extends BasePresenter
 	 * 		"id_sensor_classes":1,
 	 * 		"id_value_types":1,
 	 * 		"preprocess_factor":null,
-	 * 		"warning":"success"
+	 * 		//"warning":"success"
+	 * 		
+	 * 		verzia 2
+	 * 		"<id>":"<raw_value>;<id_device_classes>;<id_value_types>;<preprocess_factor>"
+	 * 		...
 	 * 	}, ... ],
 	 * 	"last_measure":"25.11.2025 11:41:00",
 	 * 	"priority":1,
