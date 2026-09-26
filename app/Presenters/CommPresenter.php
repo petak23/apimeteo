@@ -17,7 +17,7 @@ use function is_array, strlen;
 
 /**
  * Presenter pre komunikáciu api s perifériami.
- * Posledná zmena(last change): 06.08.2026
+ * Posledná zmena(last change): 26.09.2026
  *
  * Modul: API
  *
@@ -25,7 +25,7 @@ use function is_array, strlen;
  * @copyright  Copyright (c) 2025 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.3
+ * @version 1.0.4
  */
 class CommPresenter extends BasePresenter
 {
@@ -93,7 +93,7 @@ class CommPresenter extends BasePresenter
 				$logger->write( Logger::INFO, "postMessage: {$postMessage}" );
 				throw new \Exception("Device with name: >{$json_msg['device_name']}< not found!");
 			} else {
-				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id}" );
+				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id} with device_name: {$device->attrs->name}" );
 			}
 
 			$control_hash = hash('sha256', $json_msg["device_name"] . $this->config->getConfig('masterPassword') . $json_msg["login_time"] . $json_msg["appname"]);
@@ -179,7 +179,7 @@ class CommPresenter extends BasePresenter
 			try { // Dekóduj do json-u
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
 			} catch (Utils\JsonException $e) {
-				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
+				throw new \Exception("Bad request (1). Incorrect JSON format of incoming data!!!");
 			}
 			
 			if( !isset($json_msg["session_id"]) || 
@@ -206,7 +206,7 @@ class CommPresenter extends BasePresenter
 				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: {$str_message}" );
 				throw new \Exception("Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}");
 			}
-			$logger->write( Logger::INFO,  "CommPresenter:str_message: {$str_message}");
+			//$logger->write( Logger::INFO,  "CommPresenter:str_message: {$str_message}");
 
 			if( strlen($data_string) !== (int)$json_msg["data_length"]  ) {
 				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"] );

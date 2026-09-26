@@ -41,10 +41,10 @@ class MsgProcessor
 	}
 
 /******************** --------------------------------- PV - begin --------------------------------- ****************/
-public function testSetUpTime($device_id, $d)
-{
-	$this->pv_devices->setUptime( $device_id, DateTime::createFromFormat('d.m.Y H:i:s', $d)->getTimestamp());
-}
+	public function testSetUpTime(int $device_id, string $d): void
+	{
+		$this->pv_devices->setUptime( $device_id, DateTime::createFromFormat('d.m.Y H:i:s', $d)->getTimestamp());
+	}
 
 	/**
 	 * Spracuje jeden request; ten ale môže obsahovať viacej správ.
@@ -70,7 +70,7 @@ public function testSetUpTime($device_id, $d)
 					$sensor = $this->processChannelDefinitionPV($sessionDevice, $ds);
 				} 
 				if ($sensor != null) { // Zapíšem dáta do kanála
-					$logger->write( Logger::INFO,  "MsgProcessor:process_pv => dataof chanel={$ds['id']}" );
+					//$logger->write( Logger::INFO,  "MsgProcessor:process_pv => dataof chanel={$ds['id']}" );
 					$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $sensor, $msgTotal[0], $logger);
 				}
 			}
@@ -89,21 +89,14 @@ public function testSetUpTime($device_id, $d)
 		string $messageTime, 
 		Logger $logger): void
 	{
+		$dataSession = '';
+		$impCount = 0;
 
-		if ($sensor->sensor_classes == 1 || $sensor->sensor_classes == 2) { 
-			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG a DEVCLASS_CONTINUOUS
+		if ($sensor->sensor_classes == 1 || $sensor->sensor_classes == 2 || $sensor->sensor_classes == 4) { 
+			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG, DEVCLASS_CONTINUOUS a RAIN_SUM
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
-			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
-			$dataSession = '';
-			$impCount = 0;
-		} elseif ($sensor->sensor_classes == 4) {
-			// senzor RAIN_SUM
-			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
-			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");
-			$dataSession = '';
-			$impCount = 0;
-		}
-
+			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");	
+		} 
 		//TODO: ***** Zatiaľ vypnuté *****
 		else {
 			// senzor DEVCLASS_IMPULSE_SUM
