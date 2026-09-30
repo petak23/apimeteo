@@ -163,6 +163,11 @@ class PV_Devices
 		if ($deviceId > 0 && $uptime > 0) $this->devices->get($deviceId)->update(['uptime' => $uptime]);
 	}
 
+	public function updateDevice(int $deviceId, array $data): void
+	{
+		$this->devices->get($deviceId)->update($data);
+	}
+
 	public function badLogin(int $deviceId): void
 	{
 		$this->devices->get($deviceId)->update(['last_bad_login' => new DateTime ]);

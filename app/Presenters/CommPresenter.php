@@ -94,6 +94,11 @@ class CommPresenter extends BasePresenter
 				throw new \Exception("Device with name: >{$json_msg['device_name']}< not found!");
 			} else {
 				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id} with device_name: {$device->attrs->name}" );
+				if ($json_msg["app_name"] !== $device->attrs->app_name) {
+					$app_name = ($json_msg["app_name"] ?? 'unknown') . date(', Y-m-d');
+					$this->pv_devices->updateDevice($device->attrs->id, ['app_name' => $app_name]);
+					$logger->write( Logger::INFO, "Device app_name updated to: {$app_name}" );
+				}
 			}
 
 			$control_hash = hash('sha256', $json_msg["device_name"] . $this->config->getConfig('masterPassword') . $json_msg["login_time"] . $json_msg["appname"]);

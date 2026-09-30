@@ -608,7 +608,7 @@ final class ChartPresenter extends BasePresenter
 		$minTickerSize = 30;
 		$numTickers = intval($this->chart->sizeY / $minTickerSize);
 		// velikost tickeru 
-		$tickerSize = $this->computeTickerSize($this->axisY1->maxVal, $this->axisY1->minVal, $numTickers);
+		$tickerSize = $this->computeTickerSize((int)$this->axisY1->maxVal, (int)$this->axisY1->minVal, $numTickers);
 		$decimals = $this->getDecimals($tickerSize);
 		$tickerVal = intval($this->axisY1->minVal - (($this->axisY1->minVal < 0) ? 1 : 0));
 
@@ -660,7 +660,7 @@ final class ChartPresenter extends BasePresenter
 		$minTickerSize = 30;
 		$numTickers = intval($this->chart->sizeY / $minTickerSize);
 		// velikost tickeru 
-		$tickerSize = $this->computeTickerSize($this->axisY2->maxVal, $this->axisY2->minVal, $numTickers);
+		$tickerSize = $this->computeTickerSize((int)$this->axisY2->maxVal, (int)$this->axisY2->minVal, $numTickers);
 		$decimals = $this->getDecimals($tickerSize);
 		$tickerVal = intval($this->axisY2->minVal - (($this->axisY2->minVal < 0) ? 1 : 0));
 
