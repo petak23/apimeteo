@@ -42,7 +42,7 @@ abstract class BasePresenter extends Presenter
 	//#[Persistent]
 	//public $language = 'sk';
 
-	public string $api_version = "2026-09-30";
+	public string $api_version = "2026-10-07";
 
 	/** Pole s chybami pri uploade */
 	public array $upload_error = [

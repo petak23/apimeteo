@@ -98,6 +98,42 @@ class DevicesPresenter extends BasePresenter
 		$this->sendJson($device);
 	}
 
+	/**
+	 * Vráti cez sendJson informácie o zariadení s id=1 aj pre
+	 * neprihláseného používateľa */
+	public function actionDeviceone(): void
+	{
+		$device = $this->devices->getDevice(1, true, true);
+		if ($device['status'] == 200) {
+			$dd = $device['data'];
+			$se = [];
+			foreach ($dd['sensors'] as $sensor) {
+				$se[$sensor['id']] = [
+					'value_unit' => $sensor['value_unit'],
+					'name' =>	$sensor['name'],
+					'desc' =>	$sensor['desc'],
+					'last_data_time' => $sensor['last_data_time'],
+					'last_out_value' => $sensor['last_out_value']
+				];
+			}
+			$out = [
+				'status' => $device['status'],
+				'message'=> "",
+				'data' => [
+					'1' => [
+						'name' 	=> $dd['name'],
+						'desc'	=> $dd['desc'],
+						'sensors'	=> $se
+						]
+				]
+			];
+		} else {
+			$out = $device;
+		}
+		
+		$this->sendJson($out);
+	}
+
 	public function actionEdit(int $id) : void {
 		
 		$_post = json_decode(file_get_contents("php://input"), true);

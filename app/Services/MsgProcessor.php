@@ -55,12 +55,12 @@ class MsgProcessor
 	public function process_pv(Table\ActiveRow $sessionDevice, array $msgTotal, string $remoteIp, Logger $logger)
 	{
 
-		$logger->write(Logger::DEBUG, "MsgProcessor:process_pv => uptime:{$msgTotal[3]}, session device id:{$sessionDevice->device_id}");
+		$logger->write(Logger::DEBUG, "MsgProcessor:process_pv => uptime:{$msgTotal["uptime"]}, session device id:{$sessionDevice->device_id}");
 		// Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
-		$this->pv_devices->setUptime( $sessionDevice->device_id, (int)$msgTotal[3]); 
+		$this->pv_devices->setUptime( $sessionDevice->device_id, (int)$msgTotal["uptime"]); 
 		
 		//TODO oprav podľa nového.
-		foreach ($msgTotal[2] as $ds) {						// Spracujem data z jednotlivých senzorov
+		foreach ($msgTotal["sensors"] as $ds) {						// Spracujem data z jednotlivých senzorov
 
 			if ($ds != null) {
 				$sensor = $this->pv_sensors->findOneBy(['device_id'=>$sessionDevice->device_id, 'name' => $ds['id']]); // Nájdenie príslušného senzora
@@ -71,7 +71,7 @@ class MsgProcessor
 				} 
 				if ($sensor != null) { // Zapíšem dáta do kanála
 					//$logger->write( Logger::INFO,  "MsgProcessor:process_pv => dataof chanel={$ds['id']}" );
-					$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $sensor, $msgTotal[0], $logger);
+					$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $sensor, $msgTotal["last_measure"], $logger);
 				}
 			}
 		}

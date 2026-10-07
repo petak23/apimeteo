@@ -17,7 +17,7 @@ use function is_array, strlen;
 
 /**
  * Presenter pre komunikáciu api s perifériami.
- * Posledná zmena(last change): 26.09.2026
+ * Posledná zmena(last change): 07.10.2026
  *
  * Modul: API
  *
@@ -25,7 +25,7 @@ use function is_array, strlen;
  * @copyright  Copyright (c) 2025 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.4
+ * @version 1.0.5
  */
 class CommPresenter extends BasePresenter
 {
@@ -219,13 +219,24 @@ class CommPresenter extends BasePresenter
 				throw new \Exception("Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"]);
 			}
 			
+			if (strlen($json_msg["log"])) { // Ak mi prichádza nejaká správa na zalogovanie tak to urob.
+				$logger->write(Logger::INFO, $json_msg["log"]);
+			}
+
 			/*
 			Aktuálny formát:
 			[0] - dátum a čas odoslania = $json_msg["last_measure"]
 			[1] - dĺžka dát = $json_msg["data_length"]
 			[2] - data = $json_msg["sensors"]
 			*/
-			$this->msgProcessor->process_pv( $sessionDevice, [ $json_msg["last_measure"], $json_msg["data_length"], $json_msg["sensors"], $json_msg["uptime"] ], $remoteIp, $logger );  
+			$_data = [
+				"last_measure"	=> $json_msg["last_measure"], 
+				"data_length"		=> $json_msg["data_length"],  //TODO - asi nevyužité
+				"sensors" 	=> $json_msg["sensors"], 
+				"uptime" 		=> $json_msg["uptime"],
+				"sensors_n"	=> $json_msg["sensors_n"]
+			];
+			$this->msgProcessor->process_pv( $sessionDevice, $_data, $remoteIp, $logger );  
 
 			$logger->write( Logger::INFO, "OK");
 

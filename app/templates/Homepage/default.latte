@@ -60,6 +60,10 @@
 					{if $user->isLoggedIn()}<a n:href="Devices:default">devices</a>
 					{else}devices{/if}
 				</strong> - Výpis všetkých zariadení patriacich užívateľovi aj so senzormi.</li>
+			<li>
+				<strong>
+					<a n:href="Devices:deviceone">devices/deviceone</a>
+				</strong> - Výpis posledných hodnôt zariadenia s id=1 aj so senzormi aj pre neprihláseného užívateľa.</li>
 			<li><strong>device/[id]</strong> - Výpis konkrétneho zariadenia s id.</li>
 			<li><strong>device/[id]/edit</strong> - Uloženie dát o zariadení s id, alebo jeho vytvorenie ak je id == 0.</li>
 			<li><strong>devices/sensors/[id]</strong> - Výpis zoznamu senzorov pre dané zariadenie s id.</li>
