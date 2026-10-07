@@ -23,31 +23,31 @@ use Nette\Mail;
 class MailService {
 	use Nette\SmartObject;
 	
-	public $mailFrom;
-	public $mailAdmin;
+	public string $mailFrom;
+	public string $mailAdmin;
+	
+	private Nette\Application\LinkGenerator $linkGenerator;
 
-	/** @var Nette\Application\LinkGenerator */
-	private $linkGenerator;
+	private Nette\Bridges\ApplicationLatte\TemplateFactory $templateFactory;
 
-	/** @var Nette\Bridges\ApplicationLatte\TemplateFactory */
-	private $templateFactory;
-
-	public function __construct(
+	public function __construct(	
+															string $mailFrom,
+															string $mailAdmin,
 															Nette\Application\LinkGenerator $linkGenerator,
-															LatteFactory $latteFactory,
-															string $mailFrom = "",
-															string $mailAdmin = "",
+															Nette\Bridges\ApplicationLatte\TemplateFactory $templateFactory,
+															
 															) {
 		$this->mailFrom = $mailFrom;
 		$this->mailAdmin = $mailAdmin;
 
 		$this->linkGenerator = $linkGenerator;
-		$this->templateFactory = $latteFactory;
+		$this->templateFactory = $templateFactory;
 	}
 
 	/** 
 	 * Umožňuje využívať v html tele e-mailu v šablonách odkazy pomocou atribútu n:href nebo značky {link} */
-	private function createTemplate(): Nette\Application\UI\Template {
+	private function createTemplate(): Nette\Application\UI\Template
+	{
 		$template = $this->templateFactory->createTemplate();
 		$template->getLatte()->addProvider('uiControl', $this->linkGenerator);
 		return $template;

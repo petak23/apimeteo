@@ -28,7 +28,7 @@ class CrontaskDataSource
 	 * Vraci:
 	 * sensor_id, data_time
 	 */
-	public function getRecordsForProcessing($batchSize)
+	public function getRecordsForProcessing(int $batchSize)
 	{
 		return $this->database->fetchAll("
 			select * 
@@ -64,7 +64,7 @@ class CrontaskDataSource
 		");
 	}
 
-	public function updateImageAll($id, $desc)
+	public function updateImageAll(int $id, string $desc)
 	{
 		$this->database->query('UPDATE blobs SET ', [
 			'status' => 2,
@@ -72,7 +72,7 @@ class CrontaskDataSource
 		], 'WHERE id = ?', $id);
 	}
 
-	public function updateImageStatus($id)
+	public function updateImageStatus(int $id)
 	{
 		$this->database->query('UPDATE blobs SET ', [
 			'status' => 2
@@ -85,7 +85,7 @@ class CrontaskDataSource
 	 * @deprecated - používat getSensor() z Model\PV_Sensors, který vrací i další potřebná pole pro zpracování notifikací
 	 * @return array|false|Nette\Database\IRow
 	 */
-	public function getSensor($sensorId)
+	public function getSensor(int $sensorId)
 	{
 		return $this->database->fetch('SELECT * FROM sensors WHERE id = ?', $sensorId);
 	}
@@ -121,9 +121,9 @@ class CrontaskDataSource
 		string $date,
 		string|int $hour,
 		float|null $min,
-		string|null $min_time,
+		DateTime|string|null $min_time,
 		float|null $max,
-		string|null $max_time,
+		DateTime|string|null $max_time,
 		float|null $avg,
 		float|null $sum,
 		int $sum_type,
@@ -182,7 +182,7 @@ class CrontaskDataSource
 	/**
 	 *  id	hash	device_id	started	remote_ip	session_key
 	 */
-	public function getOldPrelogins($limit)
+	public function getOldPrelogins(Nette\Utils\DateTime $limit)
 	{
 		return $this->database->fetchAll(
 			'select * from prelogin
@@ -191,14 +191,14 @@ class CrontaskDataSource
 		);
 	}
 
-	public function markDeviceLoginProblem($deviceId, $ltime)
+	public function markDeviceLoginProblem(int $deviceId, string $ltime)
 	{
 		$this->database->query('UPDATE devices SET ', [
 			'last_bad_login' => $ltime
 		], 'WHERE id = ? AND ( (last_login is NULL) OR (last_login < ?) ) ', $deviceId, $ltime);
 	}
 
-	public function deletePrelogin($id)
+	public function deletePrelogin(int $id)
 	{
 		$this->database->query('DELETE from prelogin WHERE id = ? ', $id);
 	}
@@ -213,7 +213,7 @@ class CrontaskDataSource
 	}
 
 
-	public function updateSensorsWarnings($sensor)
+	public function updateSensorsWarnings(array $sensor)
 	{
 		$this->database->query('UPDATE sensors SET ', [
 			'warn_max_fired' => $sensor['warn_max_fired'],
@@ -228,7 +228,7 @@ class CrontaskDataSource
 	/**
 	 * Vraci: sensor_id, rec_date 
 	 */
-	public function getSumsForProcessing($batchSize)
+	public function getSumsForProcessing(int $batchSize)
 	{
 		return $this->database->fetchAll("
 			select * 
@@ -268,7 +268,7 @@ class CrontaskDataSource
 			");
 	}
 
-	public function getSensorIdsForUser($userId)
+	public function getSensorIdsForUser(int $userId)
 	{
 		$result = $this->database->query("
 			select s.id

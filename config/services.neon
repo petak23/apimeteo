@@ -15,7 +15,7 @@ services:
 	- App\Services\InventoryDataSource
 	- App\Services\ChartDataSource
 	- App\Services\CrontaskDataSource(%cronAllowed%)
-	- App\Services\MailService
+	- App\Services\MailService(%from_email%, %admin_email%)
 
 	- App\Model\User_main(%baseUrl%)
 

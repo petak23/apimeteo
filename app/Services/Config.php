@@ -10,10 +10,10 @@ class Config
 {
 	use Nette\SmartObject;
 
-	private $masterPassword;
-	public $minYear = 2020;
+	private string $masterPassword;
+	public int $minYear = 2020;
 
-	public function __construct( $masterPassword, int $minYear = 2020) {
+	public function __construct( string $masterPassword, int $minYear = 2020) {
 		$this->masterPassword = $masterPassword;
 		$this->minYear = $minYear;
 	}
@@ -24,7 +24,7 @@ class Config
 		return hash("sha256", $this->masterPassword . 'RatatoskrIoT', true);
 	}
 
-	public function encrypt($data, $fieldName): string
+	public function encrypt(string$data, string $fieldName): string
 	{
 		$aesIV = substr(hash("sha256", $fieldName, true), 0, 16);
 		$aesKey = $this->getMasterKey();
@@ -35,7 +35,7 @@ class Config
 		return bin2hex($encrypted);
 	}
 
-	public function decrypt($data, $fieldName): string
+	public function decrypt(string $data, string $fieldName): string
 	{
 		$aesIV = substr(hash("sha256", $fieldName, true), 0, 16);
 		$aesKey = $this->getMasterKey();

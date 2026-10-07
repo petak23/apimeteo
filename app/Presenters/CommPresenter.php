@@ -94,8 +94,8 @@ class CommPresenter extends BasePresenter
 				throw new \Exception("Device with name: >{$json_msg['device_name']}< not found!");
 			} else {
 				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id} with device_name: {$device->attrs->name}" );
-				if ($json_msg["app_name"] !== $device->attrs->app_name) {
-					$app_name = ($json_msg["app_name"] ?? 'unknown') . date(', Y-m-d');
+				if ($json_msg["appname"] !== $device->attrs->app_name) {
+					$app_name = ($json_msg["appname"] ?? 'unknown') . date(', Y-m-d');
 					$this->pv_devices->updateDevice($device->attrs->id, ['app_name' => $app_name]);
 					$logger->write( Logger::INFO, "Device app_name updated to: {$app_name}" );
 				}
@@ -109,6 +109,7 @@ class CommPresenter extends BasePresenter
 			// zalozit session
 			$sessionHash = Random::generate(8, '0-9A-Za-z');
 			$sessionId = $this->pv_sessions->createLoginSession( $device->attrs->id, $sessionHash, $control_hash,	$remoteIp );
+			$this->pv_devices->updateDevice($device->attrs->id, ['last_login' => new \DateTime, 'last_ip' => $remoteIp]);
 
 		} catch (\Exception $e) {
 			$logger->write( Logger::ERROR,  "ERR(comm-login-main): " . get_class($e) . ": " . $e->getMessage() );
@@ -234,7 +235,7 @@ class CommPresenter extends BasePresenter
 				"data_length"		=> $json_msg["data_length"],  //TODO - asi nevyužité
 				"sensors" 	=> $json_msg["sensors"], 
 				"uptime" 		=> $json_msg["uptime"],
-				"sensors_n"	=> $json_msg["sensors_n"]
+				//"sensors_n"	=> $json_msg["sensors_n"]				// TODO - zatiaľ nevyužité
 			];
 			$this->msgProcessor->process_pv( $sessionDevice, $_data, $remoteIp, $logger );  
 

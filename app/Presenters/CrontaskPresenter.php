@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * Last change 12.06.2026
+ * Last change 13.10.2026
  * 
  * @github     Forked from petrbrouzda/RatatoskrIoT
  * 
@@ -9,8 +9,7 @@ declare(strict_types=1);
  * @copyright  Copyright (c) 2021 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.2
- *
+ * @version    1.0.3
  */
 namespace App\Presenters;
 
@@ -47,11 +46,11 @@ final class CrontaskPresenter extends BasePresenter
 	/**
 	 * Nutny konec prace
 	 */
-	public $endTime;
+	public int $endTime = 0;
 
-	public $startTime;
-	public $processedBatches = 0;
-	public $processedRecords = 0;
+	public int $startTime = 0;
+	public int $processedBatches = 0;
+	public int $processedRecords = 0;
 
 
 	/** @var Services\CrontaskDataSource */
@@ -255,9 +254,9 @@ final class CrontaskPresenter extends BasePresenter
 	{
 		$out = [
 			'warn_max_fired' 	=> null,
-			'warn_max_send'		=> 0,
+			'warn_max_sent'		=> 0,
 			'warn_min_fired' 	=> null,
-			'warn_min_send'		=> 0,
+			'warn_min_sent'		=> 0,
 			'store_warnings'	=> 0,
 		];
 
@@ -266,17 +265,17 @@ final class CrontaskPresenter extends BasePresenter
 				// zacatek udalosti
 				if (!$sensor->warn_max_fired) { // pokud to nemame zapsane
 					$out['warn_max_fired'] = $sensor->last_data_time;
-					$out['warn_max_send'] = 0;
+					$out['warn_max_sent'] = 0;
 					$out['store_warnings'] = 1;
 					Logger::log(self::NAME,  Logger::INFO,  "MAX reached: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val}");
 				}
 
 				// poslani notifikace
-				if ($out['warn_max_fired'] && $out['warn_max_send'] == 0) {
+				if ($out['warn_max_fired'] && $out['warn_max_sent'] == 0) {
 					// casova vzdalenost!
 					$utime = (DateTime::from($out['warn_max_fired']))->getTimestamp();
 					if (time() - $utime > $sensor->warn_max_after) {
-						$out['warn_max_send'] = 1;
+						$out['warn_max_sent'] = 1;
 						$out['store_warnings'] = 1;
 						$this->notifications->insert($sensor->device_id, $sensor->id, 1, $sensor->warn_max_text, $value_out, $out['warn_max_fired']);
 						Logger::log(self::NAME,  Logger::INFO,  "MAX notification: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val} delay={$sensor->warn_max_after} s");
@@ -298,17 +297,17 @@ final class CrontaskPresenter extends BasePresenter
 				// zacatek udalosti
 				if (!$sensor->warn_min_fired) { // pokud to nemame zapsane
 					$out['warn_min_fired'] = $sensor->last_data_time;
-					$out['warn_min_send'] = 0;
+					$out['warn_min_sent'] = 0;
 					$out['store_warnings'] = 1;
 					Logger::log(self::NAME, Logger::INFO,  "MIN reached: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val}");
 				}
 
 				// poslani notifikace
-				if ($out['warn_min_fired'] && $out['warn_min_send'] == 0) {
+				if ($out['warn_min_fired'] && $out['warn_min_sent'] == 0) {
 					// casova vzdalenost!
 					$utime = (DateTime::from($out['warn_min_fired']))->getTimestamp();
 					if (time() - $utime > $sensor->warn_min_after) {
-						$out['warn_min_send'] = 1;
+						$out['warn_min_sent'] = 1;
 						$out['store_warnings'] = 1;
 						$this->notifications->insert($sensor->device_id, $sensor->id, 2, $sensor->warn_min_text, $value_out, $out['warn_min_fired']);
 						Logger::log(self::NAME,  Logger::INFO,  "MIN notification: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val} delay={$sensor->warn_min_after} s");
@@ -334,9 +333,9 @@ final class CrontaskPresenter extends BasePresenter
 	{
 		$out = [
 			'warn_noaction_fired' 	=> null,
-			'warn_max_send'		=> 0,
+			'warn_max_sent'		=> 0,
 			'warn_min_fired' 	=> null,
-			'warn_min_send'		=> 0,
+			'warn_min_sent'		=> 0,
 			'store_warnings'	=> 0,
 		];
 
@@ -369,7 +368,14 @@ final class CrontaskPresenter extends BasePresenter
 		foreach ($rows as $sensor) {
 
 			$zapisWarningy = 0;
-			$out = [];
+			$out = [
+				"id" => $sensor->id,
+				'warn_max_fired' 	=> null,
+				'warn_max_sent'		=> 0,
+				'warn_min_fired' 	=> null,
+				'warn_min_sent'		=> 0,
+				'store_warnings'	=> 0,
+			];
 			$value_out = isset($sensor->last_out_value) ? $sensor->last_out_value : null;
 			
 			if ($value_out != null) {
@@ -611,10 +617,10 @@ final class CrontaskPresenter extends BasePresenter
 		$rows = $this->datasource->getSumsForSensorDay($sensorId, $date);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  (array)$rec );
-
+			dump($rec);
 			$count++;
 
-			//  id	sensor_id	sum_type	rec_date	rec_hour	min_val	min_time	max_val	max_time	avg_val	sum_val	status
+			//  id	sensor_id	sum_type	rec_date	rec_hour	min_val-min_time	max_val-max_time	avg_val	sum_val	status
 			if ($sensor_classes == 1 || $sensor_classes == 4) {
 				// maji se pocitat prumery hodnot
 				if ($min === NULL) {
@@ -667,7 +673,23 @@ final class CrontaskPresenter extends BasePresenter
 				$avg = ($val0 + $val6 + $val12 + $val18) / 4;
 			}
 		}
+		if ($min_time instanceof \DateInterval) {
+				$min_time = sprintf(
+						'%02d:%02d:%02d',
+						$min_time->h + ($min_time->d * 24),
+						$min_time->i,
+						$min_time->s
+				);
+		}
 
+		if ($max_time instanceof \DateInterval) {
+				$max_time = sprintf(
+						'%02d:%02d:%02d',
+						$max_time->h + ($max_time->d * 24),
+						$max_time->i,
+						$max_time->s
+				);
+		}
 		// Všetky záznamy sú spracované, je treba vytvoriť sumárny záznam
 		$this->datasource->createSummary(
 			$sensorId,
@@ -740,7 +762,7 @@ final class CrontaskPresenter extends BasePresenter
 	 * 1 = non-black
 	 * 2 = black+lamp
 	 */
-	private function testImage($filename, $logger)
+	private function testImage(string $filename, Logger $logger)
 	{
 		$logger->write(Logger::DEBUG, "  $filename");
 		$count = 0;
@@ -748,7 +770,7 @@ final class CrontaskPresenter extends BasePresenter
 		try {
 
 			$image = Image::fromFile($filename);
-			$image->resize(self::RESIZE_X, self::RESIZE_Y, Image::STRETCH);
+			$image->resize(self::RESIZE_X, self::RESIZE_Y, Image::Stretch);
 
 			for ($x = 0; $x < self::RESIZE_X; $x++) {
 				for ($y = 0; $y < self::RESIZE_Y; $y++) {
@@ -784,7 +806,7 @@ final class CrontaskPresenter extends BasePresenter
 	}
 
 
-	private function processImages($logger)
+	private function processImages(Logger $logger)
 	{
 		$ctImages = 0;
 		$ctBlack = 0;
@@ -796,17 +818,17 @@ final class CrontaskPresenter extends BasePresenter
 				break;
 			}
 
-			$logger->write(Logger::DEBUG, "img {$image['id']}");
+			$logger->write(Logger::DEBUG, "img " . $image['id']);
 			$file = FileSystem::normalizePath(__DIR__ . "/../../data/" . $image['filename']);
 			$out = $this->testImage($file, $logger);
 			$ctImages++;
 			if ($out == 0) {
-				$this->datasource->updateImageAll($image['id'], $image['description'] . ' BLACK');
+				$this->datasource->updateImageAll((int)$image['id'], $image['description'] . ' BLACK');
 				$ctBlack++;
 			} else if ($out == 1) {
-				$this->datasource->updateImageStatus($image['id']);
+				$this->datasource->updateImageStatus((int)$image['id']);
 			} else {
-				$this->datasource->updateImageAll($image['id'], $image['description'] . ' BLACK LAMP');
+				$this->datasource->updateImageAll((int)$image['id'], $image['description'] . ' BLACK LAMP');
 				$ctBlack++;
 			}
 		}
@@ -820,9 +842,9 @@ final class CrontaskPresenter extends BasePresenter
 		$limit = (new DateTime())->modify('-3 min');
 		$rows = $this->datasource->getOldPrelogins($limit);
 		foreach ($rows as $row) {
-			$logger->write(Logger::INFO, "Unused prelogin for dev {$row['device_id']} from IP {$row['remote_ip']}");
-			$this->datasource->markDeviceLoginProblem($row['device_id'], $row['started']);
-			$this->datasource->deletePrelogin($row['id']);
+			$logger->write(Logger::INFO, "Unused prelogin for dev " . $row['device_id'] . " from IP " . $row['remote_ip']);
+			$this->datasource->markDeviceLoginProblem((int)$row['device_id'], (string)$row['started']);
+			$this->datasource->deletePrelogin((int)$row['id']);
 		}
 		return "✅  Prelogin cleanup completed. (" . count($rows) . ") \n";
 	}
@@ -833,12 +855,13 @@ final class CrontaskPresenter extends BasePresenter
 		$remoteIp = $this->getHttpRequest()->getRemoteAddress();
 		foreach ($this->datasource->getCronAllowed() as $ip) {
 			if (strcmp($ip, $remoteIp) == 0) {
-				$this->template->ip_not_allowed = false;
+				$this->template->ip_not_allowed = false;				
 				return true;
 			}
 		}
 		Logger::log(self::NAME,  Logger::WARNING,  "Crontask fired from {$remoteIp}, not allowed.");
 		$this->template->ip_not_allowed = true;
+		$this->template->remote_ip = $remoteIp;
 		return false;
 	}
 
@@ -847,9 +870,9 @@ final class CrontaskPresenter extends BasePresenter
 		$users = $this->datasource->getAllUserSettings();
 		foreach ($users as $user) {
 			//  id, username, measures_retention, sumdata_retention, blob_retention
-			$logger->write(Logger::INFO, "#{$user['id']} {$user['username']} measures:{$user['measures_retention']} sumdata:{$user['sumdata_retention']} blobs:{$user['blob_retention']}");
+			$logger->write(Logger::INFO, "#".$user['id']." ".$user['username']." measures:".$user['measures_retention']." sumdata:".$user['sumdata_retention']." blobs:".$user['blob_retention']);
 			// per-uzivatel
-			$sensors = $this->datasource->getSensorIdsForUser($user['id']);
+			$sensors = $this->datasource->getSensorIdsForUser((int)$user['id']);
 			if (count($sensors) > 0) {
 				// smazat measures
 				if ($user['measures_retention'] > 0) {
@@ -875,13 +898,13 @@ final class CrontaskPresenter extends BasePresenter
 				$purgeDate = new DateTime();
 				$retention = $user['blob_retention'] + 1;
 				$purgeDate->modify("- {$retention} day");
-				$blobs = $this->datasource->getBlobsForUser($user['id'], $purgeDate);
+				$blobs = $this->datasource->getBlobsForUser((int)$user['id'], $purgeDate);
 				foreach ($blobs as $blob) {
-					$logger->write(Logger::INFO, "  blob {$blob['id']}; {$blob['data_time']}; {$blob['filename']}");
+					$logger->write(Logger::INFO, "  blob " . $blob['id'] . "; " . $blob['data_time'] . "; " . $blob['filename']);
 					$file = FileSystem::normalizePath(__DIR__ . "/../../data/" . $blob['filename']);
-					$logger->write(Logger::INFO, "    {$file}");
+					$logger->write(Logger::INFO, "    " . $file);
 					FileSystem::delete($file);
-					if (1 != $this->datasource->deleteBlob($blob['id'])) {
+					if (1 != $this->datasource->deleteBlob((int)$blob['id'])) {
 						$logger->write(Logger::WARNING, '    nelze smazat z DB?');
 					}
 				}

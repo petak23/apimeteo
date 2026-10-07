@@ -78,9 +78,9 @@ class InventoryDataSource
 
 	public function getViews($userId)
 	{
-		$this->views = array();
-		$this->tokens = array();
-		$this->tokenView = array();
+		$this->views = [];
+		$this->tokens = [];
+		$this->tokenView = [];
 
 		// nacteme pohledy
 
@@ -107,7 +107,7 @@ class InventoryDataSource
 				$token[] = $view;
 				$this->tokenView[$view->token] = $token;
 			} else {
-				$token = array();
+				$token = [];
 				$token[] = $view;
 				$this->tokenView[$view->token] = $token;
 			}

@@ -1,5 +1,4 @@
 parameters:
-	admin_email: 'petak23@echo-msz.eu'
 	# len pre informáciu pri grafoch
 	dataRetentionDays: 90
 	title: 'apiMeteo-petak23'

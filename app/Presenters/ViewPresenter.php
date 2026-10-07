@@ -29,7 +29,7 @@ final class ViewPresenter extends BasePresenter
 	/** @persistent */
 	public $viewid = "";
 	
-	/** @var Services\InventoryDataSource */
+	/* * @var Services\InventoryDataSource */
 	//private $datasource;
 
 	// -- DB
@@ -154,32 +154,40 @@ final class ViewPresenter extends BasePresenter
 		$url = new Url( $this->getHttpRequest()->getUrl()->getBaseUrl() );
 		$this->template->url = $url->getAbsoluteUrl() . "chart/view/{$post['token']}/{$id}/?currentweek=1";
 	}
-
-	public function viewFormSucceeded(Form $form, array $values): void
+*/
+	public function actionEdit(int $id = 0): void
 	{
-		$id = $this->getParameter('id');
-
-		if( $id ) {
-			// editace
-			$this->datasource->getViews(  $this->getUser()->id );
-			if( ! isset($this->datasource->views[$id]) ) {
-				Logger::log( 'audit', Logger::ERROR ,
-					"Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu view {$id}" );
-				$this->error('View nebylo nalezeno');
-			}
-			$this->datasource->updateView( $id, $values );
+		if (!$this->user->isLoggedIn()) {
+			$this->sendJson(["status" => 401, "message" => "Nie ste prihlásený!"]);
 		} else {
-			// zalozeni
-			$values['user_id'] =  $this->getUser()->id ;
-			$row = $this->datasource->createView( $values );
-			$id = $row->id;
-		}
+			$_post = json_decode(file_get_contents("php://input"), true);
+			if (empty($_post)) {
+				$this->sendJson(["status" => 400, "message" => "Chýbajúce dáta!"]);
+			} else {
+				if( $id ) {
+					// editace
+					$view = $this->views->findOneBy(["id" => $id, "user_id" => $this->getUser()->id]);
+					if( $view === null ) {
+						// Logger::log( 'audit', Logger::ERROR ,
+						//	"Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu view {$id}" );
+						$this->sendJson(["status" => 403, "message" => "Daný graf neexistuje, alebo nemáte oprávnenie upravovať tento graf!"]);
+					} else {
+						$this->views->save($id, $_post, true);
+					}
+				} else {
+					// zalozeni
+					$_post['user_id'] =  $this->getUser()->id ;
+					$row = $this->views->save(0, $_post, true);
+					$id = $row->id;
 
+				}
+			}
+		}
 		$this->flashMessage("Zmeny prevedené.", 'success');
 		$this->redirect('View:edit', $id );
 	}
 
-
+/*
 	public function actionDelete( int $id ): void
 	{
 		$this->datasource->getViews( $this->getUser()->id );

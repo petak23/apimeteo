@@ -42,7 +42,7 @@ class Views extends Table
 		$tokens = [];
 
 		// nacteme pohledy
-		$result = $this->findBy(["user_id" => $userId])->order("token ASC, vorder DESC");
+		$result = $this->findBy(["id_user_main" => $userId])->order("token ASC, vorder DESC");
 
 		foreach ($result as $viewMeta) {
 			$v_new = $viewMeta->toArray();
@@ -57,7 +57,7 @@ class Views extends Table
 
 		// a k nim nacteme polozky
 		$result = $this->view_detail
-			->where("view.user_id", $userId)
+			->where("view.id_user_main", $userId)
 			->order("id_view ASC, vorder ASC");
 
 		foreach ($result as $row) {
@@ -110,7 +110,7 @@ class Views extends Table
 
 	public function deleteViewsForUser(int $id)
 	{
-		$views = $this->findBy(["user_id" => $id]);
+		$views = $this->findBy(["id_user_main" => $id]);
 
 		$this->view_detail->where("view_id", $views->select("id"));
 		$views->delete();

@@ -92,7 +92,7 @@ class MsgProcessor
 		$dataSession = '';
 		$impCount = 0;
 
-		if ($sensor->sensor_classes == 1 || $sensor->sensor_classes == 2 || $sensor->sensor_classes == 4) { 
+		if ($sensor->id_sensor_classes == 1 || $sensor->id_sensor_classes == 2 || $sensor->id_sensor_classes == 4) { 
 			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG, DEVCLASS_CONTINUOUS a RAIN_SUM
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
 			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");	
@@ -141,9 +141,9 @@ class MsgProcessor
 
 		$values = [];
 		$values['last_data_time'] = $messageTime;
-		if ($sensor->sensor_classes == 1 || $sensor->sensor_classes == 2) {
+		if ($sensor->id_sensor_classes == 1 || $sensor->id_sensor_classes == 2) {
 			$values['last_out_value'] = $value_out;
-		} elseif ($sensor->sensor_classes == 4) {
+		} elseif ($sensor->id_sensor_classes == 4) {
 			$values['last_out_value'] = $value_out + $sensor->last_out_value; // kumulativný súčet pre RAIN_SUM
 		}
 		if ($dataSession != '') {
@@ -171,7 +171,7 @@ class MsgProcessor
 				'device_id' => $sessionDevice->device_id,
 				//'channel_id' => $channel_id,
 				'name' => $msgTotal['id'],
-				'sensor_classes' => $msgTotal['id_sensor_classes'],
+				'id_sensor_classes' => $msgTotal['id_sensor_classes'],
 				'id_value_types' => $msgTotal['id_value_types'],
 				'msg_rate' => isset($msgTotal['msg_rate']) ? $msgTotal['msg_rate'] : 3600,	// Ak nie je nastavené nastav predvolenú hodnotu
 				'preprocess_data' => ($msgTotal['preprocess_factor'] === NULL) ? 0 : 1,

@@ -19,14 +19,14 @@ use Nette;
  */
 class PV_Main_menu extends Table
 {
-  protected string $tableName = 'main_menu';
+	protected string $tableName = 'main_menu';
 
-  /**
-   * @param Nette\Database\Explorer $db
-   * @param Nette\Security\User $user */
-  public function __construct(Nette\Database\Explorer $db, Nette\Security\User $user)
-  {
-    parent::__construct($db);
-    $this->user = $user;
-  }
+	/**
+	 * @param Nette\Database\Explorer $db
+	 * @param Nette\Security\User $user */
+	public function __construct(Nette\Database\Explorer $db, Nette\Security\User $user)
+	{
+		parent::__construct($db);
+		$this->user = $user;
+	}
 }

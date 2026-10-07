@@ -35,6 +35,7 @@ final class RouterFactory
 		$router->addRoute('json[/<action>[/<id>/<token>]]', 'Json:default');
 		$router->addRoute('monitor/show/<token>/<id>/', 'Monitor:show');
 		$router->addRoute('views[/<action>[/<id>/]]', 'View:views');
+		$router->addRoute('cron', 'Crontask:default');
 		$router->addRoute('<presenter>/<action>[/<id>]', 'Homepage:default');
 		return $router;
 	}
