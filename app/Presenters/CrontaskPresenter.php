@@ -17,6 +17,7 @@ use App\Model;
 use App\Services;
 use App\Services\Logger;
 use Nette;
+use Nette\Database\Reflection\Table as ReflectionTable;
 use Nette\Database\Table;
 use Nette\Utils\DateTime;
 use Nette\Utils\FileSystem;
@@ -277,7 +278,7 @@ final class CrontaskPresenter extends BasePresenter
 					if (time() - $utime > $sensor->warn_max_after) {
 						$out['warn_max_sent'] = 1;
 						$out['store_warnings'] = 1;
-						$this->notifications->insert($sensor->device_id, $sensor->id, 1, $sensor->warn_max_text, $value_out, $out['warn_max_fired']);
+						$this->notifications->insert($sensor->device_id,$sensor->device->user_id, $sensor->id, 1, $sensor->warn_max_text, $value_out, $out['warn_max_fired']);
 						Logger::log(self::NAME,  Logger::INFO,  "MAX notification: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} >= {$sensor->warn_max_val} delay={$sensor->warn_max_after} s");
 					}
 				}
@@ -285,7 +286,7 @@ final class CrontaskPresenter extends BasePresenter
 				if ($sensor->warn_max_fired) { // ale mame znacku, ze jsme nad => smazat
 					$out['warn_max_fired'] = null;
 					$out['store_warnings'] = 1;
-					$this->notifications->insert($sensor->device_id, $sensor->id, -1, $sensor->warn_max_text, $value_out, $sensor->last_data_time);
+					$this->notifications->insert($sensor->device_id, $sensor->device->user_id, $sensor->id, -1, $sensor->warn_max_text, $value_out, $sensor->last_data_time);
 					Logger::log(self::NAME,  Logger::INFO,  "MAX cleared {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 				}
 			}
@@ -309,7 +310,7 @@ final class CrontaskPresenter extends BasePresenter
 					if (time() - $utime > $sensor->warn_min_after) {
 						$out['warn_min_sent'] = 1;
 						$out['store_warnings'] = 1;
-						$this->notifications->insert($sensor->device_id, $sensor->id, 2, $sensor->warn_min_text, $value_out, $out['warn_min_fired']);
+						$this->notifications->insert($sensor->device_id, $sensor->device->user_id, $sensor->id, 2, $sensor->warn_min_text, $value_out, $out['warn_min_fired']);
 						Logger::log(self::NAME,  Logger::INFO,  "MIN notification: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] {$value_out} <= {$sensor->warn_min_val} delay={$sensor->warn_min_after} s");
 					}
 				}
@@ -317,7 +318,7 @@ final class CrontaskPresenter extends BasePresenter
 				if ($sensor->warn_min_fired) { // ale mame znacku, ze jsme pod => smazat
 					$out['warn_min_fired'] = null;
 					$out['store_warnings'] = 1;
-					$this->notifications->insert($sensor->device_id, $sensor->id, -2, $sensor->warn_min_text, $value_out, $sensor->last_data_time);
+					$this->notifications->insert($sensor->device_id, $sensor->device->user_id, $sensor->id, -2, $sensor->warn_min_text, $value_out, $sensor->last_data_time);
 					Logger::log(self::NAME, Logger::INFO,  "MIN cleared {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 				}
 			}
@@ -344,14 +345,14 @@ final class CrontaskPresenter extends BasePresenter
 			if (!$sensor->warn_noaction_fired) { // nemame to zapsane
 				$out['warn_noaction_fired'] = new DateTime();
 				$out['store_warnings'] = 1;
-				$this->notifications->insert($sensor->device_id, $sensor->id, 4, "{$sensor->last_data_time}", 0, new DateTime());
+				$this->notifications->insert($sensor->device_id, $sensor->device->user_id, $sensor->id, 4, "{$sensor->last_data_time}", 0, new DateTime());
 				Logger::log(self::NAME,  Logger::INFO,  "Notification NO_DATA: {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 			}
 		} else { // zpravy chodi
 			if ($sensor->warn_noaction_fired) { // ale mame znacku, ze nechodi => smazat
 				$out['warn_noaction_fired'] = null;
 				$out['store_warnings'] = 1;
-				$this->notifications->insert($sensor->device_id, $sensor->id, -4, "{$sensor->last_data_time}", 0, new DateTime());
+				$this->notifications->insert($sensor->device_id, $sensor->device->user_id, $sensor->id, -4, "{$sensor->last_data_time}", 0, new DateTime());
 				Logger::log(self::NAME,  Logger::INFO,  "Notification NO_DATA cleared {$sensor->id} [{$sensor->device->name}:{$sensor->name}] ");
 			}
 		}
@@ -366,10 +367,8 @@ final class CrontaskPresenter extends BasePresenter
 	{
 		$rows = $this->datasource->getSensors();
 		foreach ($rows as $sensor) {
-
 			$zapisWarningy = 0;
 			$out = [
-				"id" => $sensor->id,
 				'warn_max_fired' 	=> null,
 				'warn_max_sent'		=> 0,
 				'warn_min_fired' 	=> null,
@@ -391,7 +390,8 @@ final class CrontaskPresenter extends BasePresenter
 			}
 
 			if ($zapisWarningy) {	
-				$this->datasource->updateSensorsWarnings($out);
+				$this->sensors->save($sensor->id, $out);
+				//$this->datasource->updateSensorsWarnings($out);
 			}
 		}
 		return "✅  Checked " . count($rows) . " sensors with " . $zapisWarningy . " warnings.\n";
@@ -445,8 +445,10 @@ final class CrontaskPresenter extends BasePresenter
 			}
 
 			$logger->write(Logger::INFO, "Notifikace #{$row->id} '{$ps}' pre {$row->user_main->email}");
-
-			$this->mailService->sendMail(	$row->user_main->email,	$ps, $text);
+			
+			if ($this->getHttpRequest()->getRemoteAddress() !== '127.0.0.1') { // Ak nie je localhost, tak sa posiela mail, inak sa len loguje
+				$this->mailService->sendMail(	$row->user_main->email,	$ps, $text);
+			}
 
 			$this->notifications->close($row->id);
 		}
@@ -466,7 +468,7 @@ final class CrontaskPresenter extends BasePresenter
 	 *      - nastaví status=1
 	 * - spočíta hodinové priemery/sumy a uloží ich do tabuľky, ak to pre daný senzor má robiť
 	 */
-	private function processSensorHour(int $sensorId, string $date, string $hour, Logger $logger)
+	private function processSensorHour(int $sensorId, string $date, string $hour, Logger $logger, Table\ActiveRow $data)
 	{
 		$logger->write(Logger::DEBUG,  "Measures for sensor=$sensorId; $date $hour");
 
@@ -477,12 +479,12 @@ final class CrontaskPresenter extends BasePresenter
 		$avg = NULL;
 		$sum = 0;
 
-		$sensor = $this->sensors->getSensor($sensorId);
+		/*$sensor = $this->sensors->getSensor($sensorId);
 		if (!$sensor) {
 			$logger->write(Logger::ERROR, "Nenájdený senzor {$sensorId}!");
 			return;
-		}
-		$sensor_classes = $sensor->id_sensor_classes;
+		}*/
+		$sensor_classes = $data->sensor->id_sensor_classes;
 		$rows = $this->datasource->getRecordsForSensorHour($sensorId, $date, $hour);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  $rec );
@@ -558,9 +560,8 @@ final class CrontaskPresenter extends BasePresenter
 		$currentSensor = false;
 		$currentDate = false;
 		$currentHour = false;
-
+		
 		foreach ($records as $rec) {
-
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  $rec );
 			if ($this->shouldExit()) {
 				break;
@@ -572,15 +573,16 @@ final class CrontaskPresenter extends BasePresenter
 				$currentSensor = $rec->sensor_id;
 				$currentDate = $date;
 				$currentHour = $hour;
-
+				//dump("Processing sensor={$currentSensor} date={$currentDate} hour={$currentHour}");
 				// zpracujeme danou hodinu a dany senzor 
-				$this->processSensorHour($currentSensor, $currentDate, $currentHour, $logger);
-
+				$this->processSensorHour($currentSensor, $currentDate, $currentHour, $logger, $rec);
+				//dumpe($this->processedRecords);
 				$this->processedBatches++;
 			}
 			// vsechny ostatni zaznamy ze stejne hodiny a senzoru v poli preskocime, protoze ty uz jsme zpracovali
 		}
-
+		//dump($this->processedBatches);
+		//dumpe($this->processedRecords);
 		$time = time() - $this->startTime;
 
 		$logger->write(Logger::INFO,  "Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$time} sec");
@@ -617,7 +619,7 @@ final class CrontaskPresenter extends BasePresenter
 		$rows = $this->datasource->getSumsForSensorDay($sensorId, $date);
 		foreach ($rows as $rec) {
 			//D/ Logger::log( self::NAME, Logger::DEBUG,  (array)$rec );
-			dump($rec);
+			//dump($rec);
 			$count++;
 
 			//  id	sensor_id	sum_type	rec_date	rec_hour	min_val-min_time	max_val-max_time	avg_val	sum_val	status

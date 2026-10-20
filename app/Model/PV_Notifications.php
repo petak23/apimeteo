@@ -22,13 +22,9 @@ use Nette\Utils\DateTime;
 class PV_Notifications extends Table {
   protected string $tableName = 'notifications';
   
-	/**
-	 * @param Database\Explorer $db
-	 * @param Security\User $user */
-	public function __construct(Database\Explorer $db, Security\User $user)
+	public function __construct(Database\Explorer $db)
 	{
 		parent::__construct($db);
-		$this->user = $user;
 	}
 
   public function deleteNotifications(): void
@@ -64,6 +60,7 @@ class PV_Notifications extends Table {
 	 */
 	public function insert(
 		int $id_devices,
+		int $id_user_main,
 		int $id_sensor, 
 		int $notificationType, 
 		string|null $customText, 
@@ -72,7 +69,7 @@ class PV_Notifications extends Table {
 	{
 		$this->add([
 			'id_devices' =>  $id_devices,
-			'id_user_main' => $this->user->id,
+			'id_user_main' => $id_user_main,
 			'id_sensor' => $id_sensor,
 			'event_type' => $notificationType,
 			'event_ts' => $eventTime,
