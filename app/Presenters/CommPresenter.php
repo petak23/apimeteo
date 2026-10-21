@@ -62,8 +62,8 @@ class CommPresenter extends BasePresenter
 	 *          "payload_hash": "<SHA256 z device_name + masterPassword + login_time + appname>"
 	 *      }
 	 * Result:
-	 *      OK: 'status' => 200, 'device_id' => <id zariadenia>, 'session_id' => <id session>, 'session_hash' => <hash session>
-	 *      Error: 'status' => 400, 'message' => <error message>
+	 *      OK - 'status' => 200, 'device_id' => <device_id>, 'session_id' => <session_id>, 'session_hash' => <session_hash>
+	 *      Error - 'status' => 400, 'message' => <error message>
 	*/
 	public function actionLogin() : void {
 		Debugger::enable( Debugger::Production );

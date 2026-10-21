@@ -30,7 +30,22 @@ class CrontaskDataSource
 	 */
 	public function getRecordsForProcessing(int $batchSize)
 	{
-		return $this->database->fetchAll("
+		$records = $this->database->table('measures')
+			//->select('sensor_id, data_time')
+			->where('status', 0)
+			->order('data_time ASC')
+			->limit($batchSize)
+			->fetchAll();
+
+		// Zoradenie až po výbere dávky zachová výber najstarších meraní.
+		usort($records, static function (Table\ActiveRow $a, Table\ActiveRow $b): int {
+			return ($a->sensor_id <=> $b->sensor_id)
+				?: ($a->data_time <=> $b->data_time);
+		});
+
+		return $records;
+
+		/*return $this->database->fetchAll("
 			select * 
 			from
 			(
@@ -43,7 +58,7 @@ class CrontaskDataSource
 			) d
 
 			order by sensor_id, data_time
-			");
+			");*/
 	}
 
 	public function getCronAllowed()
@@ -90,14 +105,15 @@ class CrontaskDataSource
 		return $this->database->fetch('SELECT * FROM sensors WHERE id = ?', $sensorId);
 	}
 
-	/** */
+	/** Zostaví výber meraní pre konkrétny senzor a hodinu. 
+	 * Z dátumu a hodiny vytvorí začiatok intervalu, napríklad 2026-10-20 14:00:00, a jeho koniec 2026-10-20 14:59:59. */
 	public function getRecordsForSensorHour(int $sensorId, string $date, string $hour): Table\Selection
 	{
 		$dateFrom = $date . " " . $hour . ":00:00";
 		$dateTo = $date . " " . $hour . ":59:59";
 
 		return $this->database->table('measures')
-								->whereOr([
+								->where([
 									'sensor_id' => $sensorId,
 									'data_time >= ' => $dateFrom,
 									'data_time <= ' => $dateTo
@@ -213,7 +229,7 @@ class CrontaskDataSource
 	}
 
 
-	public function updateSensorsWarnings(array $sensor)
+	/*public function updateSensorsWarnings(array $sensor)
 	{
 		$this->database->query('UPDATE sensors SET ', [
 			'warn_max_fired' => $sensor['warn_max_fired'],
@@ -222,7 +238,7 @@ class CrontaskDataSource
 			'warn_min_sent' => $sensor['warn_min_sent'],
 			'warn_noaction_fired' => $sensor['warn_noaction_fired'],
 		], 'WHERE id = ?', $sensor['id']);
-	}
+	}*/
 
 
 	/**

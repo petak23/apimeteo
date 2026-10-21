@@ -14,13 +14,13 @@ use function is_array, array_merge;
 /**
  * Model, ktory sa stara o tabulku devices
  * 
- * Posledna zmena 19.07.2026
+ * Posledna zmena 20.10.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.2
+ * @version    1.1.3
  */
 class PV_Devices
 {
@@ -191,11 +191,15 @@ class PV_Devices
 		// zmazať data
 		if ($sens->count()) {
 			Logger::log('webapp', Logger::DEBUG,  "Delete measures device {$id}");
-			$this->measures->where("sensor_id", $sens)->delete();
+			foreach ($sens as $sensor) {
+				$this->measures->where("sensor_id", $sensor->id)->delete(); 
+			}
 
 			Logger::log('webapp', Logger::DEBUG,  "Delete sumdata device {$id}");
 
-			$this->sumdata->where("sensor_id in ?", $sens)->delete();
+			foreach ($sens as $sensor) {
+				$this->sumdata->where("sensor_id", $sensor->id)->delete();	 
+			}
 			
 			Logger::log('webapp', Logger::DEBUG,  "Delete device {$id}");
 
