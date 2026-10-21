@@ -161,3 +161,6 @@ ADD FOREIGN KEY (`id_sensor_classes`) REFERENCES `sensor_classes` (`id`);
 ALTER TABLE `measures`
 CHANGE `sensor_id` `sensor_id` smallint(6) NOT NULL COMMENT 'Id senzora' AFTER `id`,
 ADD FOREIGN KEY (`sensor_id`) REFERENCES `sensors` (`id`);
+
+ALTER TABLE `sumdata`
+ADD FOREIGN KEY (`sensor_id`) REFERENCES `sensors` (`id`);
