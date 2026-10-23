@@ -14,7 +14,7 @@ use function is_array, array_merge;
 /**
  * Model, ktory sa stara o tabulku devices
  * 
- * Posledna zmena 20.10.2026
+ * Posledna zmena 23.10.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
@@ -124,7 +124,7 @@ class PV_Devices
   }
 
 	/**
-	 * Vráti inpo o zariadení v definovanom formáte
+	 * Vráti info o zariadení v definovanom formáte
 	 * @param Database\Table\ActiveRow $device
 	 * @param bool $with_sensors
 	 * @param bool $return_as_array

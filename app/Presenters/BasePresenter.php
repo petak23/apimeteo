@@ -16,7 +16,7 @@ use function in_array;
 /**
  * Zakladny presenter pre vsetky presentery v module API
  * 
- * Posledna zmena(last change): 13.10.2026
+ * Posledna zmena(last change): 23.10.2026
  *
  * Modul: API
  *
@@ -42,7 +42,7 @@ abstract class BasePresenter extends Presenter
 	//#[Persistent]
 	//public $language = 'sk';
 
-	public string $api_version = "2026-10-13";
+	public string $api_version = "2026-10-23"; // Posledna zmena v API
 
 	/** Pole s chybami pri uploade */
 	public array $upload_error = [

@@ -12,7 +12,7 @@ use function strlen;
 
 /**
  * Prezenter pre pristup k api zariadení.
- * Posledna zmena(last change): 21.09.2026
+ * Posledna zmena(last change): 23.10.2026
  *
  * Modul: API
  *
@@ -20,7 +20,7 @@ use function strlen;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.7
+ * @version 1.0.8
  */
 class DevicesPresenter extends BasePresenter
 {
@@ -32,6 +32,8 @@ class DevicesPresenter extends BasePresenter
 	public $sensors;
 	/** @var Model\Measures @inject */
 	public $measures;
+	/** @var Model\PV_Sumdata @inject */
+	public $sumdata;
 
 	/** @var Services\Config */
 	public $config;
@@ -108,12 +110,15 @@ class DevicesPresenter extends BasePresenter
 			$dd = $device['data'];
 			$se = [];
 			foreach ($dd['sensors'] as $sensor) {
+				$sumdata = $this->sumdata->getOneDay($sensor['id'], 'rec_date DESC, rec_hour DESC', 24, true);
 				$se[$sensor['id']] = [
 					'value_unit' => $sensor['value_unit'],
 					'name' =>	$sensor['name'],
 					'desc' =>	$sensor['desc'],
-					'last_data_time' => $sensor['last_data_time'],
-					'last_out_value' => $sensor['last_out_value']
+					'last_data_time' => $sensor['last_data_time'] ? $sensor['last_data_time']->format('d.m.Y H:i:s') : null,
+					'last_out_value' => $sensor['last_out_value'],
+					'sumdata' => $sumdata,
+					'sumdata_day' => $this->sumdata->getOneDaySum($sensor['id'])
 				];
 			}
 			$out = [
@@ -121,6 +126,7 @@ class DevicesPresenter extends BasePresenter
 				'message'=> "",
 				'data' => [
 					'1' => [
+						'id'	=> $dd['id'],
 						'name' 	=> $dd['name'],
 						'desc'	=> $dd['desc'],
 						'sensors'	=> $se
@@ -130,7 +136,7 @@ class DevicesPresenter extends BasePresenter
 		} else {
 			$out = $device;
 		}
-		
+
 		$this->sendJson($out);
 	}
 

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * Last change 13.10.2026
+ * Last change 23.10.2026
  * 
  * @github     Forked from petrbrouzda/RatatoskrIoT
  * 
@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @copyright  Copyright (c) 2021 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.3
+ * @version    1.0.4
  */
 namespace App\Presenters;
 
@@ -567,22 +567,21 @@ final class CrontaskPresenter extends BasePresenter
 				break;
 			}
 
-			$date = $rec->data_time->format('Y-m-d');
-			$hour = $rec->data_time->format('H');
+			$_d = $rec->data_time;
+			$date = $_d->format('Y-m-d');
+			$hour = $_d->format('H');
 			if ($currentSensor != $rec->sensor_id || $currentDate != $date || $currentHour != $hour) {
 				$currentSensor = $rec->sensor_id;
 				$currentDate = $date;
 				$currentHour = $hour;
-				//dump("Processing sensor={$currentSensor} date={$currentDate} hour={$currentHour}");
+
 				// zpracujeme danou hodinu a dany senzor 
 				$this->processSensorHour($currentSensor, $currentDate, $currentHour, $logger, $rec);
-				//dumpe($this->processedRecords);
 				$this->processedBatches++;
 			}
 			// vsechny ostatni zaznamy ze stejne hodiny a senzoru v poli preskocime, protoze ty uz jsme zpracovali
 		}
-		//dump($this->processedBatches);
-		//dumpe($this->processedRecords);
+
 		$time = time() - $this->startTime;
 
 		$logger->write(Logger::INFO,  "Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$time} sec");

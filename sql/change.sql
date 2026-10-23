@@ -154,10 +154,14 @@ ALTER TABLE `sensors`
 CHANGE `device_class` `id_sensor_classes` int(11) NOT NULL DEFAULT '1' COMMENT 'Druh merania senzora' AFTER `name`,
 ADD FOREIGN KEY (`id_sensor_classes`) REFERENCES `sensor_classes` (`id`);
 
--- OK - done
-
 -- 2026-10-20
 
 ALTER TABLE `measures`
 CHANGE `sensor_id` `sensor_id` smallint(6) NOT NULL COMMENT 'Id senzora' AFTER `id`,
 ADD FOREIGN KEY (`sensor_id`) REFERENCES `sensors` (`id`);
+
+ALTER TABLE `sumdata`
+CHANGE `sensor_id` `sensor_id` smallint(6) NOT NULL COMMENT 'Id senzora' AFTER `id`,
+ADD FOREIGN KEY (`sensor_id`) REFERENCES `sensors` (`id`);
+
+-- OK - done
