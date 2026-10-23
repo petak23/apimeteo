@@ -445,8 +445,8 @@ final class CrontaskPresenter extends BasePresenter
 			}
 
 			$logger->write(Logger::INFO, "Notifikace #{$row->id} '{$ps}' pre {$row->user_main->email}");
-			
-			if ($this->getHttpRequest()->getRemoteAddress() !== '127.0.0.1') { // Ak nie je localhost, tak sa posiela mail, inak sa len loguje
+			$_host = $this->getHttpRequest()->getRemoteAddress();
+			if ($_host !== '127.0.0.1' && $_host !== 'localhost') { // Ak nie je localhost, tak sa posiela mail, inak sa len loguje
 				$this->mailService->sendMail(	$row->user_main->email,	$ps, $text);
 			}
 
@@ -591,9 +591,8 @@ final class CrontaskPresenter extends BasePresenter
 
 	/**
 	 * Prejde všetky sumarizácie za daný deň a 
-	 * - pre záznamy, kde nie je status=1:
-	 *      - nastaví status=1
-	 * - spočíta  priemery a uloží ich do tabuľky
+	 * - pre záznamy, kde nie je status=1 nastaví status=1
+	 * - spočíta priemery a uloží ich do tabuľky
 	 */
 	private function processSensorSummary(int $sensorId, string $date, Logger $logger)
 	{
