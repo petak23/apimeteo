@@ -567,9 +567,12 @@ final class CrontaskPresenter extends BasePresenter
 				break;
 			}
 
-			$_d = $rec->data_time;
-			$date = $_d->format('Y-m-d');
-			$hour = $_d->format('H');
+			$dataTime = $rec->data_time;
+			if (!$dataTime instanceof \DateTimeInterface) {
+				throw new \UnexpectedValueException('Expected data_time to be a DateTime value.');
+			}
+			$date = $dataTime->format('Y-m-d');
+			$hour = $dataTime->format('H');
 			if ($currentSensor != $rec->sensor_id || $currentDate != $date || $currentHour != $hour) {
 				$currentSensor = $rec->sensor_id;
 				$currentDate = $date;

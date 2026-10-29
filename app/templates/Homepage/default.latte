@@ -50,6 +50,17 @@
 			<li><strong>user/user/[id]</strong> - Výpis užívateľa s id (len pre prihláseného admina...)</li>
 			<li><strong>user/save/[id]</strong> - Uloženie dát o užívateľovi s id.</li>
 			<li><strong>user/passwordchange/[id]</strong> - Zmena hesla užívateľa s id.</li>
+			<li>
+				<strong>
+				{if $user->isLoggedIn() && $monitoring_token != null}
+					<a n:href="Monitor:show $monitoring_token, $user_id">  
+						monitor/show/{$monitoring_token}/{$user_id}
+					</a>
+				{else}
+					monitor/show/[token]/[user_id]
+				{/if}
+				</strong> - monitoring
+			</li>
 		</ul>
 	</div>
 	<div class="col-12">
@@ -70,6 +81,7 @@
 			<li><strong>devices/measures/[id]</strong> - Výpis zoznamu meraní pre daný senzor s id.</li>
 			<li><strong>sensor/last/[id]</strong> - Výpis posledného merania pre daný senzor s id.</li>
 			<li><strong>sensor/[id]</strong> - Výpis informácií pre senzor s id.</li>
+			<li><strong>sensors/[id]</strong> - Výpis senzorov pre dané zariadenie s id.</li>
 		</ul>
 	</div>
 	<div class="col-12">

@@ -12,7 +12,7 @@ use function strlen;
 
 /**
  * Prezenter pre pristup k api zariadení.
- * Posledna zmena(last change): 23.10.2026
+ * Posledna zmena(last change): 29.10.2026
  *
  * Modul: API
  *
@@ -20,7 +20,7 @@ use function strlen;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.0.8
+ * @version 1.0.9
  */
 class DevicesPresenter extends BasePresenter
 {
@@ -44,7 +44,7 @@ class DevicesPresenter extends BasePresenter
 
 	public function actionDefault(): void
 	{
-		$this->sendJson($this->devices->getDevicesUser($this->user->id, true));
+		$this->sendJson($this->devices->getDevicesUser($this->user->id));
 	}
 	/**
 	 * Vráti cez sendJson informácie o jednom zariadení

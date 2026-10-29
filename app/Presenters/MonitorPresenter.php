@@ -9,13 +9,13 @@ use Nette;
 
 /**
  * Presenter pre prácu s monitoringom
- * Posledna zmena 14.07.2022
+ * Posledna zmena 29.10.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
- * @copyright  Copyright (c) 2022 - 2021 Ing. Peter VOJTECH ml.
+ * @copyright  Copyright (c) 2022 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.0.0
+ * @version    1.0.1
  */
 final class MonitorPresenter extends BasePresenter
 {
@@ -26,14 +26,14 @@ final class MonitorPresenter extends BasePresenter
   public $devices;
 
   // http://apimeteo.echo-msz.eu/monitor/show/aaabbb/2/
-  public function renderShow($id, $token)
+  public function renderShow(string $id, string $token)
   {
     $userData = $this->user_main->getUser((int)$id);
     if ($userData == null) {
-      $this->error('Zariadenie nebolo nájdené...');
+      $this->error('Užívateľ s daným id nebol nájdený...');
     }
     if (!$token || ($userData['monitoring_token'] !== $token)) {
-      $this->error('Token nesouhlasí.');
+      $this->error('Token nesúhlasí.');
     }
     $this->template->devices = $this->devices->getDevicesUser((int)$id);
 

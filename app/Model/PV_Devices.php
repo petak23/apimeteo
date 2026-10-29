@@ -14,13 +14,13 @@ use function is_array, array_merge;
 /**
  * Model, ktory sa stara o tabulku devices
  * 
- * Posledna zmena 23.10.2026
+ * Posledna zmena 29.10.2026
  * 
  * @author     Ing. Peter VOJTECH ml. <petak23@gmail.com>
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version    1.1.3
+ * @version    1.1.4
  */
 class PV_Devices
 {
@@ -29,23 +29,24 @@ class PV_Devices
 	private Database\Table\Selection $devices;
 	private Model\PV_Sessions $pv_sessions;
 	private Database\Table\Selection $measures;
-	private Database\Table\Selection $sumdata;
+	private Model\PV_Sumdata $sumdata;
 
 	private Model\PV_Sensors $pv_sensors;
 
 	public function __construct(
 		Database\Explorer $database,
 		Model\PV_Sensors $pv_sensors,
-		Model\PV_Sessions $sessions
+		Model\PV_Sessions $sessions,
+		Model\PV_Sumdata $sumdata
 	) {
 		$this->devices = $database->table("devices");
 		$this->measures = $database->table("measures");
-		$this->sumdata = $database->table("sumdata");
+		$this->sumdata = $sumdata;
 		$this->pv_sessions = $sessions;
 		$this->pv_sensors = $pv_sensors;
 	}
 
-	public function getDevicesUser(int $userId, bool $return_as_array = false): VDevices|array
+	public function getDevicesUser(int $userId): array
 	{
 		$rc = new VDevices();
 		// načítame zariadenia
@@ -53,23 +54,13 @@ class PV_Devices
 		$result = $this->devices->where(['user_id' => $userId])->order('id ASC');
 
 		if ($result->count() > 0) {
+			$out = [];
 			foreach ($result as $row) {
-				$dev = new VDevice($row, $return_as_array);
-				if ($dev->attrs['last_bad_login'] != NULL) {
-					if ($dev->attrs['last_login'] != NULL) {
-						$lastLoginTs = (DateTime::from($dev->attrs['last_login']))->getTimestamp();
-						$lastErrLoginTs = (DateTime::from($dev->attrs['last_bad_login']))->getTimestamp();
-						if ($lastErrLoginTs >  $lastLoginTs) {
-							$dev->problem_mark = true;
-						}
-					} else {
-						$dev->problem_mark = true;
-					}
-				}
-				// Pridám zariadenie a k nemu načítam senzory
-				$rc->addWithSensors($dev, $this->pv_sensors->getDeviceSensors($row->id, $row->monitoring), $return_as_array);
+				$_o = $this->_deviceInfo($row, true, true);
+				if ($_o['status'] == 200) $out[$_o['data']['id']] = $_o['data'];
+				else $out[$row->id] = [];
 			}
-			return $return_as_array ? ['status' => 200, 'message' => "", 'data' => $rc->returnAsArray()] : $rc;
+			return ['status' => 200, 'message' => "", 'data' => $out];
 		} else {
 			// Žiadne zariadenia
 			return ['status' => 200, 'message' => "Pre užívateľa s id: " . $userId. " neboli nájdené žiadne zariadenia.", 'data' => null];
@@ -135,10 +126,22 @@ class PV_Devices
 		bool $with_sensors = false,
 		bool $return_as_array = false
 	)	: VDevice|array {
-		$d = new VDevice($device);
+		$d = new VDevice($this->sumdata, $device, true);
+		//dumpe($d);
+		if ($d->attrs['last_bad_login'] != NULL) {
+			if ($d->attrs['last_login'] != NULL) {
+				$lastLoginTs = (DateTime::from($d->attrs['last_login']))->getTimestamp();
+				$lastErrLoginTs = (DateTime::from($d->attrs['last_bad_login']))->getTimestamp();
+				if ($lastErrLoginTs >  $lastLoginTs) {
+					$d->problem_mark = true;
+				}
+			} else {
+				$d->problem_mark = true;
+			}
+		}
 		if ($with_sensors) {
 			// Pridám zariadenie a k nemu načítam senzory
-			$sensors = $this->pv_sensors->getDeviceSensors($device->id, $d->attrs->monitoring);
+			$sensors = $this->pv_sensors->getDeviceSensors($device->id, $d->attrs['monitoring']);
 			if ($sensors != null && $sensors->count()) {
 				foreach ($sensors as $s) {
 					$d->addSensor($s, $return_as_array);
@@ -146,12 +149,9 @@ class PV_Devices
 			}
 		}
 		if ($return_as_array) {
-			$_d = $d->attrs->toArray();
+			$_d = $d->attrs;
 			$_d['problem_mark'] = $d->problem_mark;
 			$_d['sensors'] = $d->sensors;
-			$_d['first_login'] = $_d['first_login'] != null ? $_d['first_login']->format('d.m.Y H:i:s') : null;
-			$_d['last_login'] = $_d['last_login'] !=null ? $_d['last_login']->format('d.m.Y H:i:s') : null;
-			$_d['uptime_readable'] = $this->secondsToTime((int)($_d['uptime']/1000)); // TODO: prevod z ms na s dočasný!!!
 			$d = ['status' => 200, 'data'=> $_d];
 		}
 		return $d;
@@ -211,46 +211,6 @@ class PV_Devices
 
 		Logger::log('webapp', Logger::DEBUG,  "Delete OK.");
 	}
-
-	
-	private function secondsToTime(int $inputSeconds)
-	{
-		$secondsInAMinute = 60;
-		$secondsInAnHour = 3600;
-		$secondsInADay = 86400;
-
-		// Extract days
-		$days = floor($inputSeconds / $secondsInADay);
-
-		// Extract hours
-		$hourSeconds = $inputSeconds % $secondsInADay;
-		$hours = floor($hourSeconds / $secondsInAnHour);
-
-		// Extract minutes
-		$minuteSeconds = $hourSeconds % $secondsInAnHour;
-		$minutes = floor($minuteSeconds / $secondsInAMinute);
-
-		// Extract the remaining seconds
-		$remainingSeconds = $minuteSeconds % $secondsInAMinute;
-		$seconds = ceil($remainingSeconds);
-
-		// Format and return
-		$timeParts = [];
-		$sections = [
-			'd' => (int)$days,
-			'hod' => (int)$hours,
-			'min' => (int)$minutes,
-			'sec' => (int)$seconds,
-		];
-
-		foreach ($sections as $name => $value) {
-			if ($value > 0) {
-				$timeParts[] = $value . ' ' . $name;
-			}
-		}
-
-		return implode(', ', $timeParts);
-	}
 }
 // ------------------------------------  End class PV_Devices
 
@@ -309,6 +269,8 @@ class VDevice
 {
 	use Nette\SmartObject;
 
+	public Model\PV_Sumdata $sumdata;
+
 	/** Kompletné data o zariadení */
 	public Database\Table\ActiveRow|array|null $attrs;
 
@@ -318,23 +280,73 @@ class VDevice
 	/** Pole senzorov zariadenia */
 	public array $sensors = [];
 
-	public function __construct(Database\Table\ActiveRow|array|null $attrs = null, bool $return_as_array = false)
+	public function __construct(Model\PV_Sumdata $sumdata, Database\Table\ActiveRow|array|null $attrs = null, bool $return_as_array = false)
 	{
 		$this->attrs = $return_as_array ? $attrs->toArray() : $attrs;
+		if ($return_as_array) {
+			$this->attrs['first_login'] = $this->attrs['first_login'] != null ? $this->attrs['first_login']->format('d.m.Y H:i:s') : null;
+			$this->attrs['last_login'] = $this->attrs['last_login'] != null ? $this->attrs['last_login']->format('d.m.Y H:i:s') : null;
+			$this->attrs['uptime_readable'] = $this->secondsToTime((int)($this->attrs['uptime']/1000));
+		}
+		$this->sumdata = $sumdata;
 	}
 
 	public function addSensor(Database\Table\ActiveRow|array $sensorAttrs, bool $return_as_array = false): void
 	{
 		$out = [];
 		if ($return_as_array) {
-			$out = array_merge(
-				[
-					'value_unit' => $sensorAttrs->value_types->unit,
-					'sensor_class' => $sensorAttrs->sensor_classes->desc,
-				],
-				$sensorAttrs->toArray()
-			);
+			$sumdata = $this->sumdata->getOneDay($sensorAttrs->id, 'rec_date DESC, rec_hour DESC', 24, true);
+			$out = $sensorAttrs->toArray();
+			$out = [	// Ako náhrada za array_merge
+				...$out,
+				'value_unit' => $sensorAttrs->value_types->unit,
+				'sensor_class' => $sensorAttrs->sensor_classes->desc,
+				'last_data_time' => $out['last_data_time'] != null ? $out['last_data_time']->format('d.m.Y H:i:s') : null,
+				'warn_noaction_fired' => $out['warn_noaction_fired'] != null ? $out['warn_noaction_fired']->format('d.m.Y H:i:s') : null,
+				'sumdata' => $sumdata,
+				'sumdata_day' => $this->sumdata->getOneDaySum($sensorAttrs->id)
+			];
+			
 		}
 		$this->sensors[$sensorAttrs->id] = $return_as_array ? $out : $sensorAttrs;
+	}
+
+	private function secondsToTime(int $inputSeconds): string
+	{
+		$secondsInAMinute = 60;
+		$secondsInAnHour = 3600;
+		$secondsInADay = 86400;
+
+		// Extract days
+		$days = floor($inputSeconds / $secondsInADay);
+
+		// Extract hours
+		$hourSeconds = $inputSeconds % $secondsInADay;
+		$hours = floor($hourSeconds / $secondsInAnHour);
+
+		// Extract minutes
+		$minuteSeconds = $hourSeconds % $secondsInAnHour;
+		$minutes = floor($minuteSeconds / $secondsInAMinute);
+
+		// Extract the remaining seconds
+		$remainingSeconds = $minuteSeconds % $secondsInAMinute;
+		$seconds = ceil($remainingSeconds);
+
+		// Format and return
+		$timeParts = [];
+		$sections = [
+			'd' => (int)$days,
+			'hod' => (int)$hours,
+			'min' => (int)$minutes,
+			'sec' => (int)$seconds,
+		];
+
+		foreach ($sections as $name => $value) {
+			if ($value > 0) {
+				$timeParts[] = $value . ' ' . $name;
+			}
+		}
+
+		return implode(', ', $timeParts);
 	}
 }

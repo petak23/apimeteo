@@ -9,7 +9,7 @@ use function sprintf, intval;
 
 /**
  * Prezenter pre pristup k api senzorov.
- * Posledna zmena(last change): 02.08.2026
+ * Posledna zmena(last change): 29.10.2026
  *
  * Modul: API
  *
@@ -17,7 +17,7 @@ use function sprintf, intval;
  * @copyright  Copyright (c) 2012 - 2026 Ing. Peter VOJTECH ml.
  * @license
  * @link       http://petak23.echo-msz.eu
- * @version 1.1.0
+ * @version 1.1.1
  */
 class SensorsPresenter extends BasePresenter
 {
@@ -44,7 +44,8 @@ class SensorsPresenter extends BasePresenter
 	public function actionSensors(int $id): void
 	{
 		$d = $this->devices->getDevice($id, true, true);
-		$this->sendJson($d["sensors"]);
+		//dumpe($d);
+		$this->sendJson($d);
 	}
 
 	public function actionSensor(int $id): void
