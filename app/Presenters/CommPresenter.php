@@ -93,10 +93,10 @@ class CommPresenter extends BasePresenter
 				$logger->write( Logger::INFO, "postMessage: {$postMessage}" );
 				throw new \Exception("Device with name: >{$json_msg['device_name']}< not found!");
 			} else {
-				$logger->write( Logger::INFO, "Device found ID: {$device->attrs->id} with device_name: {$device->attrs->name}" );
-				if ($json_msg["appname"] !== $device->attrs->app_name) {
+				$logger->write( Logger::INFO, "Device found ID: {$device["data"]['id']} with device_name: {$device['data']['name']}" );
+				if ($json_msg["appname"] !== $device['data']['app_name']) {
 					$app_name = ($json_msg["appname"] ?? 'unknown') . date(', Y-m-d');
-					$this->pv_devices->updateDevice($device->attrs->id, ['app_name' => $app_name]);
+					$this->pv_devices->updateDevice($device['data']['id'], ['app_name' => $app_name]);
 					$logger->write( Logger::INFO, "Device app_name updated to: {$app_name}" );
 				}
 			}
@@ -108,8 +108,8 @@ class CommPresenter extends BasePresenter
 
 			// zalozit session
 			$sessionHash = Random::generate(8, '0-9A-Za-z');
-			$sessionId = $this->pv_sessions->createLoginSession( $device->attrs->id, $sessionHash, $control_hash,	$remoteIp );
-			$this->pv_devices->updateDevice($device->attrs->id, ['last_login' => new \DateTime, 'last_ip' => $remoteIp]);
+			$sessionId = $this->pv_sessions->createLoginSession( $device['data']['id'], $sessionHash, $control_hash,	$remoteIp );
+			$this->pv_devices->updateDevice($device['data']['id'], ['last_login' => new \DateTime, 'last_ip' => $remoteIp]);
 
 		} catch (\Exception $e) {
 			$logger->write( Logger::ERROR,  "ERR(comm-login-main): " . get_class($e) . ": " . $e->getMessage() );
@@ -120,8 +120,8 @@ class CommPresenter extends BasePresenter
 			$this->terminate();
 		}
 
-		$logger->write( Logger::INFO, "login-OK D:{$device->attrs->id} S:{$sessionId}" );
-		$this->sendJson(['status' => 200, 'device_id' => $device->attrs->id, 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
+		$logger->write( Logger::INFO, "login-OK D:{$device['data']['id']} S:{$sessionId}" );
+		$this->sendJson(['status' => 200, 'device_id' => $device['data']['id'], 'session_id' => $sessionId, 'session_hash' => $sessionHash]);
 	}
 
 	/**
