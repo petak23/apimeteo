@@ -88,7 +88,7 @@ class CommPresenter extends BasePresenter
 				throw new \Exception("Bad request (1). Incorect JSON format of incoming data!!!");
 			}
 
-			$device = $this->pv_devices->getDeviceBy(['name' => $json_msg["device_name"]]);
+			$device = $this->pv_devices->getDeviceBy(['name' => $json_msg["device_name"]],FALSE, true);
 			if (is_array($device) && isset($device["status"]) && $device["status"] == 404) {
 				$logger->write( Logger::INFO, "postMessage: {$postMessage}" );
 				throw new \Exception("Device with name: >{$json_msg['device_name']}< not found!");
