@@ -20,7 +20,7 @@ class UnitsPresenterTest extends TestCase
 
 	public function testDefaultAction()
 	{
-		$response = HttpAssert::fetch('http://localhost/~petak23/apimeteo/units');
+		$response = HttpAssert::fetch('http://localhost/apimeteo/units');
 		$response
 			->expectCode(200)
 			->expectHeader('Content-Type', contains: 'json')

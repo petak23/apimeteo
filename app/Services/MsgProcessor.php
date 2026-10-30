@@ -95,7 +95,7 @@ class MsgProcessor
 		if ($sensor->id_sensor_classes == 1 || $sensor->id_sensor_classes == 2 || $sensor->id_sensor_classes == 4) { 
 			// senzor DEVCLASS_CONTINUOUS_MINMAXAVG, DEVCLASS_CONTINUOUS a RAIN_SUM
 			$value_out = filter_var($value, FILTER_VALIDATE_FLOAT); // Zmeň data na float
-			$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");	
+			//$logger->write(Logger::INFO,  "data: ch:{$sensor->channel_id} s:{$sensor->id} '{$value}' C-> {$value_out} @ ");	
 		} 
 		//TODO: ***** Zatiaľ vypnuté *****
 		else {

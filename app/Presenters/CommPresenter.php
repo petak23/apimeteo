@@ -181,7 +181,7 @@ class CommPresenter extends BasePresenter
 			$postMessage = $httpRequest->getRawBody(); // Ulož príchodziu správu zisti jej veľkosť a zaloguj
 			$postSize = strlen( $postMessage );
 			$logger->write( Logger::INFO, "Begin of Datajson: data+ {$postSize}b {$remoteIp}");
-
+			$logger->write( Logger::INFO, $postMessage);
 			try { // Dekóduj do json-u
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
 			} catch (Utils\JsonException $e) {

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
-//use Tester\Assert;
+use Tester\Assert;
 use Tester\TestCase;
 use Tester\HttpAssert;
 use App\Services;
@@ -32,10 +32,12 @@ class CommPresenterTest extends TestCase
 	public function testLoginAction()
 	{
 		$data = [
+			'login_time' => '30.10.2026 07:50:00',
+			'comm_key' => hash('sha256', 'AA:testdevice' . "Ka5t_Qu1646" . '30.10.2026 07:50:00' . 'TestApp'),
 			'device_name' => 'AA:testdevice',
-			'login_time' => '2025-11-11 12:00:00',
 			'appname' => 'TestApp',
-			'payload_hash' => hash('sha256', 'PV:testdevice' . "Ka5t_Qu1646" . '2025-11-11 12:00:00' . 'TestApp'),
+			"rssi"=>-88,
+			"uptime"=>"2"
 		];
 
 		$response = HttpAssert::fetch(
