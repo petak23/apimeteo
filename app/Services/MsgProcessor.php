@@ -71,7 +71,7 @@ class MsgProcessor
 				} 
 				if ($sensor != null) { // Zapíšem dáta do kanála
 					//$logger->write( Logger::INFO,  "MsgProcessor:process_pv => dataof chanel={$ds['id']}" );
-					$this->processDataPV($sessionDevice, $ds['raw_value'], $remoteIp, $sensor, $msgTotal["last_measure"], $logger);
+					$this->processDataPV($sessionDevice, (string)$ds['raw_value'], $remoteIp, $sensor, $msgTotal["last_measure"], $logger);
 				}
 			}
 		}
