@@ -181,18 +181,18 @@ class CommPresenter extends BasePresenter
 			$postMessage = $httpRequest->getRawBody(); // Ulož príchodziu správu zisti jej veľkosť a zaloguj
 			$postSize = strlen( $postMessage );
 			$logger->write( Logger::INFO, "Begin of Datajson: data+ {$postSize}b {$remoteIp}");
-			$logger->write( Logger::INFO, $postMessage);
+			//$logger->write( Logger::INFO, $postMessage);
 			try { // Dekóduj do json-u
 				$json_msg = Utils\Json::decode($postMessage, forceArrays: true);
 			} catch (Utils\JsonException $e) {
-				throw new \Exception("Bad request (1). Incorrect JSON format of incoming data!!!");
+				throw new \Exception("[CommPresenter:actionDatajson] Bad request (1). Incorrect JSON format of incoming data!!!");
 			}
 			
 			if( !isset($json_msg["session_id"]) || 
 					!isset($json_msg["session_hash"]) || 
 					Strings::length( $json_msg["session_hash"] ) == 0  
 				) {
-				throw new \Exception("Empty session ID.");
+				throw new \Exception("[CommPresenter:actionDatajson] Empty session ID.");
 			} 
 
 			$sessionDevice = $this->pv_sessions->checkSessionPV( $json_msg["session_id"], $json_msg["session_hash"] ); // Over session id voči session hash
@@ -208,15 +208,15 @@ class CommPresenter extends BasePresenter
 			$control_hash = hash('sha256', $str_message);
 
 			if( $control_hash !== $json_msg["payload_hash"]  ) {
-				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}" );
-				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: {$str_message}" );
+				$logger->write( Logger::ERROR,  "[CommPresenter:actionDatajson] ERR: Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}" );
+				$logger->write( Logger::ERROR,  "[CommPresenter:actionDatajson] ERR: str_message: {$str_message}" );
 				throw new \Exception("Not valid sha256 of message! {$control_hash} != {$json_msg['payload_hash']}");
 			}
 			//$logger->write( Logger::INFO,  "CommPresenter:str_message: {$str_message}");
 
 			if( strlen($data_string) !== (int)$json_msg["data_length"]  ) {
-				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"] );
-				$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: str_message: {$str_message}" );
+				$logger->write( Logger::ERROR,  "[CommPresenter:actionDatajson] ERR: Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"] );
+				$logger->write( Logger::ERROR,  "[CommPresenter:actionDatajson] ERR: str_message: {$str_message}" );
 				throw new \Exception("Incorrect data length!: expected: " . strlen($data_string) . ", given: " . $json_msg["data_length"]);
 			}
 			
@@ -224,18 +224,10 @@ class CommPresenter extends BasePresenter
 				$logger->write(Logger::INFO, $json_msg["log"]);
 			}
 
-			/*
-			Aktuálny formát:
-			[0] - dátum a čas odoslania = $json_msg["last_measure"]
-			[1] - dĺžka dát = $json_msg["data_length"]
-			[2] - data = $json_msg["sensors"]
-			*/
 			$_data = [
-				"last_measure"	=> $json_msg["last_measure"], 
-				"data_length"		=> $json_msg["data_length"],  //TODO - asi nevyužité
-				"sensors" 	=> $json_msg["sensors"], 
-				"uptime" 		=> $json_msg["uptime"],
-				//"sensors_n"	=> $json_msg["sensors_n"]				// TODO - zatiaľ nevyužité
+				"last_measure"	=> $json_msg["last_measure"], // dátum a čas odoslania
+				"sensors" 	=> $json_msg["sensors"], // data senzorov
+				"uptime" 		=> $json_msg["uptime"],	// uptime zariadenia
 			];
 			$this->msgProcessor->process_pv( $sessionDevice, $_data, $remoteIp, $logger );  
 
@@ -248,11 +240,11 @@ class CommPresenter extends BasePresenter
 			if ($e instanceof AbortException) {
 					throw $e;
 			}
-			$logger->write( Logger::ERROR,  "CommPresenter:actionDatajson:Ex=> ERR: " . get_class($e) . "(".$e->getCode()."): " . $e->getMessage() );
+			$logger->write( Logger::ERROR,  "[CommPresenter:actionDatajson] ERR: " . get_class($e) . "(".$e->getCode()."): " . $e->getMessage() );
 			
 			$httpResponse = $this->getHttpResponse();
 			$httpResponse->setCode($e->getCode() != 0 ? $e->getCode() : Http\IResponse::S400_BadRequest );
-			$this->sendJson(['status' => $e->getCode() != 0 ? $e->getCode() : 400, 'message' => "CommPresenter:actionDatajson:Ex=> ERR {$e->getMessage()}"]);
+			$this->sendJson(['status' => $e->getCode() != 0 ? $e->getCode() : 400, 'message' => "[CommPresenter:actionDatajson] ERR {$e->getMessage()}"]);
 			$this->terminate();
 		}
 	}

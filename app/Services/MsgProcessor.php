@@ -48,7 +48,7 @@ class MsgProcessor
 
 	/**
 	 * Spracuje jeden request; ten ale môže obsahovať viacej správ.
-	 * @var array $msgTotal = [<last_measure>, <data_length>, <sensors>, <uptime>]
+	 * @var array $msgTotal = [<last_measure>, <sensors>, <uptime>]
 	 * Formát dát ako pole:
 	 *  ["id", "raw_value", "id_sensor_classes", "id_value_types", "preprocess_factor"]
 	 */
@@ -59,7 +59,6 @@ class MsgProcessor
 		// Aktualizuj dobu prevádzky alebo bezporuchovosti vo formáte čísla - sekúnd
 		$this->pv_devices->setUptime( $sessionDevice->device_id, (int)$msgTotal["uptime"]); 
 		
-		//TODO oprav podľa nového.
 		foreach ($msgTotal["sensors"] as $ds) {						// Spracujem data z jednotlivých senzorov
 
 			if ($ds != null) {
