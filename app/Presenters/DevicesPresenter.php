@@ -3,8 +3,10 @@
 namespace App\Presenters;
 
 use App\Model;
+use App\Model\PV_Updates;
 use App\Services;
 use Nette\Database;
+use Nette\Http\FileUpload;
 use Nette\Utils\DateTime;
 use Nette\Utils\Strings;
 
@@ -34,6 +36,8 @@ class DevicesPresenter extends BasePresenter
 	public $measures;
 	/** @var Model\PV_Sumdata @inject */
 	public $sumdata;
+	/** @var Model\PV_Updates @inject */
+	public $updates;
 
 	/** @var Services\Config */
 	public $config;
@@ -88,7 +92,8 @@ class DevicesPresenter extends BasePresenter
 					'url'				=> /*$this->link('//:Ra:')*/ $this->template->baseUrl . '/ra',
 					'name_no_prefix' => $name_no_prefix,
 					'passphrase' => $pp,
-					'last_data_time' => $lastTime ? DateTime::from($lastTime)->format('d.m.Y H:i:s') : null
+					'last_data_time' => $lastTime ? DateTime::from($lastTime)->format('d.m.Y H:i:s') : null,
+					'updates' => $this->updates->getOtaUpdates($id, true)
 				]);
 			}
 		} else {
@@ -111,16 +116,18 @@ class DevicesPresenter extends BasePresenter
 			$se = [];
 			foreach ($dd['sensors'] as $sensor) {
 				$sumdata = $this->sumdata->getOneDay($sensor['id'], 'rec_date DESC, rec_hour DESC', 24, true);
+				//dump($sensor);
 				$se[$sensor['id']] = [
 					'value_unit' => $sensor['value_unit'],
 					'name' =>	$sensor['name'],
 					'desc' =>	$sensor['desc'],
-					'last_data_time' => $sensor['last_data_time'] ? $sensor['last_data_time']->format('d.m.Y H:i:s') : null,
+					'last_data_time' => $sensor['last_data_time'],
 					'last_out_value' => $sensor['last_out_value'],
 					'sumdata' => $sumdata,
 					'sumdata_day' => $this->sumdata->getOneDaySum($sensor['id'])
 				];
 			}
+			//dumpe($se);
 			$out = [
 				'status' => $device['status'],
 				'message'=> "",
@@ -189,4 +196,81 @@ class DevicesPresenter extends BasePresenter
 		
 		$this->sendJson($out);
 	}
+
+	/**
+	 * Akcia pre spracovanie OTA aktualizácií zariadení.
+	 * @param int $id - id zariadenia
+	 * @throws \Nette\Application\AbortException
+	 */
+	public function actionUpdate(int $id): void
+	{
+		$request = $this->getHttpRequest();
+		$values = $request->getPost();
+		if (str_contains((string) $request->getHeader('Content-Type'), 'application/json')) {
+			$jsonValues = json_decode(file_get_contents('php://input'), true);
+			if (is_array($jsonValues)) {
+				$values = $jsonValues;
+			}
+		}
+
+		$device = $this->devices->getDevice($id);
+		//dumpe($values, $request->getHeader('Content-Type'), $request->getRawBody());
+		if (!$device) {
+			$out = ["status" => 404, "message" => "Zariadenie sa nenašlo"];
+		} else if ($this->user->id != $device->attrs['user_id']) {
+			Services\Logger::log(
+				'audit',
+				Services\Logger::ERROR,
+				sprintf("Užívateľ #%s (%s) zkúsil editovať aktualizáciu zariadenia patriace užívateľovi #%s", $this->user->id, $this->user->getIdentity()->email, $device->attrs['user_id'])
+			);
+			$this->user->logout(true);
+			$out = ["status" => 500, "message" => "K tomuto zariadeniu nemáte oprávnený prístup!"];
+		} else if (isset($values['delete'])) {
+			$this->updates->otaDeleteUpdate($id, (int) $values['update_id']);
+			$out = ["status" => 200, "message" => "Aktualizácia bola vymazaná."];
+		} else {
+			$fromVersion = $values['fromVersion'] ?? null;
+			$file = $request->getFile('file');
+			if (!is_string($fromVersion) || $fromVersion === '' || strlen($fromVersion) > 200) {
+				$out = ["status" => 400, "message" => "Chýba platná hodnota fromVersion."];
+			} else if (!$file instanceof FileUpload || !$file->hasFile() || !$file->isOk()) {
+				$out = ["status" => 400, "message" => "Súbor nebol úspešne nahraný. Upload error code: " . ($file instanceof FileUpload ? $file->getError() : 'unknown')];
+			} else {
+				$fileHash = hash_file('sha256', $file->getTemporaryFile());
+				if ($fileHash === false) {
+					$out = ["status" => 500, "message" => "Nepodarilo sa vypočítať hash nahraného súboru."];
+				} else {
+					$originalName = $file->getSanitizedName();
+					$extension = substr(pathinfo($originalName, PATHINFO_EXTENSION), 0, 32);
+					$baseName = pathinfo($originalName, PATHINFO_FILENAME);
+					$maxBaseNameLength = 200 - 5 - 1 - ($extension === '' ? 0 : strlen($extension) + 1);
+					$baseName = substr($baseName, 0, $maxBaseNameLength);
+					$dataDirectory = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'data';
+					do {
+						$suffix = substr(bin2hex(random_bytes(3)), 0, 5);
+						$filename = $baseName . '-' . $suffix . ($extension === '' ? '' : '.' . $extension);
+						$destination = $dataDirectory . DIRECTORY_SEPARATOR . $filename;
+					} while (file_exists($destination));
+
+					$file->move($destination);
+					try {
+						$update = $this->updates->otaUpdateCreate($id, $fromVersion, $fileHash, $filename);
+					} catch (\Throwable $e) {
+						unlink($destination);
+						throw $e;
+					}
+
+					if ($update === -1 || $update === null) {
+						unlink($destination);
+						$out = ["status" => 500, "message" => "Pre dané zariadenie a verziu aktualizácia už existuje."];
+					} else {
+						$out = ["status" => 200, "message" => "Aktualizácia bola vytvorená.", "data" => $update];
+					}
+				}
+			}
+		}
+
+		$this->sendJson($out);
+	}
+
 }

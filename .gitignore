@@ -7,3 +7,4 @@ deployment.*
 www/favicon
 .history/
 ssl/
+www/data/
